@@ -1,0 +1,84 @@
+/*
+ *写login数据
+{
+    "datas":{
+            "emu_cid":"90000000",
+            "version":"1.0",
+            "action":"login",
+            "sys_time":"2022-12-23 13:58:02"
+        }
+}
+
+
+ *写hand 数据
+ "datas":{
+         "emu_cid":"90000000",
+         "version":"1.0",
+         "action":"login",
+         "sys_time":"2022-12-23 13:58:02"
+     }
+
+ *写发电 数据
+{
+    "datas":[
+        {
+            "emu_cid":"90000000",
+            "emu_time":"2022-12-23 13:58:02",
+            "mi_cid":"10010001",
+            "pv_id":1,
+            "mim_version":"1.1",
+            "mis_version":"1.1",
+            "pv":"1.12",
+            "power":"1.13",
+            "energy":"2.33",
+            "temperature":"1.52",
+            "grid_v":"1.65",
+            "grid_f":"1.63",
+            "mim_err":"0000",
+            "mis_err":"0000",
+            "nominal_power":600,
+            "reissue_data":"NO",
+            "sys_time":"2022-12-23 13:58:02"
+        }
+    ]
+}
+/////
+ *读网关下微逆对象列表
+{
+    "params":
+        {
+            "room_id":"room-1",
+            "emu_cid":"90000001"
+        }
+}
+ *返回的网关下微逆对象列表
+{
+    "datas":
+    [
+         {
+             "room_id":"room-1",
+             "rack_id":"rack-1",
+             "pos":"1-1",
+             "mi_cid":"10010085"
+         }
+    ]
+}
+/////
+* 写 微逆属性表
+{
+   "datas":[
+       {
+           "mi_cid":"10010085",
+           "nominal_power":1,
+           "mim_version":500,
+           "mis_version":500
+       },
+       {
+           "mi_cid":"room-1",
+           "nominal_power":1,
+           "mim_version":500,
+           "mis_version":500
+       }
+   ]
+}
+*/
