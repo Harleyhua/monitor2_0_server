@@ -29,8 +29,8 @@
 #include "ag_emu_status_table.h"
 
 QMutex sql_lock;   //数据库建立连接锁，避免多线程是同时连接的异常
-mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试
-//mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas2"};   //本机
+//mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试
+mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas2"};   //本机
 //mysql_login_stc login_param = {"1.117.152.46",3306,"root","zjbeny001","bydas"};
 
 mysql::mysql(QString db_name, QObject *parent)
