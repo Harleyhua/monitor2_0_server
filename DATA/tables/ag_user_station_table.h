@@ -57,12 +57,12 @@ public:
 
     bool is_station_exist(QSqlDatabase &m_database,QString user,QString station);
 
-    void write_station(QSqlDatabase &m_database,QJsonObject &w_data);
-    void write_station(QSqlDatabase &m_database,QString account,QJsonObject &w_data);
-    void read_station(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data);
-    void read_station(QSqlDatabase &m_database,QString account,QJsonObject &data);
+    //void write_station(QSqlDatabase &m_database,QJsonObject &w_data);
+    void write_station(QSqlDatabase &m_database,QString total_station,QJsonObject &w_data);
+    //void read_station(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data);
+    void read_station(QSqlDatabase &m_database,QString total_station,QJsonObject &data);
 
-    void del_station_by_station(QSqlDatabase &m_database,QString station);
+    void del_station_by_station(QSqlDatabase &m_database,QString total_station);
     static const QString c_field_account;
     static const QString c_field_station;
 private:

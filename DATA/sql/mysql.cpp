@@ -27,10 +27,11 @@
 #include "ag_mi_report_table.h"
 #include "ag_device_control_table.h"
 #include "ag_emu_status_table.h"
+#include "ag_user_act_table.h"
 
 QMutex sql_lock;   //数据库建立连接锁，避免多线程是同时连接的异常
-//mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试
-mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas2"};   //本机
+mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试 本机
+//mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas2"};   //本机
 //mysql_login_stc login_param = {"1.117.152.46",3306,"root","zjbeny001","bydas"};
 
 mysql::mysql(QString db_name, QObject *parent)
@@ -87,6 +88,8 @@ bool mysql::table_init()
     ag_mi_report_table tmp_mi_report_tb;
     ag_device_control_table tmp_dev_ctl_tb;
     ag_emu_status_table tmp_emu_status_tb;
+    ag_user_act_table tmp_user_act_tb;
+
     ret &= create_database(m_db.databaseName()); //创建数据库 if not exist
     ret &= tmp_gt_dt_tb.create_table(m_db);
     ret &= tmp_mi_pro_tb.create_table(m_db);
@@ -105,6 +108,7 @@ bool mysql::table_init()
     ret &= tmp_mi_report_tb.create_table(m_db);
     ret &= tmp_dev_ctl_tb.create_table(m_db);
     ret &= tmp_emu_status_tb.create_table(m_db);
+    ret &= tmp_user_act_tb.create_table(m_db);
     for(int i=1;i<=12;i++)
     {
         QString year = QDateTime::currentDateTime().toString("yy");
@@ -167,7 +171,12 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
 
     QJsonObject st_obj;
 
-    tmp_us_tb.read_station(m_db,account,us_obj);
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,account,total_station);
+
+    tmp_us_tb.read_station(m_db,total_station,us_obj);
 
     st_array = us_obj.value("datas").toObject().value("station").toArray();
     for(int i=0;i<st_array.size();i++)
@@ -247,7 +256,12 @@ void mysql::add_station(QString user, QJsonObject &s_data)
 {
     ag_user_station_table tmp_tb;
 
-    tmp_tb.write_station(m_db,user,s_data);
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
+
+    tmp_tb.write_station(m_db,total_station,s_data);
 
 }
 
@@ -256,8 +270,13 @@ void mysql::add_emu_cid(QString user, QJsonObject &s_data)
     QString station = s_data.value("params").toObject().value("station").toString();
     ag_user_station_table tmp_us_tb;
     ag_station_emu_table tmp_sta_tb;
+
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
     //如果当前电站存在  则允许添加网关
-    if(tmp_us_tb.is_station_exist(m_db,user,station))
+    if(tmp_us_tb.is_station_exist(m_db,total_station,station))
     {
         tmp_sta_tb.w_emu(m_db,station,s_data);
     }
@@ -271,7 +290,12 @@ void mysql::add_plcmi_cid(QString user, QJsonObject &s_data)
     ag_user_station_table tmp_us_tb;
     ag_station_emu_table tmp_sta_emu_tb;
     ag_emu_mi_table tmp_emu_mi_tb;
-    if(tmp_us_tb.is_station_exist(m_db,user,station))
+
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
+    if(tmp_us_tb.is_station_exist(m_db,total_station,station))
     {
         if(tmp_sta_emu_tb.is_emu_exist(m_db,station,emu))
         {
@@ -292,7 +316,11 @@ void mysql::add_wifimi_cid(QString user, QJsonObject &s_data)
         ag_user_station_table tmp_us_tb;
         ag_station_emu_table tmp_sta_emu_tb;
         ag_emu_mi_table tmp_emu_mi_tb;
-        if(tmp_us_tb.is_station_exist(m_db,user,station))
+        QString total_station;
+        ag_user_table tmp_user_tb;
+
+        tmp_user_tb.read_total_stations(m_db,user,total_station);
+        if(tmp_us_tb.is_station_exist(m_db,total_station,station))
         {
 
             tmp_sta_emu_tb.w_one_emu(m_db,station,emu,"");
@@ -325,8 +353,12 @@ void mysql::del_station(QString user, QJsonObject &s_data)
 void mysql::del_emu(QString user, QString station, QString emu)
 {
     ag_user_station_table tmp_us_tb;
+    QString total_station;
+    ag_user_table tmp_user_tb;
 
-    if(tmp_us_tb.is_station_exist(m_db,user,station))
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
+
+    if(tmp_us_tb.is_station_exist(m_db,total_station,station))
     {
         ag_station_emu_table tmp_st_emu_tb;
         if(tmp_st_emu_tb.is_emu_exist(m_db,station,emu))
@@ -344,8 +376,11 @@ void mysql::del_emu(QString user, QString station, QString emu)
 void mysql::del_emu(QString user, QJsonObject &s_data)
 {
     ag_user_station_table tmp_us_tb;
+    QString total_station;
+    ag_user_table tmp_user_tb;
 
-    if(tmp_us_tb.is_station_exist(m_db,user,s_data.value("station").toString()))
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
+    if(tmp_us_tb.is_station_exist(m_db,total_station,s_data.value("station").toString()))
     {
         ag_station_emu_table tmp_st_emu_tb;
         if(tmp_st_emu_tb.is_emu_exist(m_db,s_data.value("station").toString(),s_data.value("emu_cid").toString()))
@@ -365,8 +400,11 @@ void mysql::del_emu(QString user, QJsonObject &s_data)
 void mysql::del_mi(QString user, QJsonObject &s_data)
 {
     ag_user_station_table tmp_us_tb;
+    QString total_station;
+    ag_user_table tmp_user_tb;
 
-    if(tmp_us_tb.is_station_exist(m_db,user,s_data.value("station").toString()))
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
+    if(tmp_us_tb.is_station_exist(m_db,total_station,s_data.value("station").toString()))
     {
         ag_station_emu_table tmp_st_emu_tb;
         if(tmp_st_emu_tb.is_emu_exist(m_db,s_data.value("station").toString(),s_data.value("emu_cid").toString()))
@@ -844,7 +882,13 @@ bool mysql::w_device_ctl(QString user,QJsonObject &s_data)
     QString emu = s_data.value("emu_cid").toString();
     ag_user_station_table tmp_us_tb;
     ag_station_emu_table tmp_sta_emu_tb;
-    if(tmp_us_tb.is_station_exist(m_db,user,station))
+
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
+
+    if(tmp_us_tb.is_station_exist(m_db,total_station,station))
     {
         if(tmp_sta_emu_tb.is_emu_exist(m_db,station,emu))
         {
@@ -886,7 +930,13 @@ bool mysql::update_device_ctl(QString user, QJsonObject &s_data)
     QString emu = s_data.value("emu_cid").toString();
     ag_user_station_table tmp_us_tb;
     ag_station_emu_table tmp_sta_emu_tb;
-    if(tmp_us_tb.is_station_exist(m_db,user,station))
+
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
+
+    if(tmp_us_tb.is_station_exist(m_db,total_station,station))
     {
         if(tmp_sta_emu_tb.is_emu_exist(m_db,station,emu))
         {

@@ -20,9 +20,12 @@ bool ag_emu_property_table::create_table(QSqlDatabase &m_database)
                                 "%2 VARCHAR(10) NOT NULL,"
                                 "%3 VARCHAR(8) NOT NULL,"
                                 "%4 VARCHAR(8) NOT NULL,"
-                                "INDEX(%5))")
+                                "primary key(%5),"
+                                "INDEX(%6),"
+                                "INDEX(%7),"
+                                "INDEX(%8))")
                         .arg(c_field_emu_cid,c_field_type,c_field_hard_version,c_field_soft_version,
-                             c_field_type);
+                             c_field_emu_cid,c_field_type,c_field_hard_version,c_field_soft_version);
     return mysql_table::create_table(m_database,m_name,tmp_field);
 }
 
@@ -35,10 +38,8 @@ void ag_emu_property_table::write_property(QSqlDatabase &m_database, QJsonObject
 {
     QSqlQuery query(m_database);
     QJsonObject property_data = w_data.value("datas").toObject();
-    QString tmp_cmd = QString("INSERT INTO %1 (%2,%3,%4,%5) values(?,?,?,?) ON DUPLICATE KEY UPDATE %6='%7',"
-                              "%8=%9,%10='%11',%12='13'")
+    QString tmp_cmd = QString("INSERT INTO %1 (%2,%3,%4,%5) values(?,?,?,?) ON DUPLICATE KEY UPDATE %6='%7',%8='%9',%10='%11'")
             .arg(m_name,c_field_emu_cid,c_field_type,c_field_hard_version,c_field_soft_version,
-                 c_field_emu_cid,property_data.value(c_field_emu_cid).toString(),
                  c_field_type,property_data.value(c_field_type).toString(),
                  c_field_hard_version,property_data.value(c_field_hard_version).toString(),
                  c_field_soft_version,property_data.value(c_field_soft_version).toString());

@@ -52,10 +52,11 @@ public:
     //void write_algorithm(QSqlDatabase &m_database,QString account, QJsonObject w_data);
     bool update_algorithm(QSqlDatabase &m_database,QString account,QJsonObject w_data);
     bool read_algorithm(QSqlDatabase &m_database,QString account,QJsonObject &r_data);
-
+    bool read_total_stations(QSqlDatabase &m_database,QString account,QString &total_station);
 
     static const QString c_field_account;
     static const QString c_field_password;
+    static const QString c_field_total_stations;  //电站总控字段
     static const QString c_field_permission;
     static const QString c_field_algorithm;
     static const QString c_field_login_date;

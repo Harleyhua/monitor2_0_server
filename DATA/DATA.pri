@@ -25,6 +25,7 @@ HEADERS += \
     $$PWD/tables/ag_rack_mi_table.h \
     $$PWD/tables/ag_station_emu_table.h \
     $$PWD/tables/ag_temp_table.h \
+    $$PWD/tables/ag_user_act_table.h \
     $$PWD/tables/ag_user_station_table.h \
     $$PWD/tables/ag_user_table.h \
     $$PWD/tables/ag_workorder_table.h
@@ -49,6 +50,7 @@ SOURCES += \
     $$PWD/tables/ag_rack_mi_table.cpp \
     $$PWD/tables/ag_station_emu_table.cpp \
     $$PWD/tables/ag_temp_table.cpp \
+    $$PWD/tables/ag_user_act_table.cpp \
     $$PWD/tables/ag_user_station_table.cpp \
     $$PWD/tables/ag_user_table.cpp \
     $$PWD/tables/ag_workorder_table.cpp

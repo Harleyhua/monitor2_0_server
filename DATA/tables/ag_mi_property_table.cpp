@@ -21,9 +21,12 @@ bool ag_mi_property_table::create_table(QSqlDatabase &m_database)
                 "%2 SMALLINT UNSIGNED,"
                 "%3 VARCHAR(8) NOT NULL,"
                 "%4 VARCHAR(8) NOT NULL,"
-                "primary key(%5))")
-            .arg(c_field_cid,c_field_nominal_power,c_field_mim_version,
-                 c_field_mis_version,c_field_cid);
+                "primary key(%5),"
+                "INDEX(%6),"
+                "INDEX(%7),"
+                "INDEX(%8))")
+            .arg(c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version,
+                 c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version);
     return mysql_table::create_table(m_database,m_name,tmp_field);
 }
 
@@ -42,10 +45,9 @@ void ag_mi_property_table::write_property(QSqlDatabase &m_database, QJsonObject 
     for(int i=0;i<data_count;i++)
     {
         QJsonObject tmp_property_data = w_data.value("datas").toArray()[i].toObject();
-        QString tmp_cmd = QString("INSERT INTO %1 (%2,%3,%4,%5) values(?,?,?,?) ON DUPLICATE KEY UPDATE %6='%7',"
-                                  "%8=%9,%10='%11',%12='13'")
+        QString tmp_cmd = QString("INSERT INTO %1 (%2,%3,%4,%5) values(?,?,?,?) ON DUPLICATE KEY UPDATE %6=%7,"
+                                  "%8='%9',%10='%11'")
                 .arg(m_name,c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version,
-                     c_field_cid,tmp_property_data.value(c_field_cid).toString(""),
                      c_field_nominal_power,QString::number(tmp_property_data.value(c_field_nominal_power).toInt(1000000)),
                      c_field_mim_version,tmp_property_data.value(c_field_mim_version).toString(""),
                      c_field_mis_version,tmp_property_data.value(c_field_mis_version).toString(""));

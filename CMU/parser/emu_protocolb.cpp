@@ -164,20 +164,14 @@ bool emu_protocolb::emu_type_analysis(QByteArray &netdata, QString &name, emu_ty
             }
             //数据域长度字节 1
             //数据域长度字节 1
-            if(cmd == C_LOGIN_CMD || cmd == C_REISSUE_MSG_CMD || cmd == C_GET_TEMPORARY_POWER||
-               cmd == C_GET_MAX_POWER || cmd == C_GET_GRID || cmd == C_GET_CERTIFICATION ||
-               cmd == C_EMU_STATUS)
-            {
+            if(cmd == C_LOGIN_CMD || cmd == C_REISSUE_MSG_CMD){
                 //一帧数据长度  B协议 固定字节长度20
                 length = common::qbtarray_to_u8(netdata,15) + 19;
             }
-            else if(cmd == C_POWER_CMD || cmd == C_SET_MAPPING_CMD || cmd == C_REISSUE_DATA_MSG_CMD ||
-                    cmd == C_SET_TEMPORARY_POWER || cmd == C_SET_MAX_POWER || cmd == C_SET_GRID ||
-                    cmd == C_SET_CERTIFICATION)
-            {
+            else if(cmd == C_POWER_CMD || cmd == C_SET_MAPPING_CMD || cmd == C_REISSUE_DATA_MSG_CMD) {
                 length = common::qbtarray_to_u16(netdata,15) + 20;
             }//数据域全是空
-            else if(cmd == C_HAND_CMD || cmd == C_MAPPING_CMD ||cmd ==  C_GET_COUNTERCURRENT)
+            else if(cmd == C_HAND_CMD || C_MAPPING_CMD)
             {
                 length = 18;
             }
@@ -206,28 +200,27 @@ bool emu_protocolb::emu_type_analysis(QByteArray &netdata, QString &name, emu_ty
             if(cs_ret == (uint8_t)netdata[length-3])
             {
 
-                return true;
-//                if(cmd == C_HAND_CMD ||cmd == C_LOGIN_CMD || cmd== C_POWER_CMD)
-//                {
-//                    name = QString::number(common::qbtarray_to_u32(netdata,10),16);
-//                    return true;
-// //                    if(type_analysis(common::qbtarray_to_u16(netdata,30),type))
-// //                    {
-// //                        return true;
-// //                    }
-// //                    else
-// //                    {
-// //                        QLOG_INFO() << "服务器接收: " + QString(netdata.toHex(' '));
-// //                        netdata.clear();
-// //                        return false;
-// //                    }
-//                }
-//                else
-//                {
-//                     netdata.clear();
-//                }
-// //                    deal_cmd_B(netdata,cmd);
-// //                    pop_cache(length); //处理过的数据抛出
+                if(cmd == C_HAND_CMD ||cmd == C_LOGIN_CMD || cmd== C_POWER_CMD)
+                {
+                    name = QString::number(common::qbtarray_to_u32(netdata,10),16);
+                    return true;
+ //                    if(type_analysis(common::qbtarray_to_u16(netdata,30),type))
+ //                    {
+ //                        return true;
+ //                    }
+ //                    else
+ //                    {
+ //                        QLOG_INFO() << "服务器接收: " + QString(netdata.toHex(' '));
+ //                        netdata.clear();
+ //                        return false;
+ //                    }
+                }
+                else
+                {
+                     netdata.clear();
+                }
+ //                    deal_cmd_B(netdata,cmd);
+ //                    pop_cache(length); //处理过的数据抛出
             }
             else {
                 QLOG_INFO() << "服务器接收: " + QString(netdata.toHex(' '));

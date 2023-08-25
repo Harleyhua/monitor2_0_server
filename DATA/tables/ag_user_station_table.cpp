@@ -2,7 +2,7 @@
 
 #include "mysql_table.h"
 
-const QString ag_user_station_table::c_field_account = "account";
+const QString ag_user_station_table::c_field_account = "total_stations";
 const QString ag_user_station_table::c_field_station = "station";
 
 
@@ -27,11 +27,11 @@ bool ag_user_station_table::delete_table(QSqlDatabase &m_database)
     return mysql_table::delete_table(m_database,m_name);
 }
 
-bool ag_user_station_table::is_station_exist(QSqlDatabase &m_database, QString user, QString station)
+bool ag_user_station_table::is_station_exist(QSqlDatabase &m_database, QString total_station, QString station)
 {
     QSqlQuery query(m_database);
     QString tmp_cmd = QString("SELECT %1 FROM %2 WHERE %3='%4' AND %5='%6'")
-            .arg(c_field_station,m_name,c_field_account,user,c_field_station,station);
+            .arg(c_field_station,m_name,c_field_account,total_station,c_field_station,station);
     if(query.exec(tmp_cmd))
     {
         if(query.size() == 1)
@@ -42,29 +42,29 @@ bool ag_user_station_table::is_station_exist(QSqlDatabase &m_database, QString u
     return false;
 }
 
-void ag_user_station_table::write_station(QSqlDatabase &m_database, QJsonObject &w_data)
-{
-    QSqlQuery query(m_database);
-    QJsonObject tmp_data = w_data.value("params").toObject();
-    QString tmp_cmd = QString("INSERT INTO %1 (%2,%3) VALUES (?,?)")
-            .arg(m_name,c_field_account,c_field_station);
-    query.prepare(tmp_cmd);
+//void ag_user_station_table::write_station(QSqlDatabase &m_database, QJsonObject &w_data)
+//{
+//    QSqlQuery query(m_database);
+//    QJsonObject tmp_data = w_data.value("params").toObject();
+//    QString tmp_cmd = QString("INSERT INTO %1 (%2,%3) VALUES (?,?)")
+//            .arg(m_name,c_field_account,c_field_station);
+//    query.prepare(tmp_cmd);
 
-    query.addBindValue(tmp_data.value(c_field_account).toString());
-    query.addBindValue(tmp_data.value(c_field_station).toString());
+//    query.addBindValue(tmp_data.value(c_field_account).toString());
+//    query.addBindValue(tmp_data.value(c_field_station).toString());
 
-    if(query.exec())
-    {
+//    if(query.exec())
+//    {
 
-    }
-    else
-    {
+//    }
+//    else
+//    {
 
-    }
+//    }
 
-}
+//}
 
-void ag_user_station_table::write_station(QSqlDatabase &m_database, QString account, QJsonObject &w_data)
+void ag_user_station_table::write_station(QSqlDatabase &m_database, QString total_station, QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
     QJsonArray tmp_datas = w_data.value("params").toObject().value("station").toArray();
@@ -76,7 +76,7 @@ void ag_user_station_table::write_station(QSqlDatabase &m_database, QString acco
                 .arg(m_name,c_field_account,c_field_station);
         query.prepare(tmp_cmd);
 
-        query.addBindValue(account);
+        query.addBindValue(total_station);
         query.addBindValue(tmp_datas[i].toString());
 
         if(query.exec())
@@ -91,34 +91,34 @@ void ag_user_station_table::write_station(QSqlDatabase &m_database, QString acco
 
 }
 
-void ag_user_station_table::read_station(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
-{
-    QSqlQuery query(m_database);
-    QString account = r_data.value("params").toObject().value(c_field_account).toString();
-    QString tmp_cmd = QString("SELECT DISTINCT %1 FROM %2 WHERE %3='%4'")
-            .arg(c_field_station,m_name,c_field_account,account);
-    if(query.exec(tmp_cmd))
-    {
-        QJsonArray station_datas;
-        while(query.next())
-        {
-            station_datas.append(query.value(c_field_station).toString());
-        }
+//void ag_user_station_table::read_station(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
+//{
+//    QSqlQuery query(m_database);
+//    QString total_station = r_data.value("params").toObject().value("").toString();
+//    QString tmp_cmd = QString("SELECT DISTINCT %1 FROM %2 WHERE %3='%4'")
+//            .arg(c_field_station,m_name,c_field_account,account);
+//    if(query.exec(tmp_cmd))
+//    {
+//        QJsonArray station_datas;
+//        while(query.next())
+//        {
+//            station_datas.append(query.value(c_field_station).toString());
+//        }
 
-        QJsonObject datas;
-        datas.insert(c_field_account,account);
-        datas.insert(c_field_station,station_datas);
+//        QJsonObject datas;
+//        datas.insert(c_field_account,account);
+//        datas.insert(c_field_station,station_datas);
 
-        data.insert("datas",datas);
-    }
-}
+//        data.insert("datas",datas);
+//    }
+//}
 
-void ag_user_station_table::read_station(QSqlDatabase &m_database, QString account, QJsonObject &data)
+void ag_user_station_table::read_station(QSqlDatabase &m_database, QString total_station, QJsonObject &data)
 {
     QSqlQuery query(m_database);
     //QString account = r_data.value("params").toObject().value(c_field_account).toString();
     QString tmp_cmd = QString("SELECT DISTINCT %1 FROM %2 WHERE %3='%4' ORDER BY %5")
-            .arg(c_field_station,m_name,c_field_account,account,c_field_station);
+            .arg(c_field_station,m_name,c_field_account,total_station,c_field_station);
     if(query.exec(tmp_cmd))
     {
         QJsonArray station_datas;
@@ -128,18 +128,18 @@ void ag_user_station_table::read_station(QSqlDatabase &m_database, QString accou
         }
 
         QJsonObject datas;
-        datas.insert(c_field_account,account);
+        datas.insert(c_field_account,total_station);
         datas.insert(c_field_station,station_datas);
 
         data.insert("datas",datas);
     }
 }
 
-void ag_user_station_table::del_station_by_station(QSqlDatabase &m_database, QString station)
+void ag_user_station_table::del_station_by_station(QSqlDatabase &m_database, QString total_station)
 {
     QSqlQuery query(m_database);
     QString tmp_cmd = QString("DELETE FROM %1 WHERE %2='%3'")
-            .arg(m_name,c_field_station,station);
+            .arg(m_name,c_field_station,total_station);
     if(query.exec(tmp_cmd))
     {
 

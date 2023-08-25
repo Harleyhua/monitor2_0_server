@@ -292,7 +292,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
                         }
 #endif
             }
-
+            old_power_value = cur_power;
             //整机数据处理s
             if(i == pv_size -1)
             {
@@ -401,7 +401,6 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
                     #endif
                 }
             }
-            old_power_value = cur_power;
         }//j  pv_data
 
         //老化数据处理

@@ -5,6 +5,7 @@
 
 const QString ag_user_table::c_field_account = "account";
 const QString ag_user_table::c_field_password = "password";
+const QString ag_user_table::c_field_total_stations = "total_stations";
 const QString ag_user_table::c_field_permission = "permission";
 const QString ag_user_table::c_field_algorithm = "algorithm";
 const QString ag_user_table::c_field_login_date = "login_date";
@@ -20,12 +21,14 @@ bool ag_user_table::create_table(QSqlDatabase &m_database)
     QString tmp_field =QString(
                 "(%1 VARCHAR(30) NOT NULL,"
                 "%2 VARCHAR(15) NOT NULL,"
-                "%3 VARCHAR(100) NOT NULL,"
-                "%4 VARCHAR(500) NOT NULL,"
-                "%5 DATETIME NOT NULL,"
-                "primary key(%6))")
-            .arg(c_field_account,c_field_password,c_field_permission,
-                 c_field_algorithm,c_field_login_date,c_field_account);
+                "%3 VARCHAR(15) NOT NULL,"
+                "%4 VARCHAR(100) NOT NULL,"
+                "%5 VARCHAR(500) NOT NULL,"
+                "%6 DATETIME NOT NULL,"
+                "primary key(%7,%8))")
+            .arg(c_field_account,c_field_password,c_field_total_stations,
+                 c_field_permission,c_field_algorithm,c_field_login_date,
+                 c_field_account,c_field_total_stations);
     return mysql_table::create_table(m_database,m_name,tmp_field);
 }
 
@@ -42,9 +45,10 @@ void ag_user_table::write_account(QSqlDatabase &m_database, QJsonObject &w_data)
 
 bool ag_user_table::read_account(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
 {
-    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5 FROM %6 WHERE %7='%8'")
-            .arg(c_field_account,c_field_password,c_field_permission,c_field_algorithm,c_field_login_date,m_name,
-                 c_field_account,r_data.value("params").toObject().value(c_field_account).toString());
+    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6 FROM %7 WHERE %8='%9'")
+            .arg(c_field_account,c_field_password,c_field_total_stations,c_field_permission,
+                 c_field_algorithm,c_field_login_date,m_name,c_field_account,
+                 r_data.value("params").toObject().value(c_field_account).toString());
     QSqlQuery query(m_database);
 
     query.prepare(tmp_cmd);
@@ -55,6 +59,7 @@ bool ag_user_table::read_account(QSqlDatabase &m_database, QJsonObject &r_data, 
         {
             datas.insert(c_field_account,query.value(c_field_account).toString());
             datas.insert(c_field_password,query.value(c_field_password).toString());
+            datas.insert(c_field_total_stations,query.value(c_field_total_stations).toString());
             datas.insert(c_field_permission,query.value(c_field_permission).toString());
             datas.insert(c_field_algorithm,query.value(c_field_algorithm).toString());
             datas.insert(c_field_login_date,query.value(c_field_login_date).toDateTime().toString("yyyy-MM-dd hh:mm:ss"));
@@ -110,6 +115,23 @@ bool ag_user_table::read_algorithm(QSqlDatabase &m_database, QString account, QJ
 
     return false;
 
+}
+
+bool ag_user_table::read_total_stations(QSqlDatabase &m_database, QString account, QString &total_station)
+{
+    QString cmd = QString("SELECT %1 FROM %2 WHERE %3='%4'").arg(c_field_total_stations,m_name,c_field_account,account);
+    QSqlQuery query(m_database);
+
+    if(query.exec(cmd))
+    {
+        if(query.next())
+        {
+            total_station = query.value(c_field_total_stations).toString();
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
