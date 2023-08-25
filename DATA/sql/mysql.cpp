@@ -817,6 +817,36 @@ bool mysql::r_user_judge_params(QString user, QJsonObject &rt_data)
     return us_tb.read_algorithm(m_db,user,rt_data);
 }
 
+QString mysql::r_total_station(QString account)
+{
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,account,total_station);
+
+    return total_station;
+}
+
+void mysql::r_user_act(QJsonObject &s_data, QJsonObject &rt_data)
+{
+    ag_user_act_table us_act_tb;
+    return us_act_tb.read_datas(m_db,s_data,rt_data);
+}
+
+void mysql::w_user_act(QString user, QString total_sta, int act, QString des)
+{
+    ag_user_act_table user_act_tb;
+    QJsonObject param_obj;
+    param_obj.insert("user",user);
+    param_obj.insert("total_station",total_sta);
+    param_obj.insert("act",act);
+    param_obj.insert("act_desc",des);
+    param_obj.insert("act_time",QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+
+    user_act_tb.write_datas(m_db,param_obj);
+
+}
+
 void mysql::r_batch_list(QJsonObject &s_data, QJsonObject &rt_data)
 {
     ag_rack_data_table rk_dt_tb;

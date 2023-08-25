@@ -93,6 +93,11 @@ public:
 
     bool r_user_judge_params(QString user,QJsonObject &rt_data);
 
+    QString r_total_station(QString account);
+
+    void r_user_act(QJsonObject &s_data,QJsonObject &rt_data);
+    void w_user_act(QString user,QString total_sta,int act,QString desc);
+
     void r_batch_list(QJsonObject &s_data,QJsonObject &rt_data);
 
     bool r_mi_report(QString mi,QString start_time,QString stop_time,QString alg,QString &report);

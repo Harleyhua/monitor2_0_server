@@ -96,30 +96,106 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
         }
         else if(request.getPath().startsWith("/add_station"))
         {
+            QString us_act_str;
+            QString total_station = sql.r_total_station(name);
+
+            QJsonArray stas_array = rev_data.value("params").toObject().value("station").toArray();
+            QString sta_str;
+            for(int i=0;i<stas_array.size();i++)
+            {
+                sta_str.append(stas_array[i].toString() + ",");
+            }
+            us_act_str = "添加电站列表 " + sta_str;
+            sql.w_user_act(name,total_station,2,us_act_str);
+
             sql.add_station(name,rev_data);
         }
         else if(request.getPath().startsWith("/add_emu_cid"))
         {
+            QString us_act_str;
+            QString total_station = sql.r_total_station(name);
+            QString station = rev_data.value("params").toObject().value("station").toString();
+            QJsonArray emus_array = rev_data.value("params").toObject().value("emus").toArray();
+
+            QString emu_str;
+            for(int i=0;i<emus_array.size();i++)
+            {
+                emu_str.append(emus_array[i].toObject().value("emu_cid").toString() + ",");
+            }
+
+            us_act_str = "添加电站 " + station + "下的网关 " + emu_str;
+
+            sql.w_user_act(name,total_station,2,us_act_str);
+
             sql.add_emu_cid(name,rev_data);
         }
         else if(request.getPath().startsWith("/add_plcmi_cid"))
         {
+            QString us_act_str;
+            QString total_station = sql.r_total_station(name);
+            QString station = rev_data.value("params").toObject().value("station").toString();
+            QString emu = rev_data.value("params").toObject().value("emu").toString();
+            QJsonArray mis_array = rev_data.value("params").toObject().value("mis").toArray();
+
+            QString mi_str;
+            for(int i=0;i<mis_array.size();i++)
+            {
+                mi_str.append(mis_array[i].toObject().value("mi_cid").toString() + ",");
+            }
+            us_act_str = "添加电站:" + station + "网关:" + emu + "下的PLC版微逆:" + mi_str;
+
+            sql.w_user_act(name,total_station,2,us_act_str);
+
+
             sql.add_plcmi_cid(name,rev_data);
         }
         else if(request.getPath().startsWith("/add_wifimi_cid"))
         {
+            QString us_act_str;
+            QString total_station = sql.r_total_station(name);
+            QString station = rev_data.value("params").toObject().value("station").toString();
+            QString emu = rev_data.value("params").toObject().value("emu").toString();
+            QJsonArray emus_array = rev_data.value("params").toObject().value("emus").toArray();
+
+            QString mi_str;
+            for(int i=0;i<emus_array.size();i++)
+            {
+                mi_str.append(emus_array[i].toObject().value("mi").toObject().value("mi_cid").toString() + ",");
+            }
+            us_act_str = "添加电站:" + station + "下的WIFI版微逆:" + mi_str;
+
+            sql.w_user_act(name,total_station,2,us_act_str);
+
             sql.add_wifimi_cid(name,rev_data);
         }
         else if(request.getPath().startsWith("/del_mi"))
         {
+            QString us_act_str;
+            QString total_station = sql.r_total_station(name);
+            us_act_str = "删除" + rev_data.value("station").toString() + " " +
+                         rev_data.value("emu_cid").toString() + "下的微逆:" +
+                         rev_data.value("mi_cid").toString();
+            sql.w_user_act(name,total_station,1,us_act_str);
+
             sql.del_mi(name,rev_data);
         }
         else if(request.getPath().startsWith("/del_emu"))
         {
+            QString us_act_str;
+            QString total_station = sql.r_total_station(name);
+            us_act_str = "删除" + rev_data.value("station").toString() + "下的网关:" +
+                         rev_data.value("emu_cid").toString();
+            sql.w_user_act(name,total_station,1,us_act_str);
+
             sql.del_emu(name,rev_data);
         }
         else if(request.getPath().startsWith("/del_station"))
         {
+            QString us_act_str;
+            QString total_station = sql.r_total_station(name);
+            us_act_str = "删除电站" + rev_data.value("station").toString();
+            sql.w_user_act(name,total_station,1,us_act_str);
+
             sql.del_station(name,rev_data);
         }
         else if(request.getPath().startsWith("/aging_report"))
@@ -215,6 +291,10 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 //        {
 //            sql.w_device_ctl(name,rev_data);
 //        }
+        else if(request.getPath().startsWith("/r_user_act"))
+        {
+            sql.r_user_act(rev_data,ret_data);
+        }
         else
         {
             response.setStatus(401,"没当前指令的解析");

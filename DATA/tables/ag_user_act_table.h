@@ -38,6 +38,16 @@
 
 */
 
+/*w_data
+{
+    "user":"111",
+    "total_station":"222",
+    "act":1,
+    "act_desc":"12343545",
+    "act_time":"2023-03-23 14:00:00"
+}
+*/
+
 enum user_act
 {
 
@@ -53,11 +63,12 @@ public:
     bool create_table(QSqlDatabase &m_database); //
     bool delete_table(QSqlDatabase &m_database); //
 
-    bool read_datas(QSqlDatabase &m_database,QJsonObject &s_data,QJsonObject &r_data);
+    void read_datas(QSqlDatabase &m_database,QJsonObject &s_data,QJsonObject &r_data);
+    void write_datas(QSqlDatabase &m_database,QJsonObject &s_data);
 
     static const QString c_field_user;
     static const QString c_field_total_station;  //绑定的总站
-    static const QString c_field_act;
+    static const QString c_field_act; //1-删除操作  2-添加操作  3-远程控制操作
     static const QString c_field_act_desc;
     static const QString c_field_act_time;
 
