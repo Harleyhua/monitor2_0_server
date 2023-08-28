@@ -20,10 +20,10 @@ const quint8 emu_protocolb::C_REISSUE_MSG_CMD = 0x05;
 const quint8 emu_protocolb::C_REISSUE_DATA_MSG_CMD = 0X85;
 const quint8 emu_protocolb::C_SET_MAPPING_CMD = 0X84;
 
-const quint8 emu_protocolb::C_GET_TEMPORARY_POWER = 0X06;
-const quint8 emu_protocolb::C_SET_TEMPORARY_POWER = 0X86;
+const quint8 emu_protocolb::C_GET_TEMPORARY_POWER = 0X06; //网关向服务器查 临时功率
+const quint8 emu_protocolb::C_SET_TEMPORARY_POWER = 0X86; //网关发送 临时功率
 
-const quint8 emu_protocolb::C_GET_MAX_POWER = 0X07;
+const quint8 emu_protocolb::C_GET_MAX_POWER = 0X07; //
 const quint8 emu_protocolb::C_SET_MAX_POWER = 0X87;
 
 const quint8 emu_protocolb::C_GET_GRID = 0X08;
@@ -35,8 +35,19 @@ const quint8 emu_protocolb::C_SET_CERTIFICATION = 0X89;
 const quint8 emu_protocolb::C_GET_COUNTERCURRENT = 0X71; //0X71
 const quint8 emu_protocolb::C_SET_COUNTERCURRENT = 0XE1;
 
-const quint8 emu_protocolb::C_EMU_STATUS = 0XE0;
+const quint8 emu_protocolb::C_EMU_STATUS = 0XE0;  //网关自身状态
 
+const QHash<quint8, quint8> emu_protocolb::c_server_to_client = {
+    {0x00,0x00},
+    {0x01,0x04},
+    //{0x02,0x06},
+    {0x03,0x06},
+    {0x04,0x06},
+    {0x05,0x07},
+    {0x06,0x07},
+    {0x07,0x08},
+    {0x08,0x09},
+};
 
 emu_protocolb::emu_protocolb(QObject *parent)
     : QObject{parent}
@@ -74,19 +85,19 @@ bool emu_protocolb::data_analysis(QByteArray &netdata, uint8_t &rt_cmd, quint32 
             }
             //数据域长度字节 1
             if(cmd == C_LOGIN_CMD || cmd == C_REISSUE_MSG_CMD || cmd == C_GET_TEMPORARY_POWER||
-               cmd == C_GET_MAX_POWER || cmd == C_GET_GRID || cmd == C_GET_CERTIFICATION ||
-               cmd == C_EMU_STATUS)
+               cmd == C_SET_TEMPORARY_POWER || cmd == C_GET_MAX_POWER || cmd == C_GET_GRID ||
+               cmd == C_GET_CERTIFICATION || cmd == C_SET_CERTIFICATION || cmd == C_EMU_STATUS ||
+               cmd ==  C_GET_COUNTERCURRENT || cmd == C_SET_COUNTERCURRENT)
             {
                 //一帧数据长度  B协议 固定字节长度20
                 length = common::qbtarray_to_u8(netdata,15) + 19;
             }
             else if(cmd == C_POWER_CMD || cmd == C_SET_MAPPING_CMD || cmd == C_REISSUE_DATA_MSG_CMD ||
-                    cmd == C_SET_TEMPORARY_POWER || cmd == C_SET_MAX_POWER || cmd == C_SET_GRID ||
-                    cmd == C_SET_CERTIFICATION)
+                    cmd == C_SET_MAX_POWER || cmd == C_SET_GRID)
             {
                 length = common::qbtarray_to_u16(netdata,15) + 20;
             }//数据域全是空
-            else if(cmd == C_HAND_CMD || cmd == C_MAPPING_CMD ||cmd ==  C_GET_COUNTERCURRENT)
+            else if(cmd == C_HAND_CMD || cmd == C_MAPPING_CMD)
             {
                 length = 18;
             }
@@ -164,11 +175,17 @@ bool emu_protocolb::emu_type_analysis(QByteArray &netdata, QString &name, emu_ty
             }
             //数据域长度字节 1
             //数据域长度字节 1
-            if(cmd == C_LOGIN_CMD || cmd == C_REISSUE_MSG_CMD){
+            if(cmd == C_LOGIN_CMD || cmd == C_REISSUE_MSG_CMD || cmd == C_GET_TEMPORARY_POWER||
+               cmd == C_SET_TEMPORARY_POWER || cmd == C_GET_MAX_POWER || cmd == C_GET_GRID ||
+               cmd == C_GET_CERTIFICATION || cmd == C_SET_CERTIFICATION || cmd == C_EMU_STATUS ||
+               cmd ==  C_GET_COUNTERCURRENT || cmd == C_SET_COUNTERCURRENT)
+            {
                 //一帧数据长度  B协议 固定字节长度20
                 length = common::qbtarray_to_u8(netdata,15) + 19;
             }
-            else if(cmd == C_POWER_CMD || cmd == C_SET_MAPPING_CMD || cmd == C_REISSUE_DATA_MSG_CMD) {
+            else if(cmd == C_POWER_CMD || cmd == C_SET_MAPPING_CMD || cmd == C_REISSUE_DATA_MSG_CMD ||
+                                       cmd == C_SET_MAX_POWER || cmd == C_SET_GRID)
+            {
                 length = common::qbtarray_to_u16(netdata,15) + 20;
             }//数据域全是空
             else if(cmd == C_HAND_CMD || C_MAPPING_CMD)
@@ -199,26 +216,28 @@ bool emu_protocolb::emu_type_analysis(QByteArray &netdata, QString &name, emu_ty
             uint8_t cs_ret = csCalculate_B(netdata,length);
             if(cs_ret == (uint8_t)netdata[length-3])
             {
+                name = QString::number(common::qbtarray_to_u32(netdata,10),16);
+                return true;
 
-                if(cmd == C_HAND_CMD ||cmd == C_LOGIN_CMD || cmd== C_POWER_CMD)
-                {
-                    name = QString::number(common::qbtarray_to_u32(netdata,10),16);
-                    return true;
- //                    if(type_analysis(common::qbtarray_to_u16(netdata,30),type))
- //                    {
- //                        return true;
- //                    }
- //                    else
- //                    {
- //                        QLOG_INFO() << "服务器接收: " + QString(netdata.toHex(' '));
- //                        netdata.clear();
- //                        return false;
- //                    }
-                }
-                else
-                {
-                     netdata.clear();
-                }
+//                if(cmd == C_HAND_CMD ||cmd == C_LOGIN_CMD || cmd== C_POWER_CMD)
+//                {
+//                    name = QString::number(common::qbtarray_to_u32(netdata,10),16);
+//                    return true;
+// //                    if(type_analysis(common::qbtarray_to_u16(netdata,30),type))
+// //                    {
+// //                        return true;
+// //                    }
+// //                    else
+// //                    {
+// //                        QLOG_INFO() << "服务器接收: " + QString(netdata.toHex(' '));
+// //                        netdata.clear();
+// //                        return false;
+// //                    }
+//                }
+//                else
+//                {
+//                     netdata.clear();
+//                }
  //                    deal_cmd_B(netdata,cmd);
  //                    pop_cache(length); //处理过的数据抛出
             }
@@ -777,6 +796,15 @@ void emu_protocolb::to_mi_property_cmd_v2(const QByteArray &s_data,uint8_t cmd,Q
     rt_data[18] = csCalculate_B(rt_data,21);
     rt_data[19] = C_TAIL;
     rt_data[20] = C_TAIL;
+}
+
+bool emu_protocolb::is_b1_3_valid(QString type, QString soft_version)
+{
+
+
+
+
+    return false;
 }
 
 

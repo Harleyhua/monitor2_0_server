@@ -374,6 +374,7 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
             data.insert("mi_cid",mi_list[0]);
         }
         QLOG_INFO() << "查询 发电数据成功";
+        return;
     }
     QLOG_WARN() << "查询发电数据失败";
 }

@@ -109,10 +109,11 @@ public:
     void r_device_ctl_nosend(QString emu_cid,dev_ctl_strc &ctl_data);
     void update_device_send_flag(dev_ctl_strc ctl_data);
 
-    bool update_device_ctl(QString user,QJsonObject &s_data);
-    bool update_device_ctl(QString user,QString station,QString emu,dev_ctl_strc ctl_data);
+    void r_emu_property(QString emu_cid,QJsonObject &emu_pro_obj);
 
-    void update_server_01(QString user,QString station,QString emu);
+
+    bool update_dev_control(QString total_station,QString station,QString emu,quint8 server_cmd,QString send_data);
+
 private:
     QString db_name; //用什么链接名称
     QSqlDatabase m_db; //数据库

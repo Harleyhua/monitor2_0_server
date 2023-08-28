@@ -11,6 +11,7 @@
 #include "ag_mi_property_table.h"
 #include "aging_alg.h"
 #include "abstract_bym.h"
+#include "emu_protocolb.h"
 cs_client::cs_client(QObject *parent)
     :HttpRequestHandler(parent)
 {
@@ -293,8 +294,170 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 //        }
         else if(request.getPath().startsWith("/r_user_act"))
         {
+            QString total_station = sql.r_total_station(name);
+            rev_data.insert("total_station",total_station);
+
             sql.r_user_act(rev_data,ret_data);
         }
+        else if(request.getPath().startsWith("/set_temporary_power") ||
+                request.getPath().startsWith("/get_temporary_power") ||
+                request.getPath().startsWith("/set_max_power") ||
+                request.getPath().startsWith("/get_max_power") ||
+                request.getPath().startsWith("/set_grid") ||
+                request.getPath().startsWith("/get_grid") ||
+                request.getPath().startsWith("/set_certification") ||
+                request.getPath().startsWith("/get_countercurrent"))
+        {
+            QString total_station = sql.r_total_station(name);
+            QJsonObject emu_property;
+            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+            {
+                //
+                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                       rev_data.value("emu_cid").toString(),
+                                       rev_data.value("server_cmd").toInt(),
+                                       rev_data.value("data").toString());
+            }
+
+        }
+//        else if(request.getPath().startsWith("/get_temporary_power"))
+//        {
+//            QString total_station = sql.r_total_station(name);
+//            QJsonObject emu_property;
+//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+//            {
+//                //
+//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+//                                       rev_data.value("emu_cid").toString(),
+//                                       rev_data.value("server_cmd").toInt(),
+//                                       rev_data.value("data").toString());
+//            }
+//        }
+//        else if(request.getPath().startsWith("/set_max_power"))
+//        {
+//            QString total_station = sql.r_total_station(name);
+//            QJsonObject emu_property;
+//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+//            {
+//                //
+//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+//                                       rev_data.value("emu_cid").toString(),
+//                                       rev_data.value("server_cmd").toInt(),
+//                                       rev_data.value("data").toString());
+//            }
+
+//        }
+//        else if(request.getPath().startsWith("/get_max_power"))
+//        {
+//            QString total_station = sql.r_total_station(name);
+//            QJsonObject emu_property;
+//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+//            {
+//                //
+//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+//                                       rev_data.value("emu_cid").toString(),
+//                                       rev_data.value("server_cmd").toInt(),
+//                                       rev_data.value("data").toString());
+//            }
+//        }
+//        else if(request.getPath().startsWith("/set_grid"))
+//        {
+//            QString total_station = sql.r_total_station(name);
+//            QJsonObject emu_property;
+//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+//            {
+//                //
+//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+//                                       rev_data.value("emu_cid").toString(),
+//                                       rev_data.value("server_cmd").toInt(),
+//                                       rev_data.value("data").toString());
+//            }
+//        }
+//        else if(request.getPath().startsWith("/get_grid"))
+//        {
+//            QString total_station = sql.r_total_station(name);
+//            QJsonObject emu_property;
+//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+//            {
+//                //
+//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+//                                       rev_data.value("emu_cid").toString(),
+//                                       rev_data.value("server_cmd").toInt(),
+//                                       rev_data.value("data").toString());
+//            }
+//        }
+//        else if(request.getPath().startsWith("/set_certification"))
+//        {
+//            QString total_station = sql.r_total_station(name);
+//            QJsonObject emu_property;
+//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+//            {
+//                //
+//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+//                                       rev_data.value("emu_cid").toString(),
+//                                       rev_data.value("server_cmd").toInt(),
+//                                       rev_data.value("data").toString());
+//            }
+//        }
+//        else if(request.getPath().startsWith("/get_certification"))
+//        {
+//            QString total_station = sql.r_total_station(name);
+//            QJsonObject emu_property;
+//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+//            {
+//                //
+//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+//                                       rev_data.value("emu_cid").toString(),
+//                                       rev_data.value("server_cmd").toInt(),
+//                                       rev_data.value("data").toString());
+//            }
+//        }
+//        else if(request.getPath().startsWith("/set_countercurrent"))
+//        {
+//            QString total_station = sql.r_total_station(name);
+//            QJsonObject emu_property;
+//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+//            {
+//                //
+//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+//                                       rev_data.value("emu_cid").toString(),
+//                                       rev_data.value("server_cmd").toInt(),
+//                                       rev_data.value("data").toString());
+//            }
+//        }
+//        else if(request.getPath().startsWith("/get_countercurrent"))
+//        {
+//            QString total_station = sql.r_total_station(name);
+//            QJsonObject emu_property;
+//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
+//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
+//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
+//            {
+//                //
+//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
+//                                       rev_data.value("emu_cid").toString(),
+//                                       rev_data.value("server_cmd").toInt(),
+//                                       rev_data.value("data").toString());
+//            }
+//        }
         else
         {
             response.setStatus(401,"没当前指令的解析");

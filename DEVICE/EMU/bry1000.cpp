@@ -126,6 +126,14 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         sql.w_emu_status(js_obj);
         tmp_pcol.to_emu_status_cmd(frame_data,rt_data,tmp_server_cmd);
     }
+    else if(cmd == emu_protocolb::C_GET_TEMPORARY_POWER)
+    {
+
+    }
+    else if(cmd == emu_protocolb::C_SET_TEMPORARY_POWER)
+    {
+
+    }
     else
     {
         QLOG_WARN() << "网关:" + m_name + "型号:" + QString::number(m_type)

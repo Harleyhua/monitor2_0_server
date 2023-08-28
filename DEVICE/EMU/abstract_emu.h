@@ -58,6 +58,8 @@ public:
     void set_mapping(); //获取组网对象
 
     void get_server_cmd(uint8_t &cmd,QByteArray &rt_data);
+    static bool is_general_cid_valid(QString emu_cid);
+    static bool is_wifiemu_cid_valid(QString wifiemu_cid);
 signals:
     void s_close(QString name);  //通知上层删除
 private:

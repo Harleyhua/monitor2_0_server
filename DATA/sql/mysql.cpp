@@ -29,6 +29,8 @@
 #include "ag_emu_status_table.h"
 #include "ag_user_act_table.h"
 
+#include "emu_protocolb.h"
+
 QMutex sql_lock;   //数据库建立连接锁，避免多线程是同时连接的异常
 mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试 本机
 //mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas2"};   //本机
@@ -302,7 +304,8 @@ void mysql::add_plcmi_cid(QString user, QJsonObject &s_data)
             tmp_emu_mi_tb.w_mi(m_db,emu,s_data);
         }
     }
-    update_server_01(user,station,emu);
+    update_dev_control(total_station,station,emu,0x01,"");
+
 }
 
 void mysql::add_wifimi_cid(QString user, QJsonObject &s_data)
@@ -366,7 +369,7 @@ void mysql::del_emu(QString user, QString station, QString emu)
             ag_emu_mi_table tmp_emu_mi_tb;
             tmp_emu_mi_tb.del_mis_by_emucid(m_db,emu);
 
-            update_server_01(user,station,emu);
+            update_dev_control(total_station,station,emu,0x01,"");
         }
 
         tmp_st_emu_tb.del_emu_by_emucid(m_db,station,emu);
@@ -388,8 +391,7 @@ void mysql::del_emu(QString user, QJsonObject &s_data)
             ag_emu_mi_table tmp_emu_mi_tb;
             tmp_emu_mi_tb.del_mis_by_emucid(m_db,s_data.value("emu_cid").toString());
 
-            update_server_01(user,s_data.value("station").toString(),s_data.value("emu_cid").toString());
-
+            update_dev_control(total_station,s_data.value("station").toString(),s_data.value("emu_cid").toString(),0x01,"");
         }
 
         tmp_st_emu_tb.del_emu_by_emucid(m_db,s_data.value("station").toString(),s_data.value("emu_cid").toString());
@@ -412,7 +414,7 @@ void mysql::del_mi(QString user, QJsonObject &s_data)
             ag_emu_mi_table tmp_emu_mi_tb;
             tmp_emu_mi_tb.del_one_mi_by_micid(m_db,s_data.value("emu_cid").toString(),s_data.value("mi_cid").toString());
 
-            update_server_01(user,s_data.value("station").toString(),s_data.value("emu_cid").toString());
+            update_dev_control(total_station,s_data.value("station").toString(),s_data.value("emu_cid").toString(),0x01,"");
         }
     }
 }
@@ -609,13 +611,16 @@ void mysql::w_rack_data(QJsonObject &s_data)
     QJsonObject rk_data_obj;
     QJsonArray w_datas_array;
 
-
+    QStringList default_aging_emu;
 
     for(int i=1;i<=6;i++)
     {
         for(int j=1;j<=8;j++)
         {
-            emu_mi_tb.del_mis_by_emucid(m_db,"909999" + QString::number(i)+QString::number(j));
+            QString emu_cid = "909999" + QString::number(i)+QString::number(j);
+
+            default_aging_emu.append(emu_cid);
+            emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
         }
     }
 
@@ -701,6 +706,11 @@ void mysql::w_rack_data(QJsonObject &s_data)
                 emu_mi_tb.w_one_mi(m_db,keys[j],e_mis[k],mi_desc[e_mis[k]]);
             }
         }
+    }
+
+    for(int i=0;i<default_aging_emu.size();i++)
+    {
+        update_dev_control("total_station1","room-1",default_aging_emu[i],0x01,"");
     }
 
     rk_data_obj.insert("datas",w_datas_array);
@@ -954,34 +964,40 @@ void mysql::update_device_send_flag(dev_ctl_strc ctl_data)
     dev_ctl_tb.update_send_flag(m_db,ctl_data);
 }
 
-bool mysql::update_device_ctl(QString user, QJsonObject &s_data)
+void mysql::r_emu_property(QString emu_cid, QJsonObject &emu_pro_obj)
 {
-    QString station = s_data.value("station").toString();
-    QString emu = s_data.value("emu_cid").toString();
+    ag_emu_property_table emu_pty_tb;
+    emu_pty_tb.read_property(m_db,emu_cid,emu_pro_obj);
+}
+
+
+bool mysql::update_dev_control(QString total_station, QString station, QString emu, quint8 server_cmd, QString send_data)
+{
+    dev_ctl_strc tmp_ctl;
+
+    if(!emu_protocolb::c_server_to_client.contains(server_cmd))
+    {
+        return false;
+    }
+
+    tmp_ctl.emu_cid = emu;
+    tmp_ctl.send_data = send_data;
+    //tmp_ctl.is_send = s_data.value("is_send").toInt();
+    tmp_ctl.is_send = 0;
+    //tmp_ctl.send_time = s_data.value("send_time").toString();
+    tmp_ctl.send_time = "";
+    tmp_ctl.emu_cmd = emu_protocolb::c_server_to_client.value(server_cmd);
+    //tmp_ctl.cmd_time = s_data.value("cmd_time").toString();
+    tmp_ctl.cmd_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    tmp_ctl.server_cmd = server_cmd;
+
     ag_user_station_table tmp_us_tb;
     ag_station_emu_table tmp_sta_emu_tb;
-
-    QString total_station;
-    ag_user_table tmp_user_tb;
-
-    tmp_user_tb.read_total_stations(m_db,user,total_station);
-
     if(tmp_us_tb.is_station_exist(m_db,total_station,station))
     {
         if(tmp_sta_emu_tb.is_emu_exist(m_db,station,emu))
         {
             ag_device_control_table dev_ctl_tb;
-            dev_ctl_strc tmp_ctl;
-            tmp_ctl.emu_cid = s_data.value("emu_cid").toString();
-            tmp_ctl.send_data = s_data.value("send_data").toString();
-            //tmp_ctl.is_send = s_data.value("is_send").toInt();
-            tmp_ctl.is_send = 0;
-            //tmp_ctl.send_time = s_data.value("send_time").toString();
-            tmp_ctl.send_time = "";
-            tmp_ctl.emu_cmd = s_data.value("emu_cmd").toInt();
-            //tmp_ctl.cmd_time = s_data.value("cmd_time").toString();
-            tmp_ctl.cmd_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-            tmp_ctl.server_cmd = s_data.value("server_cmd").toInt();
             //尝试更新最新的(指令顺序必须相邻)
             if(dev_ctl_tb.update_first_data(m_db,tmp_ctl))
             {
@@ -995,47 +1011,6 @@ bool mysql::update_device_ctl(QString user, QJsonObject &s_data)
         }
     }
     return false;
-}
-
-bool mysql::update_device_ctl(QString user, QString station, QString emu, dev_ctl_strc tmp_ctl)
-{
-    ag_user_station_table tmp_us_tb;
-    ag_station_emu_table tmp_sta_emu_tb;
-    if(tmp_us_tb.is_station_exist(m_db,user,station))
-    {
-        if(tmp_sta_emu_tb.is_emu_exist(m_db,station,emu))
-        {
-            ag_device_control_table dev_ctl_tb;
-            //尝试更新最新的(指令顺序必须相邻)
-            if(dev_ctl_tb.update_first_data(m_db,tmp_ctl))
-            {
-                return true;
-            }
-            else
-            {
-                //直接插入数据
-                return dev_ctl_tb.w_data(m_db,tmp_ctl);
-            }
-        }
-    }
-    return false;
-}
-
-void mysql::update_server_01(QString user, QString station, QString emu)
-{
-    //设备更新  刷新emu指令 01
-    dev_ctl_strc tmp_ctl;
-    tmp_ctl.emu_cid = emu;
-    tmp_ctl.send_data = "";
-    //tmp_ctl.is_send = s_data.value("is_send").toInt();
-    tmp_ctl.is_send = 0;
-    //tmp_ctl.send_time = s_data.value("send_time").toString();
-    tmp_ctl.send_time = "";
-    tmp_ctl.emu_cmd = 0x04;
-    //tmp_ctl.cmd_time = s_data.value("cmd_time").toString();
-    tmp_ctl.cmd_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-    tmp_ctl.server_cmd = 0x01;
-    update_device_ctl(user,station,emu,tmp_ctl);
 }
 
 

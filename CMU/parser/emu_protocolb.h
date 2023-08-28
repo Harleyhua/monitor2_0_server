@@ -61,6 +61,9 @@ public:
     static const quint8 C_REISSUE_DATA_MSG_CMD;
     static const quint8 C_SET_MAPPING_CMD;  //0X84
     //b2.0
+    static const QHash<quint8, quint8> c_server_to_client;
+    static bool is_b1_3_valid(QString type,QString soft_version);
+
     static const quint8 C_GET_TEMPORARY_POWER;
     static const quint8 C_SET_TEMPORARY_POWER;
 

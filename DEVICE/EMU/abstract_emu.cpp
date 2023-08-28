@@ -178,3 +178,32 @@ void abstract_emu::get_server_cmd(uint8_t &cmd, QByteArray &rt_data)
         }
     }
 }
+
+bool abstract_emu::is_general_cid_valid(QString emu_cid)
+{
+    if(emu_cid =="")
+    {
+        return false;
+    }
+
+    //16进制数 8位
+    QRegExp hexMatcher("^[0-9A-F]{8}$");
+    if(hexMatcher.exactMatch(emu_cid) && (emu_cid[0] == '9'))
+        return true;
+    return false;
+}
+
+bool abstract_emu::is_wifiemu_cid_valid(QString wifiemu_cid)
+{
+    if(wifiemu_cid =="")
+    {
+        return false;
+    }
+
+    //16进制数 8位
+    QRegExp hexMatcher("^[0-9A-F]{8}$");
+    if(hexMatcher.exactMatch(wifiemu_cid) && (wifiemu_cid[0] == 'A' || wifiemu_cid[0] == 'B'
+                                              || wifiemu_cid[0] == 'C'))
+        return true;
+    return false;
+}
