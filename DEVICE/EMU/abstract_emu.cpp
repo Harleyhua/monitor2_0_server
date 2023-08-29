@@ -187,7 +187,7 @@ bool abstract_emu::is_general_cid_valid(QString emu_cid)
     }
 
     //16进制数 8位
-    QRegExp hexMatcher("^[0-9A-F]{8}$");
+    QRegExp hexMatcher("^[0-9A-Fa-f]{8}$");
     if(hexMatcher.exactMatch(emu_cid) && (emu_cid[0] == '9'))
         return true;
     return false;
@@ -201,9 +201,9 @@ bool abstract_emu::is_wifiemu_cid_valid(QString wifiemu_cid)
     }
 
     //16进制数 8位
-    QRegExp hexMatcher("^[0-9A-F]{8}$");
+    QRegExp hexMatcher("^[0-9A-Fa-f]{8}$");
     if(hexMatcher.exactMatch(wifiemu_cid) && (wifiemu_cid[0] == 'A' || wifiemu_cid[0] == 'B'
-                                              || wifiemu_cid[0] == 'C'))
+       || wifiemu_cid[0] == 'C' || wifiemu_cid[0] == 'a' || wifiemu_cid[0] == 'b' || wifiemu_cid[0] == 'c'))
         return true;
     return false;
 }

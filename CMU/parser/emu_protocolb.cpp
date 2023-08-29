@@ -216,7 +216,7 @@ bool emu_protocolb::emu_type_analysis(QByteArray &netdata, QString &name, emu_ty
             uint8_t cs_ret = csCalculate_B(netdata,length);
             if(cs_ret == (uint8_t)netdata[length-3])
             {
-                name = QString::number(common::qbtarray_to_u32(netdata,10),16);
+                name = QString::number(common::qbtarray_to_u32(netdata,10),16).toUpper();
                 return true;
 
 //                if(cmd == C_HAND_CMD ||cmd == C_LOGIN_CMD || cmd== C_POWER_CMD)
@@ -289,7 +289,7 @@ bool emu_protocolb::write_frame_head(QByteArray &send_msg, uint16_t msg_index, u
 void emu_protocolb::to_login_json(const QByteArray &s_data, QJsonObject &rt_data)
 {
     QJsonObject js_datas;
-    js_datas.insert(ag_gateway_data_table::c_field_emu_cid,QString::number(common::qbtarray_to_u32(s_data,10),16));
+    js_datas.insert(ag_gateway_data_table::c_field_emu_cid,QString::number(common::qbtarray_to_u32(s_data,10),16).toUpper());
     js_datas.insert(ag_gateway_data_table::c_field_action,"login");
     js_datas.insert(ag_gateway_data_table::c_field_version,"");
     js_datas.insert(ag_gateway_data_table::c_field_sys_time,common::get_system_detail_time());
@@ -300,7 +300,7 @@ void emu_protocolb::to_login_json(const QByteArray &s_data, QJsonObject &rt_data
 void emu_protocolb::to_emu_property_json(const QByteArray &s_data, QJsonObject &rt_data)
 {
     QJsonObject js_datas;
-    js_datas.insert(ag_emu_property_table::c_field_emu_cid,QString::number(common::qbtarray_to_u32(s_data,10),16));
+    js_datas.insert(ag_emu_property_table::c_field_emu_cid,QString::number(common::qbtarray_to_u32(s_data,10),16).toUpper());
     js_datas.insert(ag_emu_property_table::c_field_type,
                     QString("%1").arg(common::qbtarray_to_u16(s_data,30),4,16,QLatin1Char('0')));
     js_datas.insert(ag_emu_property_table::c_field_hard_version,
@@ -313,7 +313,7 @@ void emu_protocolb::to_emu_property_json(const QByteArray &s_data, QJsonObject &
 void emu_protocolb::to_handshake_json(const QByteArray &s_data, QJsonObject &rt_data)
 {
     QJsonObject js_datas;
-    js_datas.insert(ag_gateway_data_table::c_field_emu_cid,QString::number(common::qbtarray_to_u32(s_data,10),16));
+    js_datas.insert(ag_gateway_data_table::c_field_emu_cid,QString::number(common::qbtarray_to_u32(s_data,10),16).toUpper());
     js_datas.insert(ag_gateway_data_table::c_field_action,"handshake");
     js_datas.insert(ag_gateway_data_table::c_field_version,"");
     js_datas.insert(ag_gateway_data_table::c_field_sys_time,common::get_system_detail_time());
@@ -323,7 +323,7 @@ void emu_protocolb::to_handshake_json(const QByteArray &s_data, QJsonObject &rt_
 
 void emu_protocolb::to_powerdata_json(const QByteArray &s_data, QJsonObject &rt_data,uint16_t &date)
 {
-    QString t_emu_cid = QString::number(common::qbtarray_to_u32(s_data,10),16);
+    QString t_emu_cid = QString::number(common::qbtarray_to_u32(s_data,10),16).toUpper();
     QString t_emu_date = QString::number((uint8_t)s_data[4]) + "-" + QString::number((uint8_t)s_data[5]) + "-" +
                          QString::number((uint8_t)s_data[6]) + " " + QString::number((uint8_t)s_data[7]) + ":" +
                          QString::number((uint8_t)s_data[8]) + ":" + QString::number((uint8_t)s_data[9]);
@@ -377,7 +377,7 @@ void emu_protocolb::to_mapping_json(const QByteArray &s_data, QJsonObject &rt_da
 
     param_json.insert(ag_rack_mi_table::c_field_room,"");
     param_json.insert(ag_rack_mi_table::c_field_emu_cid,
-                      QString::number(common::qbtarray_to_u32(s_data,10),16));
+                      QString::number(common::qbtarray_to_u32(s_data,10),16).toUpper());
 
     rt_data.insert("params",param_json);
 }
@@ -389,7 +389,7 @@ void emu_protocolb::to_mapping_json(const QByteArray &s_data, QJsonObject &rt_da
 
 void emu_protocolb::to_reissuepower_json(const QByteArray &s_data, QJsonObject &rt_data,uint16_t &date)
 {
-    QString t_emu_cid = QString::number(common::qbtarray_to_u32(s_data,10),16);
+    QString t_emu_cid = QString::number(common::qbtarray_to_u32(s_data,10),16).toUpper();
     QString t_emu_date = QString::number((uint8_t)s_data[17]) + "-" + QString::number((uint8_t)s_data[18]) + "-" +
                          QString::number((uint8_t)s_data[19]) + " " + QString::number((uint8_t)s_data[20]) + ":" +
                          QString::number((uint8_t)s_data[21]) + ":" + QString::number((uint8_t)s_data[22]);
@@ -464,7 +464,7 @@ void emu_protocolb::to_mi_property_json(const QByteArray &s_data, QJsonObject &r
 
 void emu_protocolb::to_emu_status_json(const QByteArray &s_data, QJsonObject &rt_data)
 {
-    QString t_emu_cid = QString::number(common::qbtarray_to_u32(s_data,10),16);
+    QString t_emu_cid = QString::number(common::qbtarray_to_u32(s_data,10),16).toUpper();
     QString status = QString("%1").arg(common::qbtarray_to_u32(s_data,16),8,16,QLatin1Char('0'));
     QString status_reserve = QString("%1").arg(common::qbtarray_to_u8(s_data,20),2,16,QLatin1Char('0'));
     QString run_mode = QString("%1").arg(common::qbtarray_to_u8(s_data,21),2,16,QLatin1Char('0'));
@@ -479,7 +479,7 @@ void emu_protocolb::to_emu_status_json(const QByteArray &s_data, QJsonObject &rt
 void emu_protocolb::to_emu_status_act_json(const QByteArray &s_data, QJsonObject &rt_data)
 {
     QJsonObject js_datas;
-    js_datas.insert(ag_gateway_data_table::c_field_emu_cid,QString::number(common::qbtarray_to_u32(s_data,10),16));
+    js_datas.insert(ag_gateway_data_table::c_field_emu_cid,QString::number(common::qbtarray_to_u32(s_data,10),16).toUpper());
     js_datas.insert(ag_gateway_data_table::c_field_action,"emu_status");
     js_datas.insert(ag_gateway_data_table::c_field_version,"");
     js_datas.insert(ag_gateway_data_table::c_field_sys_time,common::get_system_detail_time());
