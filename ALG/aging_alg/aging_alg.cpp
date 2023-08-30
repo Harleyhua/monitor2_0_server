@@ -125,8 +125,8 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         total_start_power += start_power;
 
         old_power_value = start_power;  //避免第一次的判断
-        //不解析前两个点
-        for(int j=pv_datas.size() - start_point_offset;j>=0;j--)
+        //不解析前两个点  和后5个点
+        for(int j=pv_datas.size() - start_point_offset;j>=5;j--)
         {
             QJsonObject data = pv_datas[j].toObject();
             int cur_power = data.value("power").toString().toDouble() *100;      //当前point  功率

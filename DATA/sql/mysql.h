@@ -61,10 +61,13 @@ public:
     void r_mapping(QString account,QJsonObject &rt_data,QStringList &mis_list);
     //层级关系操作方法
     void add_station(QString user,QJsonObject &s_data);
+    void add_station(QString user,QString station);
     void add_emu_cid(QString user,QJsonObject &s_data);
     void add_plcmi_cid(QString user,QJsonObject &s_data);
     void add_wifimi_cid(QString user,QJsonObject &s_data);
+    void add_wifimi_cid(QString user,QString station, QString emu_cid,QString mi_cid,QString mi_desc);
     void del_station(QString user,QJsonObject &s_data);
+    void del_station(QString user,QString station);
     //void del_station();
     void del_emu(QString user,QString station,QString emu);
     void del_emu(QString user,QJsonObject &s_data);

@@ -42,6 +42,29 @@ bool ag_user_station_table::is_station_exist(QSqlDatabase &m_database, QString t
     return false;
 }
 
+void ag_user_station_table::write_station(QSqlDatabase &m_database, QString total_station, QString station)
+{
+    QSqlQuery query(m_database);
+    //QJsonArray tmp_datas = w_data.value("params").toObject().value("station").toArray();
+
+    QString tmp_cmd = QString("INSERT INTO %1 (%2,%3) VALUES (?,?)")
+            .arg(m_name,c_field_account,c_field_station);
+    query.prepare(tmp_cmd);
+
+    query.addBindValue(total_station);
+    query.addBindValue(station);
+
+    if(query.exec())
+    {
+
+    }
+    else
+    {
+
+    }
+
+}
+
 //void ag_user_station_table::write_station(QSqlDatabase &m_database, QJsonObject &w_data)
 //{
 //    QSqlQuery query(m_database);

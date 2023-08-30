@@ -267,6 +267,18 @@ void mysql::add_station(QString user, QJsonObject &s_data)
 
 }
 
+void mysql::add_station(QString user, QString station)
+{
+    ag_user_station_table tmp_tb;
+
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
+
+    tmp_tb.write_station(m_db,total_station,station);
+}
+
 void mysql::add_emu_cid(QString user, QJsonObject &s_data)
 {
     QString station = s_data.value("params").toObject().value("station").toString();
@@ -337,6 +349,28 @@ void mysql::add_wifimi_cid(QString user, QJsonObject &s_data)
     }
 }
 
+void mysql::add_wifimi_cid(QString user,QString station, QString emu, QString mi, QString mi_desc)
+{
+    //QString emu = emus[i].toObject().value("emu").toString();
+    ag_user_station_table tmp_us_tb;
+    ag_station_emu_table tmp_sta_emu_tb;
+    ag_emu_mi_table tmp_emu_mi_tb;
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,user,total_station);
+    if(tmp_us_tb.is_station_exist(m_db,total_station,station))
+    {
+        tmp_sta_emu_tb.w_one_emu(m_db,station,emu,"");
+        //写入成功
+        if(tmp_sta_emu_tb.is_emu_exist(m_db,station,emu))
+        {
+            tmp_emu_mi_tb.w_one_mi(m_db,emu,mi,mi_desc);
+        }
+    }
+
+}
+
 void mysql::del_station(QString user, QJsonObject &s_data)
 {
     ag_user_station_table tmp_us_tb;
@@ -352,6 +386,24 @@ void mysql::del_station(QString user, QJsonObject &s_data)
     }
     tmp_us_tb.del_station_by_station(m_db,station);
 }
+
+void mysql::del_station(QString user, QString station)
+{
+    ag_user_station_table tmp_us_tb;
+    ag_station_emu_table tmp_st_emu_tb;
+    //QString station = s_data.value("station").toString();
+    QStringList emus;
+    QStringList emu_desc;
+    tmp_st_emu_tb.r_emu(m_db,station,emus,emu_desc);
+
+    for(int i=0;i<emus.size();i++)
+    {
+        del_emu(user,station,emus[i]);
+    }
+    tmp_us_tb.del_station_by_station(m_db,station);
+}
+
+
 
 void mysql::del_emu(QString user, QString station, QString emu)
 {
@@ -612,15 +664,22 @@ void mysql::w_rack_data(QJsonObject &s_data)
     QJsonArray w_datas_array;
 
     QStringList default_aging_emu;
+    ag_station_emu_table station_emu_tb;
+
+    del_station("aging_room1","room-1");
+
+    add_station("aging_room1","room-1");
 
     for(int i=1;i<=6;i++)
     {
         for(int j=1;j<=8;j++)
         {
             QString emu_cid = "909999" + QString::number(i)+QString::number(j);
-
+            QString emu_desc = "rack-" + QString::number(i) + " L" + QString::number(j);
             default_aging_emu.append(emu_cid);
             emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
+
+            station_emu_tb.w_one_emu(m_db,"room-1",emu_cid,emu_desc);
         }
     }
 
@@ -638,6 +697,7 @@ void mysql::w_rack_data(QJsonObject &s_data)
 
         }
         QMap<QString,QStringList> emu_mi;
+        QMap<QString,QString> emu_wifi_mis;
         QMap<QString,QString> mi_desc;
         //一个节点一个微逆
         for(int j=0;j<nodes.size();j++)
@@ -650,27 +710,40 @@ void mysql::w_rack_data(QJsonObject &s_data)
             }
             QString mi_cid = node_obj.value("mi_cid").toString();
             QString emu_cid = "909999" + rack_name.rightRef(1) + pos.mid(0,1);//默认规则  需要人为支持
-            QStringList mis = emu_mi.value(emu_cid);
-
+            QStringList plc_mis = emu_mi.value(emu_cid);
+            bool is_wifi = false;
+            QString old_emu_wifi_mi_cid = mi_cid;
             if(mi_cid.startsWith("A"))
             {
                 mi_cid[0] = '1';
+                is_wifi = true;
             }
             else if(mi_cid.startsWith("B"))
             {
                 mi_cid[0] = '2';
+                is_wifi = true;
             }
             else if(mi_cid.startsWith("C"))
             {
                 mi_cid[0] = '4';
+                is_wifi = true;
             }
+
             //编号必须有效
             if(abstract_bym::is_cid_valid(mi_cid))
             {
-                mis.append(mi_cid);
+                if(is_wifi)
+                {
+                    emu_wifi_mis.insert(old_emu_wifi_mi_cid,mi_cid);
+                }
+                else
+                {
+                    plc_mis.append(mi_cid);
+                }
+
                 mi_desc.insert(mi_cid, rack_name + " " + pos);
             }
-            emu_mi.insert(emu_cid,mis);
+            emu_mi.insert(emu_cid,plc_mis);
 
             QJsonObject mi_obj;
             mi_obj.insert("room_id",room);
@@ -705,6 +778,12 @@ void mysql::w_rack_data(QJsonObject &s_data)
             {
                 emu_mi_tb.w_one_mi(m_db,keys[j],e_mis[k],mi_desc[e_mis[k]]);
             }
+        }
+
+        keys = emu_wifi_mis.keys();
+        for(int j=0;j<keys.size();j++)
+        {
+             add_wifimi_cid("aging_room1","room-1",keys[j],emu_wifi_mis[keys[j]],mi_desc[emu_wifi_mis[keys[j]]]);
         }
     }
 
