@@ -177,8 +177,18 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             }
 
             bool ok_16;
+            uint16_t ignore_mim_code = 0x0000;
+            if(pv_size == 1)
+            {
+                ignore_mim_code = 0x0808;
+            }
+            else if(pv_size == 4)
+            {
+                ignore_mim_code = 0x0908;
+            }
+
             //原边部分错误 去除判断
-            if((mim_err.toUInt(&ok_16,16)) & (~0x0808))
+            if((mim_err.toUInt(&ok_16,16)) & (~ignore_mim_code))
             {
                 //有故障 不计算温度
                 cal_temp_flag = false;
@@ -190,7 +200,6 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
                 ignore_times ++;
                 continue;
             }
-
             //当前大于滤波点
             if(j <= pv_datas.size() - start_point_offset)
             {
