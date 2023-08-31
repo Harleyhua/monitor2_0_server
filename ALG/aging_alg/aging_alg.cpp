@@ -62,6 +62,8 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     QString total_ret_str;    //整机 输出判断的文本结果
 
     QString total_stop_time = "2030-01-30 17:05:33";
+
+    int all_data_size = 0;
     for(int i=0;i<pv_size;i++)
     {
         QJsonArray pv_datas = s_data.value("datas").toArray()[i].toObject().value("pv_datas").toArray();
@@ -126,8 +128,9 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
 
         old_power_value = start_power;  //避免第一次的判断
         //不解析前两个点  和后5个点
-        for(int j=pv_datas.size() - start_point_offset;j>=5;j--)
+        for(int j=pv_datas.size() - start_point_offset;j>=start_point_offset;j--)
         {
+            all_data_size += pv_datas.size();
             QJsonObject data = pv_datas[j].toObject();
             int cur_power = data.value("power").toString().toDouble() *100;      //当前point  功率
             int cur_temp = data.value("temperature").toString().toDouble() *100; //当前point  温度
@@ -163,6 +166,12 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
                 uint16_t new_code = QString(mis_err).toInt(&ret,16);
                 mis_code |= new_code;
             }
+
+            // 温度最大值   此数据不能被忽略跳过
+            if(cur_temp > tmp_temp_max)
+                tmp_temp_max = cur_temp;
+
+
             //如果该点为忽略的点  不再统计这个点 跳到下个点
             if(ignore_points > 0)
             {
@@ -225,9 +234,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
                     tmp_power_max = cur_power;
                 if(cur_power < tmp_power_min)
                     tmp_power_min = cur_power;
-                // 温度最大值
-                if(cur_temp > tmp_temp_max)
-                    tmp_temp_max = cur_temp;
+
 
 #if CAL_TEMP40_SWITCH
                 //房间温度 40℃
@@ -558,8 +565,37 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         {
             tmp_ret = nonominal_power;
         }
+
         if(tmp_power_max == DEFAULT_VALUE_MAX && tmp_power_min == DEFAULT_VALUE_MIN)
         {
+            tmp_power_max = 0;
+            tmp_power_min = 0;
+#if CAL_TEMP40_SWITCH
+        tmp_40power_max = 0;
+        tmp_40power_min = 0;
+        tmp_40temp_max = 0;
+#endif
+#if CAL_TEMP45_SWITCH
+        tmp_45power_max = 0;
+        tmp_45power_min = 0;
+        tmp_45temp_max = 0;
+#endif
+#if CAL_TEMP50_SWITCH
+        tmp_50power_max = 0;
+        tmp_50power_min = 0;
+        tmp_50temp_max = 0;
+#endif
+#if CAL_TEMP55_SWITCH
+        tmp_55power_max = 0;
+        tmp_55power_min = 0;
+        tmp_55temp_max = 0;
+#endif
+#if CAL_TEMP60_SWITCH
+        tmp_60power_max = 0;
+        tmp_60power_min = 0;
+        tmp_60temp_max = 0;
+#endif
+
             tmp_ret = nopower_data;
         }
         if(judge_param.value("v_aging_points").toInt() != -1)
@@ -580,8 +616,35 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         }
         if(pv_datas.size() == 0)
         {
-            tmp_ret = empty_data;
+            tmp_power_max = DEFAULT_VALUE_MAX;
+            tmp_power_min = DEFAULT_VALUE_MIN;
+#if CAL_TEMP40_SWITCH
+        tmp_40power_max = DEFAULT_VALUE_MAX;
+        tmp_40power_min = DEFAULT_VALUE_MIN;
+        tmp_40temp_max = DEFAULT_VALUE_MAX;
+#endif
+#if CAL_TEMP45_SWITCH
+        tmp_45power_max = DEFAULT_VALUE_MAX;
+        tmp_45power_min = DEFAULT_VALUE_MIN;
+        tmp_45temp_max = DEFAULT_VALUE_MAX;
+#endif
+#if CAL_TEMP50_SWITCH
+        tmp_50power_max = DEFAULT_VALUE_MAX;
+        tmp_50power_min = DEFAULT_VALUE_MIN;
+        tmp_50temp_max = DEFAULT_VALUE_MAX;
+#endif
+#if CAL_TEMP55_SWITCH
+        tmp_55power_max = DEFAULT_VALUE_MAX;
+        tmp_55power_min = DEFAULT_VALUE_MIN;
+        tmp_55temp_max = DEFAULT_VALUE_MAX;
+#endif
+#if CAL_TEMP60_SWITCH
+        tmp_60power_max = DEFAULT_VALUE_MAX;
+        tmp_60power_min = DEFAULT_VALUE_MIN;
+        tmp_60temp_max = DEFAULT_VALUE_MAX;
+#endif
 
+            tmp_ret = empty_data;
         }
 
         //当前错误严重等级(实际倒序,越大越小) 小于 实际错误等级
@@ -664,6 +727,73 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         tmp_total_casue = nonominal_power;
 
 
+    if(tmp_total_power_max == DEFAULT_VALUE_MAX && tmp_total_power_min == DEFAULT_VALUE_MIN)
+    {
+        tmp_total_power_max = 0;
+        tmp_total_power_min = 0;
+#if CAL_TEMP40_SWITCH
+    tmp_total_40power_max = 0;
+    tmp_total_40power_min = 0;
+    tmp_total_40temp_max = 0;
+#endif
+#if CAL_TEMP45_SWITCH
+    tmp_total_45power_max = 0;
+    tmp_total_45power_min = 0;
+    tmp_total_45temp_max = 0;
+#endif
+#if CAL_TEMP50_SWITCH
+    tmp_total_50power_max = 0;
+    tmp_total_50power_min = 0;
+    tmp_total_50temp_max = 0;
+#endif
+#if CAL_TEMP55_SWITCH
+    tmp_total_55power_max = 0;
+    tmp_total_55power_min =0 ;
+    tmp_total_55temp_max = 0;
+#endif
+#if CAL_TEMP60_SWITCH
+    tmp_total_60power_max = 0;
+    tmp_total_60power_min = 0;
+    tmp_total_60temp_max = 0;
+#endif
+        tmp_total_casue = nopower_data;
+    }
+
+    if(all_data_size == 0)
+    {
+        tmp_total_power_max = DEFAULT_VALUE_MAX;
+        tmp_total_power_min = DEFAULT_VALUE_MIN;
+#if CAL_TEMP40_SWITCH
+    tmp_total_40power_max = DEFAULT_VALUE_MAX;
+    tmp_total_40power_min = DEFAULT_VALUE_MIN;
+    tmp_total_40temp_max = DEFAULT_VALUE_MAX;
+#endif
+#if CAL_TEMP45_SWITCH
+    tmp_total_45power_max = DEFAULT_VALUE_MAX;
+    tmp_total_45power_min = DEFAULT_VALUE_MIN;
+    tmp_total_45temp_max = DEFAULT_VALUE_MAX;
+#endif
+#if CAL_TEMP50_SWITCH
+    tmp_total_50power_max = DEFAULT_VALUE_MAX;
+    tmp_total_50power_min = DEFAULT_VALUE_MIN;
+    tmp_total_50temp_max = DEFAULT_VALUE_MAX;
+#endif
+#if CAL_TEMP55_SWITCH
+    tmp_total_55power_max = DEFAULT_VALUE_MAX;
+    tmp_total_55power_min = DEFAULT_VALUE_MIN ;
+    tmp_total_55temp_max = DEFAULT_VALUE_MAX;
+#endif
+#if CAL_TEMP60_SWITCH
+    tmp_total_60power_max = DEFAULT_VALUE_MAX;
+    tmp_total_60power_min = DEFAULT_VALUE_MIN;
+    tmp_total_60temp_max = DEFAULT_VALUE_MAX;
+#endif
+
+
+        tmp_total_casue = empty_data;
+
+    }
+
     if(cur_err_cause > tmp_total_casue )
     {
         cur_err_cause = tmp_total_casue;
@@ -682,6 +812,8 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     {
         b_ret = 2;
     }
+
+
 
     QJsonObject total_obj;
 

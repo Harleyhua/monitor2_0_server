@@ -950,9 +950,14 @@ void mysql::r_batch_list(QJsonObject &s_data, QJsonObject &rt_data)
         QJsonArray mis_array;
         rk_dt_tb.read_mi_list(m_db,batch_list[i],mi_list);
 
+
+
         for(int j=0;j<mi_list.size();j++)
         {
-            mis_array.append(mi_list[j]);
+            if(abstract_bym::is_cid_valid(mi_list[j]))
+            {
+                mis_array.append(mi_list[j]);
+            }
         }
 
         one_batch_obj.insert("start_time",batch_list[i]);
