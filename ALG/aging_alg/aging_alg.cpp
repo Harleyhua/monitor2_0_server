@@ -20,6 +20,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     int drop_thr = judge_param.value("drop_value").toInt(70);
     int drop_points_thr = judge_param.value("drop_points_max").toInt(5);
     int ignore_points_thr = judge_param.value("ignore_points_max").toInt(10);
+    //int nominal_pw_thr = judge_param.value("nominal_pw_thr").toInt(100000);
 
     QJsonArray pv_ret;
     QSet<uint> rm_idx_set;
@@ -193,7 +194,20 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             }
             else if(pv_size == 4)
             {
-                ignore_mim_code = 0x0908;
+                if(i == 0 || i== 2)
+                {
+                    //初始部分 0b00000001 11110000
+                    //公共叠加 0b00000000 00001000
+                    //自身叠加 0b00001000 00000000
+                    ignore_mim_code = 0x09f8;
+                }
+                else if(i == 1 || i == 3)
+                {
+                    //初始部分 0b11111000 00000000
+                    //公共叠加 0b00000000 00001000
+                    //自身叠加 0b00000001 00000000
+                    ignore_mim_code = 0xf908;
+                }
             }
 
             //原边部分错误 去除判断
@@ -560,10 +574,21 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             tmp_ret = drop_max_data;
         }
 
-        //pv 最高功率没超过标称功率
-        if(tmp_power_max < pv_nominal_power * 100)
+        if(pv_size == 4)
         {
-            tmp_ret = nonominal_power;
+            //pv 最高功率没超过标称功率
+            if(tmp_power_max < 95 * pv_nominal_power)
+            {
+                tmp_ret = nonominal_power;
+            }
+        }
+        else
+        {
+            //pv 最高功率没超过标称功率
+            if(tmp_power_max < 100 * pv_nominal_power)
+            {
+                tmp_ret = nonominal_power;
+            }
         }
 
         if(tmp_power_max == DEFAULT_VALUE_MAX && tmp_power_min == DEFAULT_VALUE_MIN)
@@ -722,10 +747,18 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     if(tmp_total_60power_min < (int)(judge_param.value("v_rm60_pwmin").toInt() * nominal_power))
         tmp_total_casue = lowpower_data;
 #endif
-    //整机功率过低
-    if(tmp_total_power_max < total_nominal_power *100)
-        tmp_total_casue = nonominal_power;
-
+    if(pv_size == 4)
+    {
+        //整机功率过低
+        if(tmp_total_power_max < total_nominal_power *99)
+            tmp_total_casue = nonominal_power;
+    }
+    else
+    {
+        //整机功率过低
+        if(tmp_total_power_max < total_nominal_power *100)
+            tmp_total_casue = nonominal_power;
+    }
 
     if(tmp_total_power_max == DEFAULT_VALUE_MAX && tmp_total_power_min == DEFAULT_VALUE_MIN)
     {
