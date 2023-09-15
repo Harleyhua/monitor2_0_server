@@ -89,18 +89,72 @@ void ag_temp_table::write_temp(QSqlDatabase &m_database,QJsonObject &w_data)
 void ag_temp_table::read_temp(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
 {
     //QString s_time = time.toString("yyyy-MM-dd hh:mm:ss");
+    bool where_flag = false;
     //找到该时间段 的温度值
-    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5 FROM %6 WHERE %7 <= '%8' AND %9 >= '%10' ORDER BY %11 DESC")
-            .arg(c_field_room_id,c_field_run_status,c_field_set_temp,c_field_cur_temp,c_field_cur_time,m_name,
-                 c_field_cur_time,r_data.value("params").toObject().value("stop_time").toString(),
-                 c_field_cur_time,r_data.value("params").toObject().value("start_time").toString(),
-                 c_field_cur_time);
-    QSqlQuery query(m_database);
+    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5 FROM %6 ").arg(c_field_room_id,c_field_run_status,c_field_set_temp,
+                                                                    c_field_cur_temp,c_field_cur_time,m_name);
+    QString select_size_head = QString("SELECT COUNT(1) FROM %1").arg(m_name);
 
-    query.prepare(tmp_cmd);
-    if(query.exec())
+    QString condition;
+
+    QString condition_tail;
+    QSqlQuery query(m_database);
+    //WHERE %7 <= '%8' AND %9 >= '%10' ORDER BY %11 DESC
+//    c_field_cur_time,r_data.value("params").toObject().value("stop_time").toString(),
+//    c_field_cur_time,r_data.value("params").toObject().value("start_time").toString(),
+//    c_field_cur_time);
+
+
+    if(r_data.value("room_id").toString() != "")
     {
-        QJsonArray datas;
+        if(!where_flag)
+        {
+            where_flag = true;
+            condition += " WHERE ";
+        }
+        else {
+            condition += " AND ";
+        }
+
+        condition += c_field_room_id + QString("='%1' ").arg(r_data.value("room_id").toString());
+    }
+
+    if(r_data.value("start_date").toString() != "" && r_data.value("stop_date").toString() != "")
+    {
+        if(!where_flag)
+        {
+            where_flag = true;
+            condition += " WHERE ";
+        }
+        else if(where_flag)
+        {
+            condition+= " AND ";
+        }
+
+        condition += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_cur_time,r_data.value("start_date").toString(),
+                                                          r_data.value("stop_date").toString());
+    }
+
+    condition_tail += QString(" ORDER BY %1 DESC ").arg(c_field_cur_time);
+
+    if(r_data.value("nums").toString() != "-1")
+    {
+        condition_tail += QString(" LIMIT %1,%2 ").arg(r_data.value("start_num").toString(),
+                                                r_data.value("nums").toString());
+    }
+    uint64_t data_size = 0;
+    if(query.exec(select_size_head + condition))
+    {
+        while (query.next()) {
+            data_size += query.value("COUNT(1)").toUInt();
+        }
+    }
+    data.insert("all_size",QString::number(data_size));
+
+    QJsonArray datas;
+    if(query.exec(tmp_cmd + condition + condition_tail))
+    {
+
         while(query.next())
         {
             QJsonObject one_datas;
@@ -111,14 +165,15 @@ void ag_temp_table::read_temp(QSqlDatabase &m_database, QJsonObject &r_data, QJs
             one_datas.insert(c_field_cur_time,query.value(c_field_cur_time).toDateTime().toString("yyyy-MM-dd hh:mm:ss"));
             datas.append(one_datas);
         }
-        data.insert("datas",datas);
-
         QLOG_INFO() <<"读取" + m_name + " 温度数据成功";
     }
     else
     {
         QLOG_WARN() << "读取" + m_name+ " 温度数据失败";
     }
+
+    data.insert("datas",datas);
+
 }
 
 void ag_temp_table::read_temp(QSqlDatabase &m_database, QString room_name, QString start_time, QString stop_time, QHash<QString, uint16_t> &temp)

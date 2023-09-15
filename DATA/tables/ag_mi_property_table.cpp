@@ -60,7 +60,7 @@ void ag_mi_property_table::write_property(QSqlDatabase &m_database, QJsonObject 
 
         if(query.exec())
         {
-            QLOG_INFO() << QString("插入微逆对象属性成功 %1").arg(tmp_property_data.value("room_id").toString(""));
+            //QLOG_INFO() << QString("插入微逆对象属性成功 %1").arg(tmp_property_data.value("room_id").toString(""));
         }
         else
         {
@@ -100,7 +100,7 @@ void ag_mi_property_table::read_property(QSqlDatabase &m_database, QJsonObject &
 
                 datas.append(one_mi);
 
-                QLOG_INFO() << "读取微逆对象属性成功";
+                //QLOG_INFO() << "读取微逆对象属性成功";
             }
         }
         else
@@ -132,7 +132,7 @@ void ag_mi_property_table::read_property(QSqlDatabase &m_database, QString mi_ci
 
             data.insert("datas",one_mi);
 
-            QLOG_INFO() << "读取微逆对象属性成功";
+            //QLOG_INFO() << "读取微逆对象属性成功";
         }
     }
     else
@@ -156,7 +156,7 @@ void ag_mi_property_table::read_nominal_power(QSqlDatabase &m_database, QStringL
             query.next();
             data.insert(query.value(c_field_cid).toString(),query.value(c_field_nominal_power).toInt());
 
-            QLOG_INFO() << "读取微逆对象属性成功";
+            //QLOG_INFO() << "读取微逆对象属性成功";
         }
         else
         {

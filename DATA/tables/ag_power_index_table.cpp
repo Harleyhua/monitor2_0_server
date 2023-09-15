@@ -49,7 +49,7 @@ void ag_power_index_table::write_power_index(QSqlDatabase &m_database, QJsonObje
 
     if(query.exec())
     {
-        QLOG_INFO() << "插入微逆下标表 ";
+        //QLOG_INFO() << "插入微逆下标表 ";
     }
     else
     {

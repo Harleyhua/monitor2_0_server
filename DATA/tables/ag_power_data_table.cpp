@@ -76,20 +76,19 @@ bool ag_power_data_table::delete_table(QSqlDatabase &m_database)
 
 void ag_power_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_data, quint64 &size)
 {
-    QJsonObject tmp_param = r_data.value("params").toObject();
     QString select_cmd_head = QString("SELECT COUNT(1) FROM ") + m_name + " ";
     QSqlQuery query(m_database);
     bool where_flag = false;
     //如果要进行筛选 微逆编号
     QString mid_cmd;
-    if(tmp_param.value("mi_cid_flag").toBool())
+    if(r_data.value("mi_cid_flag").toBool())
     {
         if(!where_flag)
         {
             where_flag = true;
             select_cmd_head += " WHERE ";
         }
-        QJsonArray mi_array = tmp_param.value("mi_cid").toArray();
+        QJsonArray mi_array = r_data.value("mi_cid").toArray();
         for(int i=0;i<mi_array.size();i++)
         {
             mid_cmd += c_field_mi_cid + QString("='%1' OR ").arg(mi_array[i].toString());
@@ -101,7 +100,7 @@ void ag_power_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_dat
         }
     }
 
-    if(tmp_param.value("emu_cid").toString() != "")
+    if(r_data.value("emu_cid").toString() != "")
     {
         if(!where_flag)
         {
@@ -112,11 +111,11 @@ void ag_power_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_dat
         {
             mid_cmd += " AND ";
         }
-        mid_cmd += c_field_emu_cid + QString("='%1' ").arg(tmp_param.value("emu_cid").toString());
+        mid_cmd += c_field_emu_cid + QString("='%1' ").arg(r_data.value("emu_cid").toString());
         where_flag = true;
     }
 
-    if(tmp_param.value("mim_err").toString() != "")
+    if(r_data.value("mim_err").toString() != "")
     {
         if(!where_flag)
         {
@@ -127,11 +126,11 @@ void ag_power_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_dat
         {
             mid_cmd += " AND ";
         }
-        mid_cmd += c_field_mim_err + QString("='%1' ").arg(tmp_param.value("mim_err").toString());
+        mid_cmd += c_field_mim_err + QString("='%1' ").arg(r_data.value("mim_err").toString());
         where_flag = true;
     }
 
-    if(tmp_param.value("mis_err").toString() != "")
+    if(r_data.value("mis_err").toString() != "")
     {
         if(!where_flag)
         {
@@ -142,7 +141,7 @@ void ag_power_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_dat
         {
             mid_cmd += " AND ";
         }
-        mid_cmd += c_field_mis_err + QString("='%1' ").arg(tmp_param.value("mis_err").toString());
+        mid_cmd += c_field_mis_err + QString("='%1' ").arg(r_data.value("mis_err").toString());
         where_flag = true;
     }
 
@@ -156,8 +155,8 @@ void ag_power_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_dat
         mid_cmd += " AND ";
     }
 
-    mid_cmd += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_sys_time,tmp_param.value("start_date").toString(),
-                                                      tmp_param.value("stop_date").toString());
+    mid_cmd += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_sys_time,r_data.value("start_date").toString(),
+                                                      r_data.value("stop_date").toString());
 
     if(query.exec(select_cmd_head + mid_cmd))
     {
@@ -168,7 +167,6 @@ void ag_power_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_dat
 
 void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data,bool is_one)
 {
-    QJsonObject tmp_param = r_data.value("params").toObject();
     QString select_cmd_head = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,%14,%15,%16,%17 FROM ")
             .arg(c_field_emu_cid,c_field_emu_time,c_field_mi_cid,c_field_mim_version,c_field_mis_version,c_field_pv,
                  c_field_power,c_field_energy,c_field_temperature,c_field_gridv,c_field_gridf,c_field_mim_err,
@@ -188,7 +186,7 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
     QStringList mi_list;
     QStringList table_list;
     ag_power_index_table pw_tb;
-    QJsonArray mi_array = tmp_param.value(c_field_mi_cid).toArray();
+    QJsonArray mi_array = r_data.value(c_field_mi_cid).toArray();
 
     for(int i=0;i<mi_array.size();i++)
     {
@@ -219,7 +217,7 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
         }
     }
 
-    if(tmp_param.value("emu_cid").toString() != "")
+    if(r_data.value("emu_cid").toString() != "")
     {
         if(!where_flag)
         {
@@ -230,10 +228,10 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
         {
             condition += " AND ";
         }
-        condition += c_field_emu_cid + QString("='%1' ").arg(tmp_param.value("emu_cid").toString());
+        condition += c_field_emu_cid + QString("='%1' ").arg(r_data.value("emu_cid").toString());
         //where_flag = true;
     }
-    if(tmp_param.value("pv_id").toString() != "")
+    if(r_data.value("pv_id").toString() != "")
     {
         if(!where_flag)
         {
@@ -244,10 +242,10 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
         {
             condition += " AND ";
         }
-        condition += c_field_pv_id + QString("='%1' ").arg(tmp_param.value("pv_id").toString());
+        condition += c_field_pv_id + QString("='%1' ").arg(r_data.value("pv_id").toString());
         //where_flag = true;
     }
-    if(tmp_param.value("mim_err").toString() != "")
+    if(r_data.value("mim_err").toString() != "")
     {
         if(!where_flag)
         {
@@ -258,11 +256,11 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
         {
             condition += " AND ";
         }
-        condition += c_field_mim_err + QString("='%1' ").arg(tmp_param.value("mim_err").toString());
+        condition += c_field_mim_err + QString("='%1' ").arg(r_data.value("mim_err").toString());
         //where_flag = true;
     }
 
-    if(tmp_param.value("mis_err").toString() != "")
+    if(r_data.value("mis_err").toString() != "")
     {
         if(!where_flag)
         {
@@ -273,12 +271,12 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
         {
             condition += " AND ";
         }
-        condition += c_field_mis_err + QString("='%1' ").arg(tmp_param.value("mis_err").toString());
+        condition += c_field_mis_err + QString("='%1' ").arg(r_data.value("mis_err").toString());
         //where_flag = true;
     }
 
 
-    if(tmp_param.value("start_date").toString() != "" && tmp_param.value("stop_date").toString() != "")
+    if(r_data.value("start_date").toString() != "" && r_data.value("stop_date").toString() != "")
     {
         if(!where_flag)
         {
@@ -290,8 +288,8 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
             condition += " AND ";
         }
 
-        condition += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_sys_time,tmp_param.value("start_date").toString(),
-                                                          tmp_param.value("stop_date").toString());
+        condition += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_sys_time,r_data.value("start_date").toString(),
+                                                          r_data.value("stop_date").toString());
     }
 
 
@@ -312,10 +310,10 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
     }
     power_data_cmd += QString("ORDER BY %1 DESC,%2 ASC").arg(c_field_sys_time,c_field_pv_id);
 
-    if(tmp_param.value("nums").toString() != "-1")
+    if(r_data.value("nums").toString() != "-1")
     {
-        power_data_cmd += QString(" LIMIT %1,%2 ").arg(tmp_param.value("start_num").toString(),
-                                                     tmp_param.value("nums").toString());
+        power_data_cmd += QString(" LIMIT %1,%2 ").arg(r_data.value("start_num").toString(),
+                                                     r_data.value("nums").toString());
     }
 
 
@@ -362,12 +360,12 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
         }
         else
         {
-            data.insert("stop_date",tmp_param.value("start_date").toString());
+            data.insert("stop_date",r_data.value("start_date").toString());
         }
 
         data.insert("datas",pv_data_array);
 
-        data.insert("start_date",tmp_param.value("start_date").toString());
+        data.insert("start_date",r_data.value("start_date").toString());
 
         if(is_one && mi_list.size() == 1)
         {
@@ -381,71 +379,7 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
 
 
 
-void ag_power_data_table::read_current_data(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
-{
-    QJsonObject tmp_param = r_data.value("params").toObject();
-    QString select_cmd_head = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,%14,%15,%16,%17 FROM ")
-            .arg(c_field_emu_cid,c_field_emu_time,c_field_mi_cid,c_field_mim_version,c_field_mis_version,c_field_pv,
-                 c_field_power,c_field_energy,c_field_temperature,c_field_gridv,c_field_gridf,c_field_mim_err,
-                 c_field_mis_err,c_field_pv_id,c_field_nominal_power,c_field_reissue_data,c_field_sys_time);
-    QSqlQuery query(m_database);
-    QStringList mi_list;
-    QStringList table_list;
-    ag_power_index_table pw_tb;
-    QJsonArray mi_array = tmp_param.value(c_field_mi_cid).toArray();
-    QJsonArray pv_data_array;
-    for(int i=0;i<mi_array.size();i++)
-    {
-        mi_list.append(mi_array[i].toString());
-    }
 
-    for(int i=0;i<mi_list.size();i++)
-    {
-        QString tmp_cur_table = "";
-        QString tmp_cmd;
-
-        table_list = pw_tb.read_tablelist_from_mi(m_database,QStringList() << mi_list[i]);
-        //找到日期最大的表
-        for(int j=0;j<table_list.size();j++)
-        {
-            if(tmp_cur_table < table_list[j])
-            {
-                tmp_cur_table = table_list[j];
-            }
-        }
-        tmp_cmd = select_cmd_head + " FROM ( " + select_cmd_head +
-                QString(" , ROW_NUMBER() OVER(PARTITION BY %1,%2 ORDER BY sys_time DESC) AS row_num FROM %3 WHERE %4 = '%5') "
-                        "AS ranked_data WHERE row_num = 1").arg(c_field_mi_cid,c_field_pv_id,tmp_cur_table,c_field_mi_cid,mi_list[i]);
-        if(query.exec(tmp_cmd))
-        {
-
-            while (query.next())
-            {
-                QJsonObject pv_data_js;
-                pv_data_js.insert(c_field_emu_cid,query.value(c_field_emu_cid).toString());
-                pv_data_js.insert(c_field_emu_time,query.value(c_field_emu_time).toDateTime().toString("yyyy-MM-dd hh:mm:ss"));
-                pv_data_js.insert(c_field_mi_cid,query.value(c_field_mi_cid).toString());
-                pv_data_js.insert(c_field_pv_id,query.value(c_field_pv_id).toInt());
-                pv_data_js.insert(c_field_mim_version,query.value(c_field_mim_version).toString());
-                pv_data_js.insert(c_field_mis_version,query.value(c_field_mis_version).toString());
-                pv_data_js.insert(c_field_pv,QString::number(query.value(c_field_pv).toFloat(),'f',2));
-                pv_data_js.insert(c_field_power,QString::number(query.value(c_field_power).toFloat(),'f',2));
-                pv_data_js.insert(c_field_energy,QString::number(query.value(c_field_energy).toFloat(),'f',2));
-                pv_data_js.insert(c_field_temperature,QString::number(query.value(c_field_temperature).toFloat(),'f',2));
-                pv_data_js.insert(c_field_gridv,QString::number(query.value(c_field_gridv).toFloat(),'f',2));
-                pv_data_js.insert(c_field_gridf,QString::number(query.value(c_field_gridf).toFloat(),'f',2));
-                pv_data_js.insert(c_field_mim_err,query.value(c_field_mim_err).toString());
-                pv_data_js.insert(c_field_mis_err,query.value(c_field_mis_err).toString());
-                //pv_data_js.insert("nominal_power",(int64_t)tmp_nominal.value(query.value(m_powertable_field.mi_cid).toString()));
-                pv_data_js.insert(c_field_reissue_data,query.value(c_field_reissue_data).toString());
-                pv_data_js.insert(c_field_sys_time,query.value(c_field_sys_time).toDateTime().toString("yyyy-MM-dd hh:mm:ss"));
-
-                pv_data_array.append(pv_data_js);
-            }
-        }
-    }
-    data.insert("pw_datas",pv_data_array);
-}
 
 void ag_power_data_table::read_current_data(QSqlDatabase &m_database, QStringList &mi_list, QJsonObject &data)
 {
@@ -567,7 +501,7 @@ void ag_power_data_table::write_data(QSqlDatabase &m_database, QJsonObject &w_da
 
     if(query.execBatch())
     {
-        QLOG_INFO() << QString("微逆:%1 写入发电数据表成功");
+        //QLOG_INFO() << QString("微逆:%1 写入发电数据表成功");
     }
     else {
         QLOG_WARN() << QString("微逆:%1 写入发电数据表失败");

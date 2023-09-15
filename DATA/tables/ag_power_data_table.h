@@ -13,21 +13,20 @@
 /*
  * read
 {
-    "params":
-        {
-            "mi_cid":[
-                "10010085",
-                "10010084"
-            ],
-            "emu_cid":"90000001",
-            "mim_err":"0000",
-            "mis_err":"0000",
-            "start_date":"2022-12-23 13:58:02",
-            "stop_date":"2023-03-23 14:00:00",
-            "pv_id":"1",
-            "nums":"2",
-            "start_num":"0"
-        }
+
+    "mi_cid":[
+        "10010085",
+        "10010084"
+    ],
+    "emu_cid":"90000001",
+    "mim_err":"0000",
+    "mis_err":"0000",
+    "start_date":"2022-12-23 13:58:02",
+    "stop_date":"2023-03-23 14:00:00",
+    "pv_id":"1",
+    "nums":"2",
+    "start_num":"0"
+
 }
 
 {
@@ -143,8 +142,6 @@ public:
     void write_reissue_data(QSqlDatabase &m_database,QJsonObject &w_data);
     void read_data(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data,bool is_one =false);
 
-
-    void read_current_data(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data);
     void read_current_data(QSqlDatabase &m_database,QStringList &mi_list,QJsonObject &data);
 
     static const QString c_field_id;

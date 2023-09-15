@@ -90,7 +90,7 @@ void ag_user_station_table::write_station(QSqlDatabase &m_database, QString tota
 void ag_user_station_table::write_station(QSqlDatabase &m_database, QString total_station, QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
-    QJsonArray tmp_datas = w_data.value("params").toObject().value("station").toArray();
+    QJsonArray tmp_datas = w_data.value("station").toArray();
 
 
     for(int i=0;i<tmp_datas.size();i++)

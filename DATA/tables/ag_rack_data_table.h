@@ -13,16 +13,14 @@
 /*
  * r_data
 {
-    "params":{
-        "room_id":"room-1",
-        "rack_id":"rack-1",
-        "mi_pos":"1-1",
-        "mi_cid":["10010085","10010086"],
-        "start_date":"2022-12-23 13:58:02",
-        "stop_date":"2023-03-23 14:00:00",
-        "nums":"2",
-        "start_num":"0"
-    }
+    "room_id":"room-1",
+    "rack_id":"rack-1",
+    "mi_pos":"1-1",
+    "mi_cid":["10010085","10010086"],
+    "start_date":"2022-12-23 13:58:02",
+    "stop_date":"2023-03-23 14:00:00",
+    "nums":"2",
+    "start_num":"0"
 }
 
 {
@@ -101,7 +99,7 @@ public:
     //某个微逆 读取开始时间-结束时间
     //void read_last_date_by_mi(QStringList mi_list,QMap<QString,QString> mi_st,QMap<QString,QString> mi_sp);
     void read_mi_last_aging_time_by_mi(QSqlDatabase &m_database,QString mi,QString &room,QString &start_time,QString &stop_time,QString &pos_desc);
-    void read_mi_stop_time_after_start_time(QSqlDatabase &m_database,QString mi, QString &room,QString start_time, QString &stop_time);
+    void read_mi_stop_time_after_start_time(QSqlDatabase &m_database,QString mi, QString &room,QString start_time, QString &stop_time,QString &pos_desc);
 
 
 

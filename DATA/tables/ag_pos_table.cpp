@@ -68,7 +68,7 @@ void ag_pos_table::write_mapping(QSqlDatabase &m_database, QJsonObject &w_data)
                 m_name;
         if(query.exec())
         {
-            QLOG_INFO() << QString("老化架微逆映射:%1-%2-%3 %4 写入数据表成功: ") + tmp_log;
+            //QLOG_INFO() << QString("老化架微逆映射:%1-%2-%3 %4 写入数据表成功: ") + tmp_log;
         }
         else
         {
@@ -155,7 +155,7 @@ void ag_pos_table::read_mapping(QSqlDatabase &m_database, QJsonObject &r_data, Q
 
 
         //data.insert("datas",datas);
-        QLOG_INFO() << "查询老化架 微逆映射关系成功";
+        //QLOG_INFO() << "查询老化架 微逆映射关系成功";
     }
     else
     {
@@ -318,7 +318,7 @@ void ag_pos_table::read_mapping(QSqlDatabase &m_database, QString station, QJson
 
 
         //data.insert("datas",datas);
-        QLOG_INFO() << "查询老化架 微逆映射关系成功";
+        //QLOG_INFO() << "查询老化架 微逆映射关系成功";
     }
     else
     {

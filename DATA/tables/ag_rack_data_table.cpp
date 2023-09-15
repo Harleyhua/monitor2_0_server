@@ -80,20 +80,19 @@ bool ag_rack_data_table::delete_table(QSqlDatabase &m_database)
 
 void ag_rack_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_data, quint64 &size)
 {
-    QJsonObject tmp_param = r_data.value("params").toObject();
     QString select_cmd_head = QString("SELECT COUNT(1) FROM ") + m_name + " ";
     QSqlQuery query(m_database);
     bool where_flag = false;
     //如果要进行筛选 微逆编号
     QString mid_cmd;
-    if(tmp_param.value("mi_cid_flag").toBool())
+    if(r_data.value("mi_cid_flag").toBool())
     {
         if(!where_flag)
         {
             where_flag = true;
             select_cmd_head += " WHERE ";
         }
-        QJsonArray mi_array = tmp_param.value("mi_cid").toArray();
+        QJsonArray mi_array = r_data.value("mi_cid").toArray();
         for(int i=0;i<mi_array.size();i++)
         {
             mid_cmd += c_field_mi_cid + QString("='%1' OR ").arg(mi_array[i].toString());
@@ -105,7 +104,7 @@ void ag_rack_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_data
         }
     }
 
-    if(tmp_param.value("room_id").toString() != "")
+    if(r_data.value("room_id").toString() != "")
     {
         if(!where_flag)
         {
@@ -116,11 +115,11 @@ void ag_rack_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_data
         {
             mid_cmd += " AND ";
         }
-        mid_cmd += c_field_room_id + QString("='%1' ").arg(tmp_param.value("room_id").toString());
+        mid_cmd += c_field_room_id + QString("='%1' ").arg(r_data.value("room_id").toString());
         where_flag = true;
     }
 
-    if(tmp_param.value("rack_id").toString() != "")
+    if(r_data.value("rack_id").toString() != "")
     {
         if(!where_flag)
         {
@@ -131,11 +130,11 @@ void ag_rack_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_data
         {
             mid_cmd += " AND ";
         }
-        mid_cmd += c_field_rack_id + QString("='%1' ").arg(tmp_param.value("rack_id").toString());
+        mid_cmd += c_field_rack_id + QString("='%1' ").arg(r_data.value("rack_id").toString());
         where_flag = true;
     }
 
-    if(tmp_param.value("mi_pos").toString() != "")
+    if(r_data.value("mi_pos").toString() != "")
     {
         if(!where_flag)
         {
@@ -146,7 +145,7 @@ void ag_rack_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_data
         {
             mid_cmd += " AND ";
         }
-        mid_cmd += c_field_mi_pos + QString("='%1' ").arg(tmp_param.value("mi_pos").toString());
+        mid_cmd += c_field_mi_pos + QString("='%1' ").arg(r_data.value("mi_pos").toString());
         where_flag = true;
     }
 
@@ -160,8 +159,8 @@ void ag_rack_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_data
         mid_cmd += " AND ";
     }
 
-    mid_cmd += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_cur_date,tmp_param.value("start_date").toString(),
-                                                      tmp_param.value("stop_date").toString());
+    mid_cmd += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_cur_date,r_data.value("start_date").toString(),
+                                                      r_data.value("stop_date").toString());
 
     if(query.exec(select_cmd_head + mid_cmd))
     {
@@ -259,7 +258,7 @@ void ag_rack_data_table::write_data(QSqlDatabase &m_database, QJsonObject &w_dat
 
     if(query.execBatch())
     {
-        QLOG_INFO() << QString("老化架:写入数据表成功");
+        //QLOG_INFO() << QString("老化架:写入数据表成功");
     }
     else {
         QLOG_WARN() << QString("老化架:写入数据表失败: ");
@@ -268,7 +267,6 @@ void ag_rack_data_table::write_data(QSqlDatabase &m_database, QJsonObject &w_dat
 
 void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
 {
-    QJsonObject tmp_param = r_data.value("params").toObject();
     QString select_cmd_head = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,%14,%15,%16,%17,%18 FROM ")
             .arg(c_field_room_id,c_field_rack_id,c_field_leakage_status,c_field_mi_pos,c_field_mi_cid,
                  c_field_dc_volt_in,c_field_dc_current_in,c_field_dc_volt_eff_k,c_field_dc_volt_eff_b,
@@ -288,7 +286,7 @@ void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data
     QStringList mi_list;
     QStringList table_list;
     ag_rack_index_table rk_tb;
-    QJsonArray mi_array = tmp_param.value(c_field_mi_cid).toArray();
+    QJsonArray mi_array = r_data.value(c_field_mi_cid).toArray();
 
     for(int i=0;i<mi_array.size();i++)
     {
@@ -320,7 +318,7 @@ void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data
     }
 
 
-    if(tmp_param.value("room_id").toString() != "")
+    if(r_data.value("room_id").toString() != "")
     {
         if(!where_flag)
         {
@@ -331,12 +329,12 @@ void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data
         {
             condition += " AND ";
         }
-        condition += c_field_room_id + QString("='%1' ").arg(tmp_param.value("room_id").toString());
+        condition += c_field_room_id + QString("='%1' ").arg(r_data.value("room_id").toString());
         //where_flag = true;
     }
 
 
-    if(tmp_param.value("rack_id").toString() != "")
+    if(r_data.value("rack_id").toString() != "")
     {
         if(!where_flag)
         {
@@ -347,11 +345,11 @@ void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data
         {
             condition += " AND ";
         }
-        condition += c_field_rack_id + QString("='%1' ").arg(tmp_param.value("rack_id").toString());
+        condition += c_field_rack_id + QString("='%1' ").arg(r_data.value("rack_id").toString());
         //where_flag = true;
     }
 
-    if(tmp_param.value("mi_pos").toString() != "")
+    if(r_data.value("mi_pos").toString() != "")
     {
         if(!where_flag)
         {
@@ -362,11 +360,11 @@ void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data
         {
             condition += " AND ";
         }
-        condition += c_field_mi_pos + QString("='%1' ").arg(tmp_param.value("mi_pos").toString());
+        condition += c_field_mi_pos + QString("='%1' ").arg(r_data.value("mi_pos").toString());
         //where_flag = true;
     }
 
-    if(tmp_param.value("start_date").toString() != "" && tmp_param.value("stop_date").toString() != "")
+    if(r_data.value("start_date").toString() != "" && r_data.value("stop_date").toString() != "")
     {
         if(!where_flag)
         {
@@ -378,11 +376,9 @@ void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data
             condition += " AND ";
         }
 
-        condition += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_cur_date,tmp_param.value("start_date").toString(),
-                                                          tmp_param.value("stop_date").toString());
+        condition += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_cur_date,r_data.value("start_date").toString(),
+                                                          r_data.value("stop_date").toString());
     }
-
-
 
     for(int i=0;i<table_list.size();i++)
     {
@@ -401,10 +397,10 @@ void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data
     }
 
     rack_cmd += QString("ORDER BY %1 DESC").arg(c_field_cur_date);
-    if(tmp_param.value("nums").toString() != "-1")
+    if(r_data.value("nums").toString() != "-1")
     {
-        rack_cmd += QString(" LIMIT %1,%2 ").arg(tmp_param.value("start_num").toString(),
-                                                 tmp_param.value("nums").toString());
+        rack_cmd += QString(" LIMIT %1,%2 ").arg(r_data.value("start_num").toString(),
+                                                 r_data.value("nums").toString());
     }
 
     uint64_t data_size = 0;
@@ -447,7 +443,7 @@ void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data
 
         data.insert("datas",pv_data_array);
 
-        QLOG_INFO() << "查询 老化架数据成功";
+        //QLOG_INFO() << "查询 老化架数据成功";
     }
     QLOG_WARN() << "查询 老化架数据失败";
 }
@@ -560,12 +556,14 @@ void ag_rack_data_table::read_mi_last_aging_time_by_mi(QSqlDatabase &m_database,
     }
 }
 
-void ag_rack_data_table::read_mi_stop_time_after_start_time(QSqlDatabase &m_database, QString mi, QString &room, QString start_time, QString &stop_time)
+void ag_rack_data_table::read_mi_stop_time_after_start_time(QSqlDatabase &m_database, QString mi, QString &room, QString start_time, QString &stop_time,QString &pos_desc)
 {
     QString cmd_head = QString(" SELECT %1,%2 FROM ").arg(c_field_room_id,c_field_start_time);
-    QString cmd_tail = QString(" WHERE %1='%2' AND %3>'%4' ").arg(
-                c_field_mi_cid,mi,c_field_start_time,start_time);
+    QString pos_desc_head = QString(" SELECT %1,%2 FROM ").arg(c_field_rack_id,c_field_mi_pos);
+    QString cmd_tail = QString(" WHERE %1='%2' AND %3>'%4' ").arg(c_field_mi_cid,mi,c_field_start_time,start_time);
+    QString pos_desc_tail = QString(" WHERE %1='%2' AND %3='%4' ").arg(c_field_mi_cid,mi,c_field_start_time,start_time);
     QString tmp_cmd;
+    QString tmp_pos_desc_cmd;
     QSqlQuery query(m_database);
     QStringList table_list;
     ag_rack_index_table ag_rack_inx_tb;
@@ -574,14 +572,23 @@ void ag_rack_data_table::read_mi_stop_time_after_start_time(QSqlDatabase &m_data
     for(int i=0;i<table_list.size();i++)
     {
         if(i !=0)
+        {
             tmp_cmd.append(" UNION ALL");
+            tmp_pos_desc_cmd.append(" UNION ALL");
+        }
 
         tmp_cmd.append(cmd_head);
         tmp_cmd.append(table_list[i]);
         tmp_cmd.append(cmd_tail);
+
+        tmp_pos_desc_cmd.append(pos_desc_head);
+        tmp_pos_desc_cmd.append(table_list[i]);
+        tmp_pos_desc_cmd.append(pos_desc_tail);
     }
 
     tmp_cmd.append(QString(" ORDER BY %1 ASC LIMIT 1").arg(c_field_start_time));
+    tmp_pos_desc_cmd.append(QString(" LIMIT 1").arg(c_field_start_time));
+
 
     if(query.exec(tmp_cmd))
     {
@@ -590,13 +597,23 @@ void ag_rack_data_table::read_mi_stop_time_after_start_time(QSqlDatabase &m_data
             query.next();
             room = query.value(c_field_room_id).toString();
             stop_time = query.value(c_field_start_time).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
+
         }
         else
         {
             room = "room-1";
             stop_time = "2030-01-30 17:05:33";
-        }
 
+        }
+    }
+
+    if(query.exec(tmp_pos_desc_cmd))
+    {
+        if(query.size() == 1)
+        {
+            query.next();
+            pos_desc = query.value(c_field_rack_id).toString() + " " + query.value(c_field_mi_pos).toString();
+        }
     }
 }
 

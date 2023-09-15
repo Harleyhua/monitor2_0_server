@@ -28,8 +28,8 @@ public:
     void to_reissuemsg_json(const QByteArray &s_data,QJsonObject &rt_data);
     void to_reissuepower_json(const QByteArray &s_data,QJsonObject &rt_data,uint16_t &date);
     void to_mi_property_json(const QByteArray &s_data,QJsonObject &rt_data);
-    void to_emu_status_json(const QByteArray &s_data,QJsonObject &rt_data);
-    void to_emu_status_act_json(const QByteArray &s_data,QJsonObject &rt_data);
+    void to_emu_status_json(const QByteArray &s_data,QString sys_time ,QJsonObject &rt_data);
+    void to_emu_status_act_json(const QByteArray &s_data,QString sys_time,QJsonObject &rt_data);
 
     void to_login_cmd(const QByteArray &s_data,QByteArray &rt_data,quint8 server_cmd);
     void to_handshake_cmd(const QByteArray &s_data,QByteArray &rt_data,quint8 server_cmd);
@@ -49,6 +49,24 @@ public:
     void to_reissuepower_cmd_v2(const QByteArray &s_data,uint8_t cmd,QByteArray &rt_data);
     void to_mi_property_cmd_v2(const QByteArray &s_data,uint8_t cmd,QByteArray &rt_data);
 
+    void to_set_temporary_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_micid_temporary_power_cmd_v2(const QByteArray &s_data,const QString &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_get_temporary_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+
+    void to_set_max_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_micid_max_power_cmd_v2(const QByteArray &s_data,const QString &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_get_max_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+
+    void to_set_grid_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_micid_grid_cmd_v2(const QByteArray &s_data,const QString &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_get_grid_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+
+    void to_set_certification_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_micid_certification_cmd_v2(const QByteArray &s_data,const QString &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_get_certification_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+
+    void to_set_emu_func_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+
     //void to_server_cmd();
     //b1.0
     static const quint8 C_HEAD;
@@ -64,25 +82,24 @@ public:
     static const QHash<quint8, quint8> c_server_to_client;
     static bool is_b1_3_valid(QString type,QString soft_version);
 
-    static const quint8 C_GET_TEMPORARY_POWER;
     static const quint8 C_SET_TEMPORARY_POWER;
+    static const quint8 C_MICID_TEMPORARY_POWER;
+    static const quint8 C_GET_TEMPORARY_POWER;
 
-    static const quint8 C_GET_MAX_POWER;
     static const quint8 C_SET_MAX_POWER;
+    static const quint8 C_MICID_MAX_POWER;
+    static const quint8 C_GET_MAX_POWER;
 
-    static const quint8 C_GET_GRID;
     static const quint8 C_SET_GRID;
+    static const quint8 C_MICID_GRID;
+    static const quint8 C_GET_GRID;
 
-    static const quint8 C_GET_CERTIFICATION;
     static const quint8 C_SET_CERTIFICATION;
+    static const quint8 C_MICID_CERTIFICATION;
+    static const quint8 C_GET_CERTIFICATION;
 
-    static const quint8 C_GET_COUNTERCURRENT; //0X71
-    static const quint8 C_SET_COUNTERCURRENT;
-
+    static const quint8 C_SET_EMU_FUNC;  //设置网关功能码
     static const quint8 C_EMU_STATUS;
-
-signals:
-
 private:
     bool type_analysis(quint16 type_valid,emu_type &type);
 

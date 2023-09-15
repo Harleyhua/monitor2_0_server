@@ -92,10 +92,6 @@ void bry2000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
     else if(cmd == emu_protocolb::C_GET_TEMPORARY_POWER)
     {
 
-
-
-
-
     }
     else if(cmd == emu_protocolb::C_SET_TEMPORARY_POWER)
     {
@@ -122,14 +118,6 @@ void bry2000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
 
     }
     else if(cmd == emu_protocolb::C_SET_CERTIFICATION)
-    {
-
-    }
-    else if(cmd == emu_protocolb::C_GET_COUNTERCURRENT)
-    {
-
-    }
-    else if(cmd == emu_protocolb::C_SET_COUNTERCURRENT)
     {
 
     }

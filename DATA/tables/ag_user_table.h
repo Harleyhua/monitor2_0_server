@@ -20,9 +20,8 @@
 
  * r_data
 {
-    "params":{
-        "account":"jack_lin"
-    }
+    "account":"jack_lin"
+
 }
 
 {

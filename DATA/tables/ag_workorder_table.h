@@ -26,9 +26,7 @@
 
  * r_data
 {
-    "params":{
-        "workorder_id":"001"
-     }
+    "workorder_id":"001"
 }
 {
     "datas":{

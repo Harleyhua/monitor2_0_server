@@ -23,14 +23,14 @@
 
  * r_data
 {
-    "params":{
-        "emu_cid":"90000000",
-        "action":"login",
-        "start_date":"2022-12-23 13:58:02",
-        "stop_date":"2023-03-23 14:00:00",
-        "nums":"2",
-        "start_num":"0"
-    }
+
+    "emu_cid":"90000000",
+    "action":"login",
+    "start_date":"2022-12-23 13:58:02",
+    "stop_date":"2023-03-23 14:00:00",
+    "nums":"2",
+    "start_num":"0"
+
 }
 
 {

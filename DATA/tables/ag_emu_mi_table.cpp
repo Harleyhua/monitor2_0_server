@@ -1,6 +1,7 @@
 #include "ag_emu_mi_table.h"
 #include "mysql_table.h"
 
+#include "QsLog.h"
 const QString ag_emu_mi_table::c_field_emu = "emu";
 const QString ag_emu_mi_table::c_field_mi = "mi_cid";
 const QString ag_emu_mi_table::c_field_mi_desc = "mi_desc";
@@ -41,12 +42,16 @@ void ag_emu_mi_table::r_mi(QSqlDatabase &m_database, QString emu, QStringList &m
             mi_desc.append(query.value(c_field_mi_desc).toString());
         }
     }
+    else
+    {
+        QLOG_WARN() << "读 网关_微逆关系表 失败";
+    }
 }
 
 void ag_emu_mi_table::w_mi(QSqlDatabase &m_database, QString emu, QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
-    QJsonArray tmp_datas = w_data.value("params").toObject().value("mis").toArray();
+    QJsonArray tmp_datas = w_data.value("mis").toArray();
 
 
     for(int i=0;i<tmp_datas.size();i++)
@@ -66,7 +71,7 @@ void ag_emu_mi_table::w_mi(QSqlDatabase &m_database, QString emu, QJsonObject &w
         }
         else
         {
-
+            QLOG_WARN() << "写 网关_微逆关系表 失败";
         }
     }
 }
@@ -89,7 +94,7 @@ void ag_emu_mi_table::w_one_mi(QSqlDatabase &m_database, QString emu, QString mi
     }
     else
     {
-
+        QLOG_WARN() << "读 网关_微逆关系表 失败";
     }
 }
 
@@ -104,7 +109,7 @@ void ag_emu_mi_table::del_one_mi_by_micid(QSqlDatabase &m_database, QString emu,
     }
     else
     {
-
+        QLOG_WARN() << "删除 网关_微逆关系表 通过mi_cid 失败";
     }
 }
 
@@ -119,7 +124,7 @@ void ag_emu_mi_table::del_mis_by_emucid(QSqlDatabase &m_database, QString emu)
     }
     else
     {
-
+        QLOG_WARN() << "删除 网关_微逆关系表 通过emu_cid 失败";
     }
 }
 

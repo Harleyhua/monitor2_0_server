@@ -109,17 +109,14 @@ void ag_gateway_data_table::write_data(QSqlDatabase &m_database, QJsonObject &w_
 
 void ag_gateway_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
 {
-    QJsonObject tmp_param = r_data.value("params").toObject();
-    QString select_cmd_head = QString("SELECT %1,%2,%3,%4 FROM ")
-                            .arg(c_field_emu_cid,c_field_version,c_field_action,
-                                 c_field_sys_time) + m_name + " ";
-
+    QString select_cmd_head = QString("SELECT %1,%2,%3,%4 FROM ").arg(c_field_emu_cid,c_field_version,c_field_action,
+                                                                      c_field_sys_time) + m_name + " ";
     QString select_size_head = QString("SELECT COUNT(1) FROM ") + m_name + " ";
     QSqlQuery query(m_database);
     bool where_flag = false;
     QString condition;
 
-    if(tmp_param.value(c_field_emu_cid).toString() != "")
+    if(r_data.value(c_field_emu_cid).toString() != "")
     {
         if(!where_flag)
         {
@@ -131,11 +128,11 @@ void ag_gateway_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_d
             condition += " AND ";
         }
 
-        condition += c_field_emu_cid + QString("='%1'").arg(tmp_param.value(c_field_emu_cid).toString());
+        condition += c_field_emu_cid + QString("='%1'").arg(r_data.value(c_field_emu_cid).toString());
         //where_flag = true;
     }
 
-    if(tmp_param.value(c_field_action).toString() != "")
+    if(r_data.value(c_field_action).toString() != "")
     {
         if(!where_flag)
         {
@@ -147,10 +144,10 @@ void ag_gateway_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_d
             condition += " AND ";
         }
 
-        condition += c_field_action + QString("='%1'").arg(tmp_param.value(c_field_action).toString());
+        condition += c_field_action + QString("='%1'").arg(r_data.value(c_field_action).toString());
         //where_flag = true;
     }
-    if(tmp_param.value("start_date").toString() != "" && tmp_param.value("stop_date").toString() != "")
+    if(r_data.value("start_date").toString() != "" && r_data.value("stop_date").toString() != "")
     {
         if(!where_flag)
         {
@@ -162,8 +159,8 @@ void ag_gateway_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_d
             condition += " AND ";
         }
 
-        condition += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_sys_time,tmp_param.value("start_date").toString(),
-                                                          tmp_param.value("stop_date").toString());
+        condition += QString(" %1 BETWEEN '%2' AND '%3' ").arg(c_field_sys_time,r_data.value("start_date").toString(),
+                                                          r_data.value("stop_date").toString());
     }
 
     uint64_t size = 0;
@@ -176,8 +173,8 @@ void ag_gateway_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_d
 
 
     condition += QString("ORDER BY %1 DESC").arg(c_field_sys_time);
-    condition += QString(" LIMIT %1,%2 ").arg(tmp_param.value("start_num").toString(),
-                                                 tmp_param.value("nums").toString());
+    condition += QString(" LIMIT %1,%2 ").arg(r_data.value("start_num").toString(),
+                                                 r_data.value("nums").toString());
 
     if(query.exec(select_cmd_head + condition))
     {
@@ -192,7 +189,7 @@ void ag_gateway_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_d
             emu_data_array.append(emu_data_js);
         }
         data.insert("datas",emu_data_array);
-        QLOG_INFO() << "查询 网关数据失败";
+        //QLOG_INFO() << "查询 网关数据成功";
     }
     QLOG_WARN() << "查询 网关数据失败";
 

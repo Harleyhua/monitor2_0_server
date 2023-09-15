@@ -148,7 +148,7 @@ void common::qbytearray_set_value(QByteArray &data, uint32_t start, uint32_t siz
     }
 }
 
-QString common::qbtarray_to_str(QByteArray &array)
+QString common::qbtarray_to_str(QByteArray array)
 {
     return QString::fromUtf8(array.toBase64());
 }
@@ -158,10 +158,20 @@ QByteArray common::str_to_qbtarray(QString str)
     return QByteArray::fromBase64(str.toUtf8());
 }
 
-QByteArray common::str_to_qbtarray(QString &str)
+QByteArray common::str_to_qbytarray_h16(const QString &str)
 {
-    return QByteArray::fromBase64(str.toUtf8());
+    QByteArray byteArray;
+    for (int i = 0; i < str.size(); i += 2) {
+        QByteArray hexByte = QByteArray::fromHex(str.mid(i, 2).toLatin1());
+        byteArray.append(hexByte);
+    }
+    return byteArray;
 }
+
+//QByteArray common::str_to_qbtarray(QString &str)
+//{
+//    return QByteArray::fromBase64(str.toUtf8());
+//}
 
 QByteArray common::uni_to_gbk(QString str)
 {

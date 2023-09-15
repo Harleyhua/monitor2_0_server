@@ -28,8 +28,12 @@
 #include "ag_device_control_table.h"
 #include "ag_emu_status_table.h"
 #include "ag_user_act_table.h"
-
+#include "ag_rack_extra_data_table.h"
 #include "emu_protocolb.h"
+#include "ag_rack_extra_data_table.h"
+#include "ag_mi_extra_property_table.h"
+#include "ag_emu_extra_property_table.h"
+
 
 QMutex sql_lock;   //数据库建立连接锁，避免多线程是同时连接的异常
 mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试 本机
@@ -91,6 +95,10 @@ bool mysql::table_init()
     ag_device_control_table tmp_dev_ctl_tb;
     ag_emu_status_table tmp_emu_status_tb;
     ag_user_act_table tmp_user_act_tb;
+    ag_rack_extra_data_table tmp_rack_extra_tb;
+    ag_mi_extra_property_table tmp_mi_extra_pty_tb;
+    ag_emu_extra_property_table tmp_emu_extra_pty_tb;
+
 
     ret &= create_database(m_db.databaseName()); //创建数据库 if not exist
     ret &= tmp_gt_dt_tb.create_table(m_db);
@@ -111,6 +119,10 @@ bool mysql::table_init()
     ret &= tmp_dev_ctl_tb.create_table(m_db);
     ret &= tmp_emu_status_tb.create_table(m_db);
     ret &= tmp_user_act_tb.create_table(m_db);
+    ret &= tmp_rack_extra_tb.create_table(m_db);
+    ret &= tmp_mi_extra_pty_tb.create_table(m_db);
+    ret &= tmp_emu_extra_pty_tb.create_table(m_db);
+
     for(int i=1;i<=12;i++)
     {
         QString year = QDateTime::currentDateTime().toString("yy");
@@ -160,99 +172,7 @@ void mysql::w_handshake(QJsonObject &s_data)
 
 
 
-void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_list)
-{
-//    ag_rack_mi_table tmp_rk_mi_tb;
 
-//    tmp_rk_mi_tb.read_mapping(m_db,s_data,rt_data);
-    QJsonObject us_obj;
-    QJsonArray st_array;
-    QJsonArray datas;
-    ag_user_station_table tmp_us_tb;
-    ag_pos_table tmp_pos_table;
-
-    QJsonObject st_obj;
-
-    QString total_station;
-    ag_user_table tmp_user_tb;
-
-    tmp_user_tb.read_total_stations(m_db,account,total_station);
-
-    tmp_us_tb.read_station(m_db,total_station,us_obj);
-
-    st_array = us_obj.value("datas").toObject().value("station").toArray();
-    for(int i=0;i<st_array.size();i++)
-    {
-        ag_station_emu_table tmp_st_emu_tb;
-        ag_emu_property_table tmp_emu_pty_tb;
-        ag_emu_status_table tmp_emu_sta_tb;
-        ag_gateway_data_table tmp_emu_data_tb;
-        QStringList emu_cid,emu_desc;
-        QJsonArray emu_array;
-        tmp_st_emu_tb.r_emu(m_db,st_array[i].toString(),emu_cid,emu_desc);
-        for(int j=0;j<emu_cid.size();j++)
-        {
-            QJsonArray mis;
-            ag_emu_mi_table tmp_emu_mi_tb;
-            QStringList mi_cid,mi_desc;
-            QJsonObject tmp_emu_pty_obj;
-            QJsonObject tmp_emu_obj;
-
-            tmp_emu_mi_tb.r_mi(m_db,emu_cid[j],mi_cid,mi_desc);
-            for(int k=0;k<mi_cid.size();k++)
-            {
-                ag_mi_property_table tmp_mi_pty_tb;
-                QJsonObject tmp_mi_pty_obj;
-                QJsonObject tmp_mi_obj;
-                tmp_mi_pty_tb.read_property(m_db,mi_cid[k],tmp_mi_pty_obj);
-                tmp_mi_obj.insert(ag_mi_property_table::c_field_nominal_power,
-                                  tmp_mi_pty_obj.value("datas").toObject().value(ag_mi_property_table::c_field_nominal_power).toInt());
-                tmp_mi_obj.insert(ag_mi_property_table::c_field_mim_version,
-                                  tmp_mi_pty_obj.value("datas").toObject().value(ag_mi_property_table::c_field_mim_version).toString());
-                tmp_mi_obj.insert(ag_mi_property_table::c_field_mis_version,
-                                  tmp_mi_pty_obj.value("datas").toObject().value(ag_mi_property_table::c_field_mis_version).toString());
-                tmp_mi_obj.insert(ag_emu_mi_table::c_field_mi,mi_cid[k]);
-                tmp_mi_obj.insert(ag_emu_mi_table::c_field_mi_desc,mi_desc[k]);
-
-                mis.append(tmp_mi_obj);
-
-                mis_list.append(mi_cid[k]);
-            }
-
-            QString status;
-            QString status_reserve;
-            QString run_mode;
-            QString emu_sys_time;
-            QString last_time;
-            //读取最后异常action的通讯时间
-            tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
-            tmp_emu_obj.insert("last_act_time",last_time);
-            //读取网关最新工作状态
-            tmp_emu_sta_tb.r_last_data(m_db,emu_cid[j],status,status_reserve,run_mode,emu_sys_time);
-            tmp_emu_obj.insert(ag_emu_status_table::c_field_status,status);
-            tmp_emu_obj.insert(ag_emu_status_table::c_field_run_mode,run_mode);
-            tmp_emu_obj.insert("status_time",emu_sys_time);
-
-            //读取网关属性
-            tmp_emu_pty_tb.read_property(m_db,emu_cid[j],tmp_emu_pty_obj);
-            tmp_emu_obj.insert(ag_emu_property_table::c_field_type,
-                              tmp_emu_pty_obj.value("datas").toObject().value(ag_emu_property_table::c_field_type).toString());
-            tmp_emu_obj.insert(ag_emu_property_table::c_field_hard_version,
-                              tmp_emu_pty_obj.value("datas").toObject().value(ag_emu_property_table::c_field_hard_version).toString());
-            tmp_emu_obj.insert(ag_emu_property_table::c_field_soft_version,
-                              tmp_emu_pty_obj.value("datas").toObject().value(ag_emu_property_table::c_field_soft_version).toString());
-            tmp_emu_obj.insert(ag_station_emu_table::c_field_emu,emu_cid[j]);
-            tmp_emu_obj.insert(ag_station_emu_table::c_field_emu_desc,emu_desc[j]);
-            tmp_emu_obj.insert("mis",mis);
-            emu_array.append(tmp_emu_obj);
-        }
-        st_obj.insert("device",emu_array);
-        st_obj.insert(ag_user_station_table::c_field_station,st_array[i].toString());
-
-        datas.append(st_obj);
-    }
-    rt_data.insert("mapping_datas",datas);
-}
 
 void mysql::add_station(QString user, QJsonObject &s_data)
 {
@@ -281,7 +201,7 @@ void mysql::add_station(QString user, QString station)
 
 void mysql::add_emu_cid(QString user, QJsonObject &s_data)
 {
-    QString station = s_data.value("params").toObject().value("station").toString();
+    QString station = s_data.value("station").toString();
     ag_user_station_table tmp_us_tb;
     ag_station_emu_table tmp_sta_tb;
 
@@ -299,8 +219,8 @@ void mysql::add_emu_cid(QString user, QJsonObject &s_data)
 
 void mysql::add_plcmi_cid(QString user, QJsonObject &s_data)
 {
-    QString station = s_data.value("params").toObject().value("station").toString();
-    QString emu = s_data.value("params").toObject().value("emu").toString();
+    QString station = s_data.value("station").toString();
+    QString emu = s_data.value("emu").toString();
     ag_user_station_table tmp_us_tb;
     ag_station_emu_table tmp_sta_emu_tb;
     ag_emu_mi_table tmp_emu_mi_tb;
@@ -322,8 +242,8 @@ void mysql::add_plcmi_cid(QString user, QJsonObject &s_data)
 
 void mysql::add_wifimi_cid(QString user, QJsonObject &s_data)
 {
-    QString station = s_data.value("params").toObject().value("station").toString();
-    QJsonArray emus = s_data.value("params").toObject().value("emus").toArray();
+    QString station = s_data.value("station").toString();
+    QJsonArray emus = s_data.value("emus").toArray();
 
     for(int i=0;i<emus.size();i++)
     {
@@ -471,6 +391,7 @@ void mysql::del_mi(QString user, QJsonObject &s_data)
     }
 }
 
+
 //void mysql::r_aging_data_by_mis(QString mi, QString &room,QString &pos_desc,QJsonObject &rt_data)
 //{
 //    QString start_time;
@@ -480,75 +401,9 @@ void mysql::del_mi(QString user, QJsonObject &s_data)
 //    r_aging_data_by_mi_date(mi,start_time,stop_time,rt_data);
 //}
 
-void mysql::r_mi_last_aging_param(QString mi, QString &room, QString &start_time, QString &stop_time, QString &pos_desc)
-{
-    ag_rack_data_table rk_dt_tb;
-    rk_dt_tb.read_mi_last_aging_time_by_mi(m_db,mi,room,start_time,stop_time,pos_desc);
-}
-
-void mysql::r_aging_data_by_mi_date(QString mi, QString start_time, QString stop_time,QJsonObject &rt_data)
-{
-    ag_power_data_table pw_dt_tb;
-    ag_mi_property_table mi_pty_tb;
-    //
-    QJsonObject s_data;
-    QJsonObject params;
-    QJsonArray mi_cid;
-    mi_cid.append(mi);
-    params.insert("mi_cid",mi_cid);
-    params.insert("start_date",start_time);
-    params.insert("stop_date",stop_time);
-    params.insert("nums","-1");
-    bym_type mi_type = abstract_bym::analysis_type(mi);
-    QJsonObject read_pv_data;
-    QJsonArray datas;
-    QHash<QString,int> mi_nominal_pw;
-    QString st_time;
-    mi_pty_tb.read_nominal_power(m_db,QStringList() << mi,mi_nominal_pw);
-    for(int i=0;i<mi_type;i++)
-    {
-        QJsonObject pv_data;
-        params.insert("pv_id",QString::number(i+1));
-        s_data.insert("params",params);
-        pw_dt_tb.read_data(m_db,s_data,read_pv_data);
-
-        pv_data.insert("pv_datas",read_pv_data.value("datas").toArray());
-        pv_data.insert("pv_id",i+1);
-
-        st_time = read_pv_data.value("stop_date").toString();
-
-        datas.append(pv_data);
-    }
-
-    rt_data.insert("mi_cid",mi);
-    rt_data.insert("all_pv",QString::number(mi_type));
-    rt_data.insert("pv_nominal_power",mi_nominal_pw.value(mi,1000000));
-    rt_data.insert("total_nominal_power",mi_nominal_pw.value(mi,1000000) * abstract_bym::analysis_type(mi));
-    rt_data.insert("start_time",start_time);
-    rt_data.insert("stop_time",st_time);
-    rt_data.insert("datas",datas);
-}
-
-void mysql::r_aging_batch_by_room_start_time(QString mi,QString &room, QString start_time, QString &stop_time)
-{
-   ag_rack_data_table rk_dt_tb;
-
-   rk_dt_tb.read_mi_stop_time_after_start_time(m_db,mi,room,start_time,stop_time);
-}
-
-void mysql::r_temp(QString room_name, QString start_time, QString stop_time, QHash<QString, uint16_t> &temp)
-{
-    ag_temp_table tm_tb;
-    tm_tb.read_temp(m_db,room_name,start_time,stop_time,temp);
-}
 
 
-void mysql::r_emu_action(QJsonObject &s_data, QJsonObject &rt_data)
-{
-    ag_gateway_data_table tmp_gt_dt_tb;
 
-    tmp_gt_dt_tb.read_data(m_db,s_data,rt_data);
-}
 
 void mysql::w_mi_property(QJsonObject &s_data)
 {
@@ -636,9 +491,7 @@ void mysql::w_emu_status(QJsonObject &s_data)
 {
     ag_emu_status_table tb;
 
-    tb.w_data(m_db,s_data.value("emu_cid").toString(),s_data.value("status").toString(),
-              s_data.value("status_reserve").toString(),s_data.value("run_mode").toString(),
-              s_data.value("sys_time").toString());
+    tb.w_data(m_db,s_data);
 }
 
 void mysql::w_room_temp(QJsonObject &s_data)
@@ -665,6 +518,7 @@ void mysql::w_rack_data(QJsonObject &s_data)
 
     QStringList default_aging_emu;
     ag_station_emu_table station_emu_tb;
+
 
     del_station("aging_room1","room-1");
 
@@ -763,6 +617,7 @@ void mysql::w_rack_data(QJsonObject &s_data)
             mi_obj.insert("ac_volt_eff_b",0);
             //mi_obj.insert("efficiency");
             mi_obj.insert("start_time",node_obj.value("aging_start_time").toString());
+            mi_obj.insert("age_time",node_obj.value("age_time").toInt());
             mi_obj.insert("cur_date",QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
 
             w_datas_array.append(mi_obj);
@@ -798,6 +653,8 @@ void mysql::w_rack_data(QJsonObject &s_data)
 
     //rk_dt_tb.write_data(m_db,rk_data_obj);
 }
+
+
 
 void mysql::w_rk_data(QJsonObject &s_data)
 {
@@ -840,17 +697,133 @@ void mysql::w_rk_data(QJsonObject &s_data)
         }
     }
     ag_rack_data_table tmp_rk_data_tb(table_name);
+    ag_rack_extra_data_table tmp_rk_extra_tb;
     //写发电数据
     tmp_rk_data_tb.write_data(m_db,s_data);
-
-
-
+    tmp_rk_extra_tb.write_data(m_db,s_data);
 }
-void mysql::r_mi_current_power(QJsonObject &s_data, QJsonObject &rt_data)
+void mysql::r_user_property(QString name, QJsonObject &rt_data)
 {
-    ag_power_data_table tmp_pw_tb;
-    //读出功率数据
-    tmp_pw_tb.read_current_data(m_db,s_data,rt_data);
+    ag_user_table user_tb;
+    QJsonObject user_js;
+    user_js.insert(ag_user_table::c_field_account,name);
+
+    user_tb.read_account(m_db,user_js,rt_data);
+}
+
+void mysql::r_user_property(QJsonObject &s_data, QJsonObject &rt_data)
+{
+    ag_user_table user_tb;
+    user_tb.read_account(m_db,s_data,rt_data);
+}
+void mysql::r_emu_action(QJsonObject &s_data, QJsonObject &rt_data)
+{
+    ag_gateway_data_table tmp_gt_dt_tb;
+
+    tmp_gt_dt_tb.read_data(m_db,s_data,rt_data);
+}
+
+void mysql::r_emu_status(QJsonObject &s_data, QJsonObject &rt_data)
+{
+    ag_emu_status_table tmp_emu_status_tb;
+    tmp_emu_status_tb.r_data(m_db,s_data,rt_data);
+}
+void mysql::r_mi_rack_data(QJsonObject &s_data, QJsonObject &rt_data)
+{
+    ag_rack_data_table tmp_rack_data_tb;
+
+    tmp_rack_data_tb.read_data(m_db,s_data,rt_data);
+}
+
+void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_list)
+{
+    QJsonObject us_obj;
+    QJsonArray st_array;
+    QJsonArray datas;
+    ag_user_station_table tmp_us_tb;
+    ag_pos_table tmp_pos_table;
+
+    QJsonObject st_obj;
+
+    QString total_station;
+    ag_user_table tmp_user_tb;
+
+    tmp_user_tb.read_total_stations(m_db,account,total_station);
+
+    tmp_us_tb.read_station(m_db,total_station,us_obj);
+
+    st_array = us_obj.value("datas").toObject().value("station").toArray();
+    for(int i=0;i<st_array.size();i++)
+    {
+        ag_station_emu_table tmp_st_emu_tb;
+        ag_emu_property_table tmp_emu_pty_tb;
+        ag_emu_status_table tmp_emu_sta_tb;
+        ag_gateway_data_table tmp_emu_data_tb;
+        QStringList emu_cid,emu_desc;
+        QJsonArray emu_array;
+        tmp_st_emu_tb.r_emu(m_db,st_array[i].toString(),emu_cid,emu_desc);
+        for(int j=0;j<emu_cid.size();j++)
+        {
+            QJsonArray mis;
+            ag_emu_mi_table tmp_emu_mi_tb;
+            QStringList mi_cid,mi_desc;
+            QJsonObject tmp_emu_pty_obj;
+            QJsonObject tmp_emu_obj;
+
+            tmp_emu_mi_tb.r_mi(m_db,emu_cid[j],mi_cid,mi_desc);
+            for(int k=0;k<mi_cid.size();k++)
+            {
+                ag_mi_property_table tmp_mi_pty_tb;
+                QJsonObject tmp_mi_pty_obj;
+                QJsonObject tmp_mi_obj;
+                tmp_mi_pty_tb.read_property(m_db,mi_cid[k],tmp_mi_pty_obj);
+                tmp_mi_obj.insert(ag_mi_property_table::c_field_nominal_power,
+                                  tmp_mi_pty_obj.value("datas").toObject().value(ag_mi_property_table::c_field_nominal_power).toInt());
+                tmp_mi_obj.insert(ag_mi_property_table::c_field_mim_version,
+                                  tmp_mi_pty_obj.value("datas").toObject().value(ag_mi_property_table::c_field_mim_version).toString());
+                tmp_mi_obj.insert(ag_mi_property_table::c_field_mis_version,
+                                  tmp_mi_pty_obj.value("datas").toObject().value(ag_mi_property_table::c_field_mis_version).toString());
+                tmp_mi_obj.insert(ag_emu_mi_table::c_field_mi,mi_cid[k]);
+                tmp_mi_obj.insert(ag_emu_mi_table::c_field_mi_desc,mi_desc[k]);
+
+                mis.append(tmp_mi_obj);
+
+                mis_list.append(mi_cid[k]);
+            }
+
+            QString status;
+            QString status_reserve;
+            QString run_mode;
+            QString emu_sys_time;
+            QString last_time;
+            //读取最后异常action的通讯时间
+            tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
+            tmp_emu_obj.insert("last_act_time",last_time);
+            //读取网关最新工作状态
+            tmp_emu_sta_tb.r_last_data(m_db,emu_cid[j],status,status_reserve,run_mode,emu_sys_time);
+            tmp_emu_obj.insert(ag_emu_status_table::c_field_status,status);
+            tmp_emu_obj.insert(ag_emu_status_table::c_field_run_mode,run_mode);
+            tmp_emu_obj.insert("status_time",emu_sys_time);
+
+            //读取网关属性
+            tmp_emu_pty_tb.read_property(m_db,emu_cid[j],tmp_emu_pty_obj);
+            tmp_emu_obj.insert(ag_emu_property_table::c_field_type,
+                              tmp_emu_pty_obj.value("datas").toObject().value(ag_emu_property_table::c_field_type).toString());
+            tmp_emu_obj.insert(ag_emu_property_table::c_field_hard_version,
+                              tmp_emu_pty_obj.value("datas").toObject().value(ag_emu_property_table::c_field_hard_version).toString());
+            tmp_emu_obj.insert(ag_emu_property_table::c_field_soft_version,
+                              tmp_emu_pty_obj.value("datas").toObject().value(ag_emu_property_table::c_field_soft_version).toString());
+            tmp_emu_obj.insert(ag_station_emu_table::c_field_emu,emu_cid[j]);
+            tmp_emu_obj.insert(ag_station_emu_table::c_field_emu_desc,emu_desc[j]);
+            tmp_emu_obj.insert("mis",mis);
+            emu_array.append(tmp_emu_obj);
+        }
+        st_obj.insert("device",emu_array);
+        st_obj.insert(ag_user_station_table::c_field_station,st_array[i].toString());
+
+        datas.append(st_obj);
+    }
+    rt_data.insert("mapping_datas",datas);
 }
 
 void mysql::r_mi_current_power(QStringList mi_list, QJsonObject &rt_data)
@@ -859,26 +832,22 @@ void mysql::r_mi_current_power(QStringList mi_list, QJsonObject &rt_data)
     //读出功率数据
     tmp_pw_tb.read_current_data(m_db,mi_list,rt_data);
 }
-
 void mysql::r_mi_power(QJsonObject &s_data, QJsonObject &rt_data ,bool is_one)
 {
     ag_power_data_table tmp_pw_tb;
     //读出功率数据
     tmp_pw_tb.read_data(m_db,s_data,rt_data,is_one);
 }
-
-void mysql::r_mi_rack_data(QJsonObject &s_data, QJsonObject &rt_data)
-{
-    ag_rack_data_table tmp_rack_data_tb;
-
-    tmp_rack_data_tb.read_data(m_db,s_data,rt_data);
-}
-
 void mysql::r_temp(QJsonObject &s_data, QJsonObject &rt_data)
 {
     ag_temp_table tmp_tp_tb;
 
     tmp_tp_tb.read_temp(m_db,s_data,rt_data);
+}
+void mysql::r_temp(QString room_name, QString start_time, QString stop_time, QHash<QString, uint16_t> &temp)
+{
+    ag_temp_table tm_tb;
+    tm_tb.read_temp(m_db,room_name,start_time,stop_time,temp);
 }
 
 void mysql::r_workorder(QJsonObject &s_data, QJsonObject &rt_data)
@@ -886,26 +855,11 @@ void mysql::r_workorder(QJsonObject &s_data, QJsonObject &rt_data)
     ag_workorder_table tmp_work_tb;
     tmp_work_tb.read_workorder(m_db,s_data,rt_data);
 }
-
 void mysql::w_workorder(QJsonObject &s_data)
 {
     ag_workorder_table tmp_work_tb;
     tmp_work_tb.write_workorder(m_db,s_data);
 }
-
-bool mysql::update_alg(QString account, QJsonObject alg_data)
-{
-    ag_user_table us_tb;
-
-    return us_tb.update_algorithm(m_db,account,alg_data);
-}
-
-bool mysql::r_user_judge_params(QString user, QJsonObject &rt_data)
-{
-    ag_user_table us_tb;
-    return us_tb.read_algorithm(m_db,user,rt_data);
-}
-
 QString mysql::r_total_station(QString account)
 {
     QString total_station;
@@ -915,13 +869,6 @@ QString mysql::r_total_station(QString account)
 
     return total_station;
 }
-
-void mysql::r_user_act(QJsonObject &s_data, QJsonObject &rt_data)
-{
-    ag_user_act_table us_act_tb;
-    return us_act_tb.read_datas(m_db,s_data,rt_data);
-}
-
 void mysql::w_user_act(QString user, QString total_sta, int act, QString des)
 {
     ag_user_act_table user_act_tb;
@@ -934,6 +881,110 @@ void mysql::w_user_act(QString user, QString total_sta, int act, QString des)
 
     user_act_tb.write_datas(m_db,param_obj);
 
+}
+
+void mysql::r_mi_last_aging_param(QString mi, QString &room, QString &start_time, QString &stop_time, QString &pos_desc)
+{
+    ag_rack_data_table rk_dt_tb;
+    rk_dt_tb.read_mi_last_aging_time_by_mi(m_db,mi,room,start_time,stop_time,pos_desc);
+}
+
+void mysql::r_aging_batch_by_room_start_time(QString mi, QString &room, QString start_time, QString &stop_time, QString &pos_desc)
+{
+   ag_rack_data_table rk_dt_tb;
+
+   rk_dt_tb.read_mi_stop_time_after_start_time(m_db,mi,room,start_time,stop_time,pos_desc);
+}
+bool mysql::r_user_judge_params(QString user, QJsonObject &rt_data)
+{
+    ag_user_table us_tb;
+    return us_tb.read_algorithm(m_db,user,rt_data);
+}
+
+void mysql::r_aging_data_by_mi_date(QString mi, QString start_time, QString stop_time,QJsonObject &rt_data)
+{
+    ag_power_data_table pw_dt_tb;
+    ag_mi_property_table mi_pty_tb;
+    //
+    QJsonObject s_data;
+
+    QJsonArray mi_cid;
+    mi_cid.append(mi);
+    s_data.insert("mi_cid",mi_cid);
+    s_data.insert("start_date",start_time);
+    s_data.insert("stop_date",stop_time);
+    s_data.insert("nums","-1");
+    bym_type mi_type = abstract_bym::analysis_type(mi);
+    QJsonObject read_pv_data;
+    QJsonArray datas;
+    QHash<QString,int> mi_nominal_pw;
+    QString st_time;
+    mi_pty_tb.read_nominal_power(m_db,QStringList() << mi,mi_nominal_pw);
+    for(int i=0;i<mi_type;i++)
+    {
+        QJsonObject pv_data;
+        s_data.insert("pv_id",QString::number(i+1));
+
+        pw_dt_tb.read_data(m_db,s_data,read_pv_data);
+
+        pv_data.insert("pv_datas",read_pv_data.value("datas").toArray());
+        pv_data.insert("pv_id",i+1);
+
+        st_time = read_pv_data.value("stop_date").toString();
+
+        datas.append(pv_data);
+    }
+
+    rt_data.insert("mi_cid",mi);
+    rt_data.insert("all_pv",QString::number(mi_type));
+    rt_data.insert("pv_nominal_power",mi_nominal_pw.value(mi,1000000));
+    rt_data.insert("total_nominal_power",mi_nominal_pw.value(mi,1000000) * abstract_bym::analysis_type(mi));
+    rt_data.insert("start_time",start_time);
+    rt_data.insert("stop_time",st_time);
+    rt_data.insert("datas",datas);
+}
+bool mysql::r_mi_report(QString mi, QString start_time,QString stop_time,QString alg, QString &report)
+{
+    ag_mi_report_table mi_report_tb;
+    QVector<aging_report_strc> r_data;
+    mi_report_tb.read_mi_report(m_db,mi,start_time,stop_time,r_data);
+
+    for(int i=0;i<r_data.size();i++)
+    {
+        if(alg == r_data[i].alg)
+        {
+            report = r_data[i].report;
+            return true;
+        }
+    }
+    return false;
+}
+
+void mysql::r_aging_time(QString mi_cid, QString start_time, int &aging_time)
+{
+    ag_rack_extra_data_table rk_extra_data_table;
+
+    rk_extra_data_table.read_data(m_db,mi_cid,start_time,aging_time);
+}
+
+void mysql::w_mi_report(QString mi, QString start_time, QString stop_time, QString alg, QString report)
+{
+    ag_mi_report_table mi_report_tb;
+    aging_report_strc s_data;
+    s_data.mi_cid = mi;
+    s_data.start_time = start_time;
+    s_data.stop_time = stop_time;
+    s_data.alg = alg;
+    s_data.report = report;
+    s_data.update_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    mi_report_tb.write_mi_report(m_db,s_data);
+
+}
+bool mysql::update_alg(QString account, QJsonObject alg_data)
+{
+    ag_user_table us_tb;
+
+    return us_tb.update_algorithm(m_db,account,alg_data);
 }
 
 void mysql::r_batch_list(QJsonObject &s_data, QJsonObject &rt_data)
@@ -968,84 +1019,10 @@ void mysql::r_batch_list(QJsonObject &s_data, QJsonObject &rt_data)
     rt_data.insert("batchs",batch_array);
 }
 
-bool mysql::r_mi_report(QString mi, QString start_time,QString stop_time,QString alg, QString &report)
+void mysql::r_user_act(QJsonObject &s_data, QJsonObject &rt_data)
 {
-    ag_mi_report_table mi_report_tb;
-    QVector<aging_report_strc> r_data;
-    mi_report_tb.read_mi_report(m_db,mi,start_time,stop_time,r_data);
-
-    for(int i=0;i<r_data.size();i++)
-    {
-        if(alg == r_data[i].alg)
-        {
-            report = r_data[i].report;
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void mysql::w_mi_report(QString mi, QString start_time, QString stop_time, QString alg, QString report)
-{
-    ag_mi_report_table mi_report_tb;
-    aging_report_strc s_data;
-    s_data.mi_cid = mi;
-    s_data.start_time = start_time;
-    s_data.stop_time = stop_time;
-    s_data.alg = alg;
-    s_data.report = report;
-    s_data.update_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-    mi_report_tb.write_mi_report(m_db,s_data);
-
-}
-
-bool mysql::w_device_ctl(QString user,QJsonObject &s_data)
-{
-    QString station = s_data.value("station").toString();
-    QString emu = s_data.value("emu_cid").toString();
-    ag_user_station_table tmp_us_tb;
-    ag_station_emu_table tmp_sta_emu_tb;
-
-    QString total_station;
-    ag_user_table tmp_user_tb;
-
-    tmp_user_tb.read_total_stations(m_db,user,total_station);
-
-    if(tmp_us_tb.is_station_exist(m_db,total_station,station))
-    {
-        if(tmp_sta_emu_tb.is_emu_exist(m_db,station,emu))
-        {
-            ag_device_control_table dev_ctl_tb;
-            dev_ctl_strc tmp_ctl;
-            tmp_ctl.emu_cid = s_data.value("emu_cid").toString();
-            tmp_ctl.send_data = s_data.value("send_data").toString();
-            //tmp_ctl.is_send = s_data.value("is_send").toInt();
-            tmp_ctl.is_send = 0;
-            //tmp_ctl.send_time = s_data.value("send_time").toString();
-            tmp_ctl.send_time = "";
-            tmp_ctl.emu_cmd = s_data.value("emu_cmd").toInt();
-            //tmp_ctl.cmd_time = s_data.value("cmd_time").toString();
-            tmp_ctl.cmd_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-            tmp_ctl.server_cmd = s_data.value("server_cmd").toInt();
-
-            return dev_ctl_tb.w_data(m_db,tmp_ctl);
-        }
-    }
-
-    return false;
-}
-
-void mysql::r_device_ctl_nosend(QString emu_cid, dev_ctl_strc &ctl_data)
-{
-    ag_device_control_table dev_ctl_tb ;
-    dev_ctl_tb.r_first_data_nosend(m_db,emu_cid,ctl_data);
-}
-
-void mysql::update_device_send_flag(dev_ctl_strc ctl_data)
-{
-    ag_device_control_table dev_ctl_tb;
-    dev_ctl_tb.update_send_flag(m_db,ctl_data);
+    ag_user_act_table us_act_tb;
+    return us_act_tb.read_datas(m_db,s_data,rt_data);
 }
 
 void mysql::r_emu_property(QString emu_cid, QJsonObject &emu_pro_obj)
@@ -1053,7 +1030,6 @@ void mysql::r_emu_property(QString emu_cid, QJsonObject &emu_pro_obj)
     ag_emu_property_table emu_pty_tb;
     emu_pty_tb.read_property(m_db,emu_cid,emu_pro_obj);
 }
-
 
 bool mysql::update_dev_control(QString total_station, QString station, QString emu, quint8 server_cmd, QString send_data)
 {
@@ -1065,11 +1041,14 @@ bool mysql::update_dev_control(QString total_station, QString station, QString e
     }
 
     tmp_ctl.emu_cid = emu;
+    tmp_ctl.is_cmd_send = 0;
+    tmp_ctl.cmd_send_time = "";
+
     tmp_ctl.send_data = send_data;
     //tmp_ctl.is_send = s_data.value("is_send").toInt();
-    tmp_ctl.is_send = 0;
+    tmp_ctl.is_data_send = 0;
     //tmp_ctl.send_time = s_data.value("send_time").toString();
-    tmp_ctl.send_time = "";
+    tmp_ctl.data_send_time = "";
     tmp_ctl.emu_cmd = emu_protocolb::c_server_to_client.value(server_cmd);
     //tmp_ctl.cmd_time = s_data.value("cmd_time").toString();
     tmp_ctl.cmd_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
@@ -1097,24 +1076,129 @@ bool mysql::update_dev_control(QString total_station, QString station, QString e
     return false;
 }
 
-
-void mysql::r_user(QString name, QJsonObject &rt_data)
+void mysql::w_mi_temporary_power(QString name,QString data)
 {
-    ag_user_table user_tb;
-    QJsonObject user_js;
-    QJsonObject datas;
+    ag_mi_extra_property_table tmp_mi_extra_pty_tb;
+    tmp_mi_extra_pty_tb.w_temporary_power(m_db,name,data);
 
-    datas.insert(ag_user_table::c_field_account,name);
-    user_js.insert("params",datas);
-
-    user_tb.read_account(m_db,user_js,rt_data);
 }
 
-void mysql::r_user_property(QJsonObject &s_data, QJsonObject &rt_data)
+bool mysql::r_mi_temporary_power(QString name, QString &data)
 {
-    ag_user_table user_tb;
-    user_tb.read_account(m_db,s_data,rt_data);
+    ag_mi_extra_property_table tmp_mi_extra_pty_tb;
+    return tmp_mi_extra_pty_tb.r_temporary_power(m_db,name,data);
 }
+
+void mysql::w_mi_max_power(QString name, QString data)
+{
+    ag_mi_extra_property_table tmp_mi_extra_pty_tb;
+    tmp_mi_extra_pty_tb.w_max_power(m_db,name,data);
+}
+
+bool mysql::r_mi_max_power(QString name, QString &data)
+{
+    ag_mi_extra_property_table tmp_mi_extra_pty_tb;
+    return tmp_mi_extra_pty_tb.r_max_power(m_db,name,data);
+}
+
+void mysql::w_mi_grid(QString name, QString data)
+{
+    ag_mi_extra_property_table tmp_mi_extra_pty_tb;
+    tmp_mi_extra_pty_tb.w_grid(m_db,name,data);
+}
+
+bool mysql::r_mi_grid(QString name, QString &data)
+{
+    ag_mi_extra_property_table tmp_mi_extra_pty_tb;
+    return tmp_mi_extra_pty_tb.r_grid(m_db,name,data);
+}
+
+void mysql::w_mi_certification(QString name, QString data)
+{
+    ag_mi_extra_property_table tmp_mi_extra_pty_tb;
+    tmp_mi_extra_pty_tb.w_certification(m_db,name,data);
+}
+
+bool mysql::r_mi_certification(QString name, QString &data)
+{
+    ag_mi_extra_property_table tmp_mi_extra_pty_tb;
+    return tmp_mi_extra_pty_tb.r_certification(m_db,name,data);
+}
+
+void mysql::w_emu_func_code(QString name, QString data)
+{
+    ag_emu_extra_property_table tmp_emu_extra_pty_tb;
+    tmp_emu_extra_pty_tb.w_countercurrent(m_db,name,data);
+}
+
+bool mysql::r_emu_func_code(QString name, QString &data)
+{
+    ag_emu_extra_property_table tmp_emu_extra_prt_tb;
+    return tmp_emu_extra_prt_tb.r_countercurrent(m_db,name,data);
+}
+
+
+//bool mysql::w_device_ctl(QString user,QJsonObject &s_data)
+//{
+//    QString station = s_data.value("station").toString();
+//    QString emu = s_data.value("emu_cid").toString();
+//    ag_user_station_table tmp_us_tb;
+//    ag_station_emu_table tmp_sta_emu_tb;
+
+//    QString total_station;
+//    ag_user_table tmp_user_tb;
+
+//    tmp_user_tb.read_total_stations(m_db,user,total_station);
+
+//    if(tmp_us_tb.is_station_exist(m_db,total_station,station))
+//    {
+//        if(tmp_sta_emu_tb.is_emu_exist(m_db,station,emu))
+//        {
+//            ag_device_control_table dev_ctl_tb;
+//            dev_ctl_strc tmp_ctl;
+//            tmp_ctl.emu_cid = s_data.value("emu_cid").toString();
+//            tmp_ctl.send_data = s_data.value("send_data").toString();
+//            //tmp_ctl.is_send = s_data.value("is_send").toInt();
+//            tmp_ctl.is_send = 0;
+//            //tmp_ctl.send_time = s_data.value("send_time").toString();
+//            tmp_ctl.send_time = "";
+//            tmp_ctl.emu_cmd = s_data.value("emu_cmd").toInt();
+//            //tmp_ctl.cmd_time = s_data.value("cmd_time").toString();
+//            tmp_ctl.cmd_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+//            tmp_ctl.server_cmd = s_data.value("server_cmd").toInt();
+
+//            return dev_ctl_tb.w_data(m_db,tmp_ctl);
+//        }
+//    }
+
+//    return false;
+//}
+
+void mysql::r_device_ctl_first_cmd_nosend(QString emu_cid, dev_ctl_strc &ctl_data)
+{
+    ag_device_control_table dev_ctl_tb ;
+    dev_ctl_tb.r_first_cmd_nosend(m_db,emu_cid,ctl_data);
+}
+
+void mysql::r_device_ctl_last_data_nosend(QString emu_cid, dev_ctl_strc &ctl_data)
+{
+    ag_device_control_table dev_ctl_tb;
+    dev_ctl_tb.r_last_data_nosend(m_db,emu_cid,ctl_data);
+}
+
+void mysql::update_device_cmd_send_flag(dev_ctl_strc ctl_data)
+{
+    ag_device_control_table dev_ctl_tb;
+    dev_ctl_tb.update_cmd_send_flag(m_db,ctl_data);
+}
+
+void mysql::update_device_data_send_flag(dev_ctl_strc ctl_data)
+{
+    ag_device_control_table dev_ctl_tb;
+
+    dev_ctl_tb.update_data_send_flag(m_db,ctl_data);
+}
+
 
 bool mysql::set_current_database(QString database_name)
 {
@@ -1131,7 +1215,6 @@ bool mysql::set_current_database(QString database_name)
     return false;
 
 }
-
 bool mysql::create_database(QString database_name)
 {
     QSqlQuery query = QSqlQuery(m_db);

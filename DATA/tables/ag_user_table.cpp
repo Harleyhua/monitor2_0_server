@@ -48,7 +48,7 @@ bool ag_user_table::read_account(QSqlDatabase &m_database, QJsonObject &r_data, 
     QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6 FROM %7 WHERE %8='%9'")
             .arg(c_field_account,c_field_password,c_field_total_stations,c_field_permission,
                  c_field_algorithm,c_field_login_date,m_name,c_field_account,
-                 r_data.value("params").toObject().value(c_field_account).toString());
+                 r_data.value(c_field_account).toString());
     QSqlQuery query(m_database);
 
     query.prepare(tmp_cmd);

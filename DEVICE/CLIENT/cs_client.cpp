@@ -8,10 +8,14 @@
 
 //#include "ag_temp_table.h"
 #include "ag_user_table.h"
-#include "ag_mi_property_table.h"
+//#include "ag_mi_property_table.h"
 #include "aging_alg.h"
-#include "abstract_bym.h"
+//#include "abstract_bym.h"
 #include "emu_protocolb.h"
+
+#define SAVE_MI_REPORT 1
+
+
 cs_client::cs_client(QObject *parent)
     :HttpRequestHandler(parent)
 {
@@ -62,12 +66,12 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
         {
             QStringList mi_list;
             //读关系列表数据
-            //QLOG_INFO() << "1:" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            QLOG_INFO() << "读实时数据列表节点start:" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
             sql.r_mapping(name,ret_data,mi_list);
-            //QLOG_INFO() << "2:" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            QLOG_INFO() << "列表stop 读实时发电数据start:" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
             //读实时发电数据
             sql.r_mi_current_power(mi_list,ret_data);
-            //QLOG_INFO() << "3:" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            QLOG_INFO() << "读实时发电数据列表节点:" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
         }
         else if(request.getPath().startsWith("/r_mi_power"))
         {
@@ -100,7 +104,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             QString us_act_str;
             QString total_station = sql.r_total_station(name);
 
-            QJsonArray stas_array = rev_data.value("params").toObject().value("station").toArray();
+            QJsonArray stas_array = rev_data.value("station").toArray();
             QString sta_str;
             for(int i=0;i<stas_array.size();i++)
             {
@@ -115,8 +119,8 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
         {
             QString us_act_str;
             QString total_station = sql.r_total_station(name);
-            QString station = rev_data.value("params").toObject().value("station").toString();
-            QJsonArray emus_array = rev_data.value("params").toObject().value("emus").toArray();
+            QString station = rev_data.value("station").toString();
+            QJsonArray emus_array = rev_data.value("emus").toArray();
 
             QString emu_str;
             for(int i=0;i<emus_array.size();i++)
@@ -134,9 +138,9 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
         {
             QString us_act_str;
             QString total_station = sql.r_total_station(name);
-            QString station = rev_data.value("params").toObject().value("station").toString();
-            QString emu = rev_data.value("params").toObject().value("emu").toString();
-            QJsonArray mis_array = rev_data.value("params").toObject().value("mis").toArray();
+            QString station = rev_data.value("station").toString();
+            QString emu = rev_data.value("emu").toString();
+            QJsonArray mis_array = rev_data.value("mis").toArray();
 
             QString mi_str;
             for(int i=0;i<mis_array.size();i++)
@@ -154,9 +158,9 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
         {
             QString us_act_str;
             QString total_station = sql.r_total_station(name);
-            QString station = rev_data.value("params").toObject().value("station").toString();
-            QString emu = rev_data.value("params").toObject().value("emu").toString();
-            QJsonArray emus_array = rev_data.value("params").toObject().value("emus").toArray();
+            QString station = rev_data.value("station").toString();
+            QString emu = rev_data.value("emu").toString();
+            QJsonArray emus_array = rev_data.value("emus").toArray();
 
             QString mi_str;
             for(int i=0;i<emus_array.size();i++)
@@ -228,9 +232,25 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
                 else if(select_param.value("mode").toInt() == 1)//按老化批次
                 {
                     start_time = select_param.value("start_time").toString();
-                    pos_desc = select_param.value("pos_desc").toString();
+                    //pos_desc = select_param.value("pos_desc").toString();
 
-                    sql.r_aging_batch_by_room_start_time(mis_array[i].toString(""),room,start_time,stop_time);
+                    sql.r_aging_batch_by_room_start_time(mis_array[i].toString(""),room,start_time,stop_time,pos_desc);
+                }
+
+                int v_aging_time = -1;
+                qint64 v_set_stop_time = 0;
+                qint64 v_next_stop_time = 0;
+                //读取该微逆  当前老化的老化时间
+                sql.r_aging_time(mis_array[i].toString(""),start_time,v_aging_time);
+                //预设的停止时间
+                v_set_stop_time = QDateTime::fromString(start_time,"yyyy-MM-dd hh:mm:ss").toSecsSinceEpoch() + v_aging_time *60;
+                //实际的下次的停止时间
+                v_next_stop_time = QDateTime::fromString(stop_time,"yyyy-MM-dd hh:mm:ss").toSecsSinceEpoch();
+
+                //修正结束时间
+                if(v_aging_time != -1 && v_set_stop_time <= v_next_stop_time)
+                {
+                    stop_time = QDateTime::fromSecsSinceEpoch(v_set_stop_time).toString("yyyy-MM-dd hh:mm:ss");
                 }
 
                 //读取当前用户使用的判断参数
@@ -239,7 +259,6 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
                 sql.r_aging_data_by_mi_date(mis_array[i].toString(""),start_time,stop_time,aging_data);
                 //只记载某个微逆型号的judge_param
                 tmp_mi_judge_params = QString(QJsonDocument(jud_params.value("bym" + QString::number(aging_data.value("total_nominal_power").toInt())).toObject()).toJson());
-
 
                 if(sql.r_mi_report(aging_data.value("mi_cid").toString(),aging_data.value("start_time").toString(),
                                    aging_data.value("stop_time").toString(),tmp_mi_judge_params,history_report))
@@ -256,11 +275,17 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
                     //进行老化分析
                     tmp_aging_alg.aging_report(aging_data,jud_params.value("bym" + QString::number(aging_data.value("total_nominal_power").toInt())).toObject(),
                                                room_temp,mi_report);
-                    //将当前生成的报告写入数据库
-                    sql.w_mi_report(aging_data.value("mi_cid").toString(),aging_data.value("start_time").toString(),
-                                    aging_data.value("stop_time").toString(),tmp_mi_judge_params,QString(QJsonDocument(mi_report).toJson()));
-                }
 
+#if(SAVE_MI_REPORT)
+                    //已经老化结束的情况下
+                    if(stop_time < QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+                    {
+                        //将当前生成的报告写入数据库
+                        sql.w_mi_report(aging_data.value("mi_cid").toString(),aging_data.value("start_time").toString(),
+                                       aging_data.value("stop_time").toString(),tmp_mi_judge_params,QString(QJsonDocument(mi_report).toJson()));
+                    }
+#endif
+                }
                 //顺带记录 老化房间  回溯老化环境温度
                 mi_report.insert("room",room);
                 mi_report.insert("pos_desc",pos_desc);
@@ -299,165 +324,150 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.r_user_act(rev_data,ret_data);
         }
-        else if(request.getPath().startsWith("/set_temporary_power") ||
-                request.getPath().startsWith("/get_temporary_power") ||
-                request.getPath().startsWith("/set_max_power") ||
-                request.getPath().startsWith("/get_max_power") ||
-                request.getPath().startsWith("/set_grid") ||
-                request.getPath().startsWith("/get_grid") ||
-                request.getPath().startsWith("/set_certification") ||
-                request.getPath().startsWith("/get_countercurrent"))
+        else if(request.getPath().startsWith("/r_temporary_power"))
+        {
+            QString data;
+            QString total_station = sql.r_total_station(name);
+            //读临时功率
+            sql.r_mi_temporary_power(rev_data.value("mi_cid").toString(),data);
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+            ret_data.insert("temporary_power",data);
+        }
+        else if(request.getPath().startsWith("/w_temporary_power"))
         {
             QString total_station = sql.r_total_station(name);
-            QJsonObject emu_property;
-            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-            {
-                //
-                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-                                       rev_data.value("emu_cid").toString(),
-                                       rev_data.value("server_cmd").toInt(),
-                                       rev_data.value("data").toString());
-            }
+            sql.w_mi_temporary_power(rev_data.value("mi_cid").toString(),
+                                           rev_data.value("temporary_power").toString());
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
 
         }
-//        else if(request.getPath().startsWith("/get_temporary_power"))
-//        {
-//            QString total_station = sql.r_total_station(name);
-//            QJsonObject emu_property;
-//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-//            {
-//                //
-//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-//                                       rev_data.value("emu_cid").toString(),
-//                                       rev_data.value("server_cmd").toInt(),
-//                                       rev_data.value("data").toString());
-//            }
-//        }
-//        else if(request.getPath().startsWith("/set_max_power"))
-//        {
-//            QString total_station = sql.r_total_station(name);
-//            QJsonObject emu_property;
-//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-//            {
-//                //
-//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-//                                       rev_data.value("emu_cid").toString(),
-//                                       rev_data.value("server_cmd").toInt(),
-//                                       rev_data.value("data").toString());
-//            }
+        else if(request.getPath().startsWith("/r_max_power"))
+        {
+            QString data;
+            QString total_station = sql.r_total_station(name);
+            sql.r_mi_max_power(rev_data.value("mi_cid").toString(),data);
 
-//        }
-//        else if(request.getPath().startsWith("/get_max_power"))
-//        {
-//            QString total_station = sql.r_total_station(name);
-//            QJsonObject emu_property;
-//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-//            {
-//                //
-//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-//                                       rev_data.value("emu_cid").toString(),
-//                                       rev_data.value("server_cmd").toInt(),
-//                                       rev_data.value("data").toString());
-//            }
-//        }
-//        else if(request.getPath().startsWith("/set_grid"))
-//        {
-//            QString total_station = sql.r_total_station(name);
-//            QJsonObject emu_property;
-//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-//            {
-//                //
-//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-//                                       rev_data.value("emu_cid").toString(),
-//                                       rev_data.value("server_cmd").toInt(),
-//                                       rev_data.value("data").toString());
-//            }
-//        }
-//        else if(request.getPath().startsWith("/get_grid"))
-//        {
-//            QString total_station = sql.r_total_station(name);
-//            QJsonObject emu_property;
-//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-//            {
-//                //
-//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-//                                       rev_data.value("emu_cid").toString(),
-//                                       rev_data.value("server_cmd").toInt(),
-//                                       rev_data.value("data").toString());
-//            }
-//        }
-//        else if(request.getPath().startsWith("/set_certification"))
-//        {
-//            QString total_station = sql.r_total_station(name);
-//            QJsonObject emu_property;
-//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-//            {
-//                //
-//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-//                                       rev_data.value("emu_cid").toString(),
-//                                       rev_data.value("server_cmd").toInt(),
-//                                       rev_data.value("data").toString());
-//            }
-//        }
-//        else if(request.getPath().startsWith("/get_certification"))
-//        {
-//            QString total_station = sql.r_total_station(name);
-//            QJsonObject emu_property;
-//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-//            {
-//                //
-//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-//                                       rev_data.value("emu_cid").toString(),
-//                                       rev_data.value("server_cmd").toInt(),
-//                                       rev_data.value("data").toString());
-//            }
-//        }
-//        else if(request.getPath().startsWith("/set_countercurrent"))
-//        {
-//            QString total_station = sql.r_total_station(name);
-//            QJsonObject emu_property;
-//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-//            {
-//                //
-//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-//                                       rev_data.value("emu_cid").toString(),
-//                                       rev_data.value("server_cmd").toInt(),
-//                                       rev_data.value("data").toString());
-//            }
-//        }
-//        else if(request.getPath().startsWith("/get_countercurrent"))
-//        {
-//            QString total_station = sql.r_total_station(name);
-//            QJsonObject emu_property;
-//            sql.r_emu_property(rev_data.value("emu_cid").toString(),emu_property);
-//            if(emu_protocolb::is_b1_3_valid(emu_property.value("datas").toObject().value("type").toString(),
-//                                            emu_property.value("datas").toObject().value("soft_version").toString()))
-//            {
-//                //
-//                sql.update_dev_control(total_station,rev_data.value("station").toString(),
-//                                       rev_data.value("emu_cid").toString(),
-//                                       rev_data.value("server_cmd").toInt(),
-//                                       rev_data.value("data").toString());
-//            }
-//        }
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+            ret_data.insert("max_power",data);
+        }
+        else if(request.getPath().startsWith("/w_max_power"))
+        {
+            QString total_station = sql.r_total_station(name);
+            sql.w_mi_max_power(rev_data.value("mi_cid").toString(),
+                                           rev_data.value("max_power").toString());
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+        }
+        else if(request.getPath().startsWith("/r_grid"))
+        {
+            QString data;
+            QString total_station = sql.r_total_station(name);
+            sql.r_mi_grid(rev_data.value("mi_cid").toString(),data);
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+            ret_data.insert("grid",data);
+
+        }
+        else if(request.getPath().startsWith("/w_grid"))
+        {
+            QString total_station = sql.r_total_station(name);
+            sql.w_mi_grid(rev_data.value("mi_cid").toString(),
+                                           rev_data.value("grid").toString());
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+        }
+        else if(request.getPath().startsWith("/r_certification"))
+        {
+            QString data;
+            QString total_station = sql.r_total_station(name);
+            sql.r_mi_certification(rev_data.value("mi_cid").toString(),data);
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+            ret_data.insert("certification",data);
+
+        }
+        else if(request.getPath().startsWith("/w_certification"))
+        {
+            QString total_station = sql.r_total_station(name);
+            sql.w_mi_certification(rev_data.value("mi_cid").toString(),
+                                           rev_data.value("certification").toString());
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+
+        }
+        else if(request.getPath().startsWith("/w_emu_func"))
+        {
+            QString total_station = sql.r_total_station(name);
+            sql.w_emu_func_code(rev_data.value("emu_cid").toString(),
+                                rev_data.value("func").toString());
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+        }
+        else if(request.getPath().startsWith("/r_emu_status"))
+        {
+            sql.r_emu_status(rev_data,ret_data);
+        }
         else
         {
             response.setStatus(401,"没当前指令的解析");
@@ -472,7 +482,7 @@ bool cs_client::is_user_valid(mysql &sql, QString name, QString password)
     QJsonObject user_obj;
     QJsonObject user_data_obj;
 
-    sql.r_user(name,user_obj);
+    sql.r_user_property(name,user_obj);
 
     user_data_obj = user_obj.value("datas").toObject();
 

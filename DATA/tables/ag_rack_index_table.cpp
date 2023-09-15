@@ -52,10 +52,10 @@ void ag_rack_index_table::write_rack_index(QSqlDatabase &m_database, QJsonObject
     }
     else
     {
-        QLOG_WARN() << QString("插入下标表失败 %1,%2,%3")
-                       .arg(tmp_data.value(c_field_cid).toString(),
-                            QString::number(tmp_data.value(c_field_date).toInt()),
-                            tmp_data.value(c_field_pwtable_name).toString());
+//        QLOG_WARN() << QString("插入下标表失败 %1,%2,%3")
+//                       .arg(tmp_data.value(c_field_cid).toString(),
+//                            QString::number(tmp_data.value(c_field_date).toInt()),
+//                            tmp_data.value(c_field_pwtable_name).toString());
     }
 }
 

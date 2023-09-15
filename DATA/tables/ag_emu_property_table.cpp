@@ -1,5 +1,6 @@
 #include "ag_emu_property_table.h"
 
+#include "QsLog.h"
 #include "mysql_table.h"
 
 const QString ag_emu_property_table::c_field_emu_cid = "emu_cid";
@@ -56,7 +57,7 @@ void ag_emu_property_table::write_property(QSqlDatabase &m_database, QJsonObject
     }
     else
     {
-
+        QLOG_WARN() << "写 网关属性表 失败";
     }
 
 }
@@ -86,7 +87,7 @@ void ag_emu_property_table::read_property(QSqlDatabase &m_database, QJsonObject 
         }
         else
         {
-
+            QLOG_WARN() << "查询 网关属性表 失败";
         }
     }
     data.insert("datas",datas);
@@ -111,14 +112,8 @@ void ag_emu_property_table::read_property(QSqlDatabase &m_database, QString cid,
     }
     else
     {
-
+        QLOG_WARN() << "查询 网关属性表 失败";
     }
-
-
-
-
-
-
 }
 
 

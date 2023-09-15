@@ -34,9 +34,10 @@ public:
     static QString get_system_detail_offset_time(QString date_offset_type,int64_t offset);  //
     static void qbytearray_set_value(QByteArray &data,uint32_t start,uint32_t size,uint8_t value =0);
 
-    static QString qbtarray_to_str(QByteArray &array);
+    static QString qbtarray_to_str(QByteArray array);
     static QByteArray str_to_qbtarray(QString str);
-    static QByteArray str_to_qbtarray(QString &str);
+    //static QByteArray str_to_qbtarray(QString &str);
+    static QByteArray str_to_qbytarray_h16(const QString &str);
 
     static QByteArray uni_to_gbk(QString str);
     static QString gbk_to_uni(QByteArray str);

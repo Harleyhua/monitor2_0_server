@@ -38,7 +38,7 @@ bool ag_station_emu_table::delete_table(QSqlDatabase &m_database)
 void ag_station_emu_table::w_emu(QSqlDatabase &m_database, QString station, QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
-    QJsonArray tmp_datas = w_data.value("params").toObject().value("emus").toArray();
+    QJsonArray tmp_datas = w_data.value("emus").toArray();
 
 
     for(int i=0;i<tmp_datas.size();i++)

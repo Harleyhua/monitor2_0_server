@@ -11,7 +11,7 @@
 /* w_data
 
 {
-    "params":{
+
         "station":"1234",
         "emu":[
             {
@@ -19,7 +19,7 @@
                 "emu_desc":"rack1"
             }
         ]
-    }
+
 }
 
 */

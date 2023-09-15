@@ -32,12 +32,12 @@
 
  * r_data
 {
-    "params":
-        {
-            "room_id":"room-1",
-            "start_time":"2023-01-30 19:10:00",
-            "stop_time":"2023-03-01 14:15:00"
-        }
+    "room_id":"room-1",
+    "start_time":"2023-01-30 19:10:00",
+    "stop_time":"2023-03-01 14:15:00",
+    "nums":"2",
+    "start_num":"0"
+
 }
 
 {
