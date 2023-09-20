@@ -1180,10 +1180,10 @@ void mysql::r_device_ctl_first_cmd_nosend(QString emu_cid, dev_ctl_strc &ctl_dat
     dev_ctl_tb.r_first_cmd_nosend(m_db,emu_cid,ctl_data);
 }
 
-void mysql::r_device_ctl_last_data_nosend(QString emu_cid, dev_ctl_strc &ctl_data)
+void mysql::r_device_ctl_last_data_nosend(QString emu_cid,uint8_t cmd, dev_ctl_strc &ctl_data)
 {
     ag_device_control_table dev_ctl_tb;
-    dev_ctl_tb.r_last_data_nosend(m_db,emu_cid,ctl_data);
+    dev_ctl_tb.r_last_data_nosend(m_db,emu_cid,cmd,ctl_data);
 }
 
 void mysql::update_device_cmd_send_flag(dev_ctl_strc ctl_data)

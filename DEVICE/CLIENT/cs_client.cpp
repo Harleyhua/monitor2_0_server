@@ -350,7 +350,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
                                    rev_data.value("server_cmd").toInt(),
-                                   rev_data.value("data").toString());
+                                   rev_data.value("mi_cid").toString());
 
             ret_data.insert("station",rev_data.value("station").toString());
             ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
@@ -382,7 +382,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
                                    rev_data.value("server_cmd").toInt(),
-                                   rev_data.value("data").toString());
+                                   rev_data.value("mi_cid").toString());
 
             ret_data.insert("station",rev_data.value("station").toString());
             ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
@@ -414,7 +414,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
                                    rev_data.value("server_cmd").toInt(),
-                                   rev_data.value("data").toString());
+                                   rev_data.value("mi_cid").toString());
 
             ret_data.insert("station",rev_data.value("station").toString());
             ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
@@ -446,7 +446,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
                                    rev_data.value("server_cmd").toInt(),
-                                   rev_data.value("data").toString());
+                                   rev_data.value("mi_cid").toString());
 
             ret_data.insert("station",rev_data.value("station").toString());
             ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());

@@ -132,7 +132,7 @@ public:
 
     //bool w_device_ctl(QString user,QJsonObject &s_data);
     void r_device_ctl_first_cmd_nosend(QString emu_cid,dev_ctl_strc &ctl_data);
-    void r_device_ctl_last_data_nosend(QString emu_cid,dev_ctl_strc &ctl_data);
+    void r_device_ctl_last_data_nosend(QString emu_cid,uint8_t cmd,dev_ctl_strc &ctl_data);
     void update_device_cmd_send_flag(dev_ctl_strc ctl_data);
     void update_device_data_send_flag(dev_ctl_strc ctl_data);
 private:

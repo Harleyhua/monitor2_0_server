@@ -5,7 +5,7 @@
 #include "emu_socket.h"
 #include "QsLog.h"
 #include "common.h"
-
+#include "abstract_bym.h"
 void bry1000::onm_deal_msg(QByteArray data)
 {
     emu_protocolb tmp_pcol;
@@ -123,18 +123,25 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
     {
         QByteArray send_data;
         QString data;
-        QString mi_cid = QString::number(common::qbtarray_to_u32(frame_data,16),16).toUpper();
-        //读取数据
-        sql.r_mi_temporary_power(mi_cid,data);
-        // 命令+长度(size 1) + app_data(micid data)
-        data = "0708" + mi_cid + data;
-        send_data = common::str_to_qbytarray_h16(data);
-        tmp_pcol.to_set_temporary_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"FFFFFFFF",0,""};
+
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
+
+        if(abstract_bym::is_cid_valid(tmp_dev_ctl.send_data))
+        {
+            //读取数据
+            sql.r_mi_temporary_power(tmp_dev_ctl.send_data,data);
+            // 命令+长度(size 1) + app_data(micid data)
+            data = "0708" + tmp_dev_ctl.send_data + data;
+            send_data = common::str_to_qbytarray_h16(data);
+            tmp_pcol.to_set_temporary_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+        }
     }
     else if(cmd == emu_protocolb::C_MICID_TEMPORARY_POWER)
     {
         dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
-        sql.r_device_ctl_last_data_nosend(m_name,tmp_dev_ctl);
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
         //如果存在未发送的 后进先出
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
@@ -158,18 +165,22 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
     {
         QByteArray send_data;
         QString data;
-        QString mi_cid = QString::number(common::qbtarray_to_u32(frame_data,16),16).toUpper();
-        //读取数据
-        sql.r_mi_max_power(mi_cid,data);
-        // 命令+长度(size 1) + app_data(micid data)
-        data = "0806" + mi_cid + data;
-        send_data = common::str_to_qbytarray_h16(data);
-        tmp_pcol.to_set_max_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"FFFFFFFF",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
+        if(abstract_bym::is_cid_valid(tmp_dev_ctl.send_data))
+        {
+            //读取数据
+            sql.r_mi_max_power(tmp_dev_ctl.send_data,data);
+            // 命令+长度(size 1) + app_data(micid data)
+            data = "0806" + tmp_dev_ctl.send_data + data;
+            send_data = common::str_to_qbytarray_h16(data);
+            tmp_pcol.to_set_max_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+        }
     }
     else if(cmd == emu_protocolb::C_MICID_MAX_POWER)
     {
         dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
-        sql.r_device_ctl_last_data_nosend(m_name,tmp_dev_ctl);
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
         //如果存在未发送的 后进先出
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
@@ -193,19 +204,24 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
     {
         QByteArray send_data;
         QString data;
-        QString mi_cid = QString::number(common::qbtarray_to_u32(frame_data,16),16).toUpper();
-        //读取数据
-        sql.r_mi_grid(mi_cid,data);
-        // 命令+长度(size 1) + app_data(micid data)
-        data = "0936" + mi_cid + data;
-        send_data = common::str_to_qbytarray_h16(data);
-        tmp_pcol.to_set_grid_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"FFFFFFFF",0,""};
+
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
+        if(abstract_bym::is_cid_valid(tmp_dev_ctl.send_data))
+        {
+            //读取数据
+            sql.r_mi_grid(tmp_dev_ctl.send_data,data);
+            // 命令+长度(size 1) + app_data(micid data)
+            data = "0936" + tmp_dev_ctl.send_data + data;
+            send_data = common::str_to_qbytarray_h16(data);
+            tmp_pcol.to_set_grid_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+        }
 
     }
     else if(cmd == emu_protocolb::C_MICID_GRID)
     {
         dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
-        sql.r_device_ctl_last_data_nosend(m_name,tmp_dev_ctl);
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
         //如果存在未发送的 后进先出
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
@@ -229,19 +245,26 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
     {
         QByteArray send_data;
         QString data;
-        QString mi_cid = QString::number(common::qbtarray_to_u32(frame_data,16),16).toUpper();
-        //读取数据
-        sql.r_mi_certification(mi_cid,data);
-        // 命令+长度(size 1) + app_data(micid data)
-        data = "0A34" + mi_cid + data;
-        send_data = common::str_to_qbytarray_h16(data);
-        tmp_pcol.to_set_certification_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"FFFFFFFF",0,""};
+
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
+
+        if(abstract_bym::is_cid_valid(tmp_dev_ctl.send_data))
+        {
+            //读取数据
+            sql.r_mi_certification(tmp_dev_ctl.send_data,data);
+            // 命令+长度(size 1) + app_data(micid data)
+            data = "0A34" + tmp_dev_ctl.send_data + data;
+            send_data = common::str_to_qbytarray_h16(data);
+            tmp_pcol.to_set_certification_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+        }
 
     }
     else if(cmd == emu_protocolb::C_MICID_CERTIFICATION)
     {
         dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
-        sql.r_device_ctl_last_data_nosend(m_name,tmp_dev_ctl);
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
         //如果存在未发送的 后进先出
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {

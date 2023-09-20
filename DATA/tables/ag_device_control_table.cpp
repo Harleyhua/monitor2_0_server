@@ -153,12 +153,12 @@ bool ag_device_control_table::r_first_cmd_nosend(QSqlDatabase &m_database, QStri
     return false;
 }
 
-bool ag_device_control_table::r_last_data_nosend(QSqlDatabase &m_database, QString emu_cid, dev_ctl_strc &rt_data)
+bool ag_device_control_table::r_last_data_nosend(QSqlDatabase &m_database, QString emu_cid,uint8_t cmd, dev_ctl_strc &rt_data)
 {
-    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9 FROM %10 WHERE %11='%12' AND %13=%14 ORDER BY %15 DESC LIMIT 1")
+    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9 FROM %10 WHERE %11='%12' AND %13=%14 AND %15=%16 ORDER BY %17 DESC LIMIT 1")
             .arg(c_field_emu_cid,c_field_server_cmd,c_field_cmd_time,c_field_emu_cmd,c_field_is_cmd_send,
                  c_field_cmd_send_time,c_field_send_data,c_field_is_data_send,c_field_data_send_time,m_name,
-                 c_field_emu_cid,emu_cid,c_field_is_data_send,"0",c_field_cmd_time);
+                 c_field_emu_cid,emu_cid,c_field_is_data_send,"0",c_field_emu_cmd,QString::number(cmd),c_field_cmd_time);
     QSqlQuery query(m_database);
 
     if(query.exec(tmp_cmd))

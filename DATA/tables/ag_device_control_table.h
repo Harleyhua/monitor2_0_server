@@ -32,7 +32,7 @@ public:
     bool w_data(QSqlDatabase &m_database,dev_ctl_strc data);
 //    bool r_data(QSqlDatabase &m_database,QString emu_cid,dev_ctl_strc &rt_data);
     bool r_first_cmd_nosend(QSqlDatabase &m_database,QString emu_cid,dev_ctl_strc &rt_data);
-    bool r_last_data_nosend(QSqlDatabase &m_database,QString emu_cid,dev_ctl_strc &rt_data);
+    bool r_last_data_nosend(QSqlDatabase &m_database,QString emu_cid,uint8_t cmd,dev_ctl_strc &rt_data);
     bool update_first_data(QSqlDatabase &m_database,dev_ctl_strc data);
 
 

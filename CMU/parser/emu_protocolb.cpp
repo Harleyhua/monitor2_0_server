@@ -97,9 +97,8 @@ bool emu_protocolb::data_analysis(QByteArray &netdata, uint8_t &rt_cmd, quint32 
 
             //数据域长度字节 1
             if(cmd == C_LOGIN_CMD || cmd == C_REISSUE_MSG_CMD || cmd == C_GET_TEMPORARY_POWER ||
-               cmd == C_SET_TEMPORARY_POWER || cmd == C_SET_MAX_POWER || cmd == C_GET_MAX_POWER ||
-               cmd == C_GET_GRID || cmd == C_SET_GRID || cmd == C_GET_CERTIFICATION ||
-               cmd == C_SET_CERTIFICATION || cmd == C_EMU_STATUS )
+               cmd == C_GET_MAX_POWER || cmd == C_GET_GRID || cmd == C_GET_CERTIFICATION ||
+               cmd == C_EMU_STATUS )
             {
                 //一帧数据长度  B协议 固定字节长度20
                 length = common::qbtarray_to_u8(netdata,15) + 19;
@@ -110,7 +109,8 @@ bool emu_protocolb::data_analysis(QByteArray &netdata, uint8_t &rt_cmd, quint32 
             }//数据域全是空
             else if(cmd == C_HAND_CMD || cmd == C_MAPPING_CMD || cmd == C_MICID_TEMPORARY_POWER ||
                     cmd == C_MICID_MAX_POWER ||cmd == C_MICID_GRID || cmd == C_MICID_CERTIFICATION ||
-                    cmd == C_SET_EMU_FUNC)
+                    cmd == C_SET_EMU_FUNC ||cmd == C_SET_TEMPORARY_POWER || cmd == C_SET_MAX_POWER ||
+                    cmd == C_SET_GRID || cmd == C_SET_CERTIFICATION)
             {
                 length = 18;
             }
@@ -189,9 +189,8 @@ bool emu_protocolb::emu_type_analysis(QByteArray &netdata, QString &name, emu_ty
             //数据域长度字节 1
             //数据域长度字节 1
             if(cmd == C_LOGIN_CMD || cmd == C_REISSUE_MSG_CMD || cmd == C_GET_TEMPORARY_POWER ||
-               cmd == C_SET_TEMPORARY_POWER || cmd == C_SET_MAX_POWER || cmd == C_GET_MAX_POWER ||
-               cmd == C_GET_GRID || cmd == C_SET_GRID || cmd == C_GET_CERTIFICATION ||
-               cmd == C_SET_CERTIFICATION || cmd == C_EMU_STATUS )
+               cmd == C_GET_MAX_POWER || cmd == C_GET_GRID || cmd == C_GET_CERTIFICATION ||
+               cmd == C_EMU_STATUS )
             {
                 //一帧数据长度  B协议 固定字节长度20
                 length = common::qbtarray_to_u8(netdata,15) + 19;
@@ -201,8 +200,9 @@ bool emu_protocolb::emu_type_analysis(QByteArray &netdata, QString &name, emu_ty
                 length = common::qbtarray_to_u16(netdata,15) + 20;
             }//数据域全是空
             else if(cmd == C_HAND_CMD || cmd == C_MAPPING_CMD || cmd == C_MICID_TEMPORARY_POWER ||
-                    cmd == C_MICID_MAX_POWER || cmd == C_MICID_GRID || cmd == C_MICID_CERTIFICATION ||
-                    cmd == C_SET_EMU_FUNC )
+                    cmd == C_MICID_MAX_POWER ||cmd == C_MICID_GRID || cmd == C_MICID_CERTIFICATION ||
+                    cmd == C_SET_EMU_FUNC ||cmd == C_SET_TEMPORARY_POWER || cmd == C_SET_MAX_POWER ||
+                    cmd == C_SET_GRID || cmd == C_SET_CERTIFICATION)
             {
                 length = 18;
             }
