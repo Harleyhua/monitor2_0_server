@@ -475,7 +475,33 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
         }
         else if(request.getPath().startsWith("/r_select_back"))
         {
-            QString maxop_data,cop_data,grid_data,cer_data;
+            QString maxop_data,cop_data,grid_data,cer_data,
+                    r_maxop_data,r_cop_data,r_grid_data,r_cer_data;
+
+            if(rev_data.value("r_maxop_ctl_time").toString() != "" &&
+               sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("r_maxop_ctl_time").toString()))
+            {
+                sql.r_mi_max_power(rev_data.value("mi_cid").toString(),r_maxop_data);
+                ret_data.insert("r_max_power",r_maxop_data);
+            }
+            if(rev_data.value("r_cop_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("r_cop_ctl_time").toString()))
+            {
+                sql.r_mi_temporary_power(rev_data.value("mi_cid").toString(),r_cop_data);
+                ret_data.insert("r_temporary_power",r_cop_data);
+            }
+            if(rev_data.value("r_grid_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("r_grid_ctl_time").toString()))
+            {
+                sql.r_mi_grid(rev_data.value("mi_cid").toString(),r_grid_data);
+                ret_data.insert("r_grid",r_grid_data);
+            }
+            if(rev_data.value("r_cer_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("r_cer_ctl_time").toString()))
+            {
+                sql.r_mi_certification(rev_data.value("mi_cid").toString(),r_cer_data);
+                ret_data.insert("r_certification",r_cer_data);
+            }
 
             if(rev_data.value("maxop_ctl_time").toString() != "" &&
                sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("maxop_ctl_time").toString()))
@@ -488,7 +514,6 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             {
                 sql.r_mi_temporary_power(rev_data.value("mi_cid").toString(),cop_data);
                 ret_data.insert("temporary_power",cop_data);
-
             }
             if(rev_data.value("grid_ctl_time").toString() != "" &&
                     sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("grid_ctl_time").toString()))
@@ -506,6 +531,11 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             ret_data.insert("station",rev_data.value("station").toString());
             ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
             ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+
+            ret_data.insert("r_maxop_ctl_time",rev_data.value("r_maxop_ctl_time").toString());
+            ret_data.insert("r_cop_ctl_time",rev_data.value("r_cop_ctl_time").toString());
+            ret_data.insert("r_grid_ctl_time",rev_data.value("r_grid_ctl_time").toString());
+            ret_data.insert("r_cer_ctl_time",rev_data.value("r_cer_ctl_time").toString());
             ret_data.insert("maxop_ctl_time",rev_data.value("maxop_ctl_time").toString());
             ret_data.insert("cop_ctl_time",rev_data.value("cop_ctl_time").toString());
             ret_data.insert("grid_ctl_time",rev_data.value("grid_ctl_time").toString());

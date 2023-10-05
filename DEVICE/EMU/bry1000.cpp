@@ -151,10 +151,7 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
             tmp_pcol.to_micid_temporary_power_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
-            //更新 数据发送标记
-            tmp_dev_ctl.is_data_send = 1;
-            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-            sql.update_device_data_send_flag(tmp_dev_ctl);
+
         }
     }
     else if(cmd == emu_protocolb::C_GET_TEMPORARY_POWER)
@@ -165,6 +162,17 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         sql.w_mi_temporary_power(mi_cid,data);
 
         tmp_pcol.to_get_temporary_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,emu_protocolb::C_MICID_TEMPORARY_POWER,tmp_dev_ctl);
+        if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == emu_protocolb::C_MICID_TEMPORARY_POWER)
+        {
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
+        }
     }
     else if(cmd == emu_protocolb::C_SET_MAX_POWER)
     {
@@ -195,10 +203,7 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
             tmp_pcol.to_micid_max_power_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
-            //更新 数据发送标记
-            tmp_dev_ctl.is_data_send = 1;
-            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-            sql.update_device_data_send_flag(tmp_dev_ctl);
+
         }
     }
     else if(cmd == emu_protocolb::C_GET_MAX_POWER)
@@ -209,6 +214,18 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         sql.w_mi_max_power(mi_cid,data);
 
         tmp_pcol.to_get_max_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,emu_protocolb::C_MICID_MAX_POWER,tmp_dev_ctl);
+        if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == emu_protocolb::C_MICID_MAX_POWER)
+        {
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
+        }
+
     }
     else if(cmd == emu_protocolb::C_SET_GRID)
     {
@@ -226,6 +243,7 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
             send_data = common::str_to_qbytarray_h16(data);
             tmp_pcol.to_set_grid_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
 
+
             //更新 数据发送标记
             tmp_dev_ctl.is_data_send = 1;
             tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
@@ -241,10 +259,7 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
             tmp_pcol.to_micid_grid_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
-            //更新 数据发送标记
-            tmp_dev_ctl.is_data_send = 1;
-            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-            sql.update_device_data_send_flag(tmp_dev_ctl);
+
         }
     }
     else if(cmd == emu_protocolb::C_GET_GRID)
@@ -255,6 +270,16 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         sql.w_mi_grid(mi_cid,data);
 
         tmp_pcol.to_get_grid_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,emu_protocolb::C_MICID_GRID,tmp_dev_ctl);
+        if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == emu_protocolb::C_MICID_GRID)
+        {
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
+        }
     }
     else if(cmd == emu_protocolb::C_SET_CERTIFICATION)
     {
@@ -289,10 +314,7 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
             tmp_pcol.to_micid_certification_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
-            //更新 数据发送标记
-            tmp_dev_ctl.is_data_send = 1;
-            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-            sql.update_device_data_send_flag(tmp_dev_ctl);
+
         }
     }
     else if(cmd == emu_protocolb::C_GET_CERTIFICATION)
@@ -303,6 +325,16 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         sql.w_mi_certification(mi_cid,data);
 
         tmp_pcol.to_get_certification_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,emu_protocolb::C_MICID_CERTIFICATION,tmp_dev_ctl);
+        if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == emu_protocolb::C_MICID_CERTIFICATION)
+        {
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
+        }
     }
 
     else if(cmd == emu_protocolb::C_SET_EMU_FUNC)
