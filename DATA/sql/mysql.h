@@ -76,8 +76,8 @@ public:
     void r_batch_list(QJsonObject &s_data,QJsonObject &rt_data);
     void r_user_act(QJsonObject &s_data,QJsonObject &rt_data);
     void r_emu_property(QString emu_cid,QJsonObject &emu_pro_obj);
-    bool update_dev_control(QString total_station,QString station,QString emu,quint8 server_cmd,QString send_data);
-
+    bool update_dev_control(QString total_station,QString station,QString ctl_time,QString emu,quint8 server_cmd,QString send_data);
+    bool r_data_send_flag(QString emu_cid,QString data_send_flag);
 
     //远程控制相关
     void w_mi_temporary_power(QString name,QString data);

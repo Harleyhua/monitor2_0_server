@@ -35,6 +35,7 @@ public:
     bool r_last_data_nosend(QSqlDatabase &m_database,QString emu_cid,uint8_t cmd,dev_ctl_strc &rt_data);
     bool update_first_data(QSqlDatabase &m_database,dev_ctl_strc data);
 
+    bool is_data_send(QSqlDatabase &m_database,QString emu_cid,QString ctl_time);
 
     void update_cmd_send_flag(QSqlDatabase &m_database,dev_ctl_strc s_data);
     void update_data_send_flag(QSqlDatabase &m_database,dev_ctl_strc s_data);

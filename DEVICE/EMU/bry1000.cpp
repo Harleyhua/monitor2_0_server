@@ -136,6 +136,11 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
             data = "0708" + tmp_dev_ctl.send_data + data;
             send_data = common::str_to_qbytarray_h16(data);
             tmp_pcol.to_set_temporary_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
         }
     }
     else if(cmd == emu_protocolb::C_MICID_TEMPORARY_POWER)
@@ -175,6 +180,11 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
             data = "0806" + tmp_dev_ctl.send_data + data;
             send_data = common::str_to_qbytarray_h16(data);
             tmp_pcol.to_set_max_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
         }
     }
     else if(cmd == emu_protocolb::C_MICID_MAX_POWER)
@@ -215,6 +225,11 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
             data = "0936" + tmp_dev_ctl.send_data + data;
             send_data = common::str_to_qbytarray_h16(data);
             tmp_pcol.to_set_grid_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
         }
 
     }
@@ -258,6 +273,11 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
             data = "0A34" + tmp_dev_ctl.send_data + data;
             send_data = common::str_to_qbytarray_h16(data);
             tmp_pcol.to_set_certification_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
         }
 
     }

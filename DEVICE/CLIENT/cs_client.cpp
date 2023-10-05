@@ -333,6 +333,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("data").toString());
 
@@ -349,6 +350,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("mi_cid").toString());
 
@@ -365,6 +367,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("data").toString());
 
@@ -381,6 +384,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("mi_cid").toString());
 
@@ -396,6 +400,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("data").toString());
 
@@ -413,6 +418,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("mi_cid").toString());
 
@@ -428,6 +434,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("data").toString());
 
@@ -445,6 +452,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("mi_cid").toString());
 
@@ -461,8 +469,48 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("data").toString());
+        }
+        else if(request.getPath().startsWith("/r_select_back"))
+        {
+            QString maxop_data,cop_data,grid_data,cer_data;
+
+            if(rev_data.value("maxop_ctl_time").toString() != "" &&
+               sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("maxop_ctl_time").toString()))
+            {
+                sql.r_mi_max_power(rev_data.value("mi_cid").toString(),maxop_data);
+                ret_data.insert("max_power",maxop_data);
+            }
+            if(rev_data.value("cop_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("cop_ctl_time").toString()))
+            {
+                sql.r_mi_temporary_power(rev_data.value("mi_cid").toString(),cop_data);
+                ret_data.insert("temporary_power",cop_data);
+
+            }
+            if(rev_data.value("grid_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("grid_ctl_time").toString()))
+            {
+                sql.r_mi_grid(rev_data.value("mi_cid").toString(),grid_data);
+                ret_data.insert("grid",grid_data);
+            }
+            if(rev_data.value("cer_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("cer_ctl_time").toString()))
+            {
+                sql.r_mi_certification(rev_data.value("mi_cid").toString(),cer_data);
+                ret_data.insert("certification",cer_data);
+            }
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+            ret_data.insert("maxop_ctl_time",rev_data.value("maxop_ctl_time").toString());
+            ret_data.insert("cop_ctl_time",rev_data.value("cop_ctl_time").toString());
+            ret_data.insert("grid_ctl_time",rev_data.value("grid_ctl_time").toString());
+            ret_data.insert("cer_ctl_time",rev_data.value("cer_ctl_time").toString());
+
         }
         else if(request.getPath().startsWith("/r_emu_status"))
         {

@@ -212,6 +212,28 @@ bool ag_device_control_table::update_first_data(QSqlDatabase &m_database, dev_ct
     return false;
 }
 
+bool ag_device_control_table::is_data_send(QSqlDatabase &m_database, QString emu_cid, QString ctl_time)
+{
+    QString tmp_cmd = QString("SELECT %1 FROM %2 WHERE %3='%4' AND %5='%6'")
+            .arg(c_field_is_data_send,m_name,c_field_emu_cid,emu_cid,c_field_cmd_time,ctl_time);
+
+    QSqlQuery query(m_database);
+
+    if(query.exec(tmp_cmd))
+    {
+        if(query.next())
+        {
+            //已经完成跟设备的数据通讯
+            if(query.value(c_field_is_data_send).toInt() == 1)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 void ag_device_control_table::update_cmd_send_flag(QSqlDatabase &m_database, dev_ctl_strc s_data)
 {
     QString tmp_cmd = QString("UPDATE %1 SET %2=%3,%4='%5' WHERE %6='%7' AND %8='%9'")
