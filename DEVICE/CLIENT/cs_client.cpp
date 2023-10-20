@@ -469,7 +469,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
             sql.update_dev_control(total_station,rev_data.value("station").toString(),
                                    rev_data.value("emu_cid").toString(),
-                                   rev_data.value("ctl_time").toString(),
+                                   QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"),
                                    rev_data.value("server_cmd").toInt(),
                                    rev_data.value("data").toString());
         }

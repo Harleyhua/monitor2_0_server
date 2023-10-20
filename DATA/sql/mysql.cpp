@@ -4,6 +4,8 @@
 #include <QSqlDriver>
 #include <QSqlError>
 
+
+
 #include "QsLog.h"
 #include "common.h"
 #include "abstract_bym.h"
@@ -40,6 +42,8 @@ mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"}; 
 //mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas2"};   //本机
 //mysql_login_stc login_param = {"1.117.152.46",3306,"root","zjbeny001","bydas"};
 
+QHash<QString,QString> mysql::m_emucid_hand_lastTime{};
+
 mysql::mysql(QString db_name, QObject *parent)
     : QObject{parent}
 {
@@ -67,6 +71,8 @@ mysql::~mysql()
     m_db.removeDatabase(this->db_name);
     sql_lock.unlock();
 }
+
+
 
 bool mysql::table_init()
 {
@@ -139,14 +145,55 @@ bool mysql::table_init()
         ret &= tmp_rk_dt_tb.create_table(m_db);
     }
 
+
+    ag_user_table tmp_us_tb;
+    QStringList total_stations;
+    tmp_us_tb.read_all_total_station(m_db,total_stations);
+
+
+
+    for(int i=0;i<total_stations.size();i++)
+    {
+        QJsonObject us_obj;
+        QJsonArray st_array;
+        ag_user_station_table tmp_us_tb;
+        ag_gateway_data_table tmp_emu_data_tb;
+        tmp_us_tb.read_station(m_db,total_stations[i],us_obj);
+        st_array = us_obj.value("datas").toObject().value("station").toArray();
+        for(int j=0;j<st_array.size();j++)
+        {
+            ag_station_emu_table tmp_st_emu_tb;
+            QStringList emu_cid,emu_desc;
+            tmp_st_emu_tb.r_emu(m_db,st_array[j].toString(),emu_cid,emu_desc);
+
+            for(int k=0;k<emu_cid.size();k++)
+            {
+                QString tmp_last_time;
+                tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[k],tmp_last_time);
+                if(tmp_last_time != "")
+                {
+                    m_emucid_hand_lastTime.insert(emu_cid[k],tmp_last_time);
+                }
+            }
+        }
+    }
+
+
     return ret;
 }
 
 void mysql::w_emu_action(QJsonObject &s_data)
 {
     ag_gateway_data_table tmp_gt_dt_tb;
+    QJsonObject d_obj = s_data.value("datas").toObject();
 
     tmp_gt_dt_tb.write_data(m_db,s_data);
+
+    if(d_obj.value(ag_gateway_data_table::c_field_action).toString() == "handshake")
+    {
+        m_emucid_hand_lastTime.insert(d_obj.value(ag_gateway_data_table::c_field_emu_cid).toString(),
+                                  d_obj.value(ag_gateway_data_table::c_field_sys_time).toString());
+    }
 }
 
 void mysql::w_login(QJsonObject &s_data)
@@ -462,8 +509,14 @@ void mysql::w_power(QJsonObject &s_data, uint16_t date)
         }
     }
     ag_power_data_table tmp_pw_data_tb(table_name);
+
+    //写数据要开启事务
+    //保证多路微逆的数据原子性
+    m_db.transaction();
     //写发电数据
     tmp_pw_data_tb.write_data(m_db,s_data);
+
+    m_db.commit();
 }
 
 void mysql::r_emu_mapping(QJsonObject &s_data, QJsonObject &rt_data)
@@ -651,8 +704,12 @@ void mysql::w_rack_data(QJsonObject &s_data)
     }
 
     rk_data_obj.insert("datas",w_datas_array);
+
+    m_db.transaction();
     //写rackdata
     w_rk_data(rk_data_obj);
+
+    m_db.commit();
 
     //rk_dt_tb.write_data(m_db,rk_data_obj);
 }
@@ -798,9 +855,15 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
             QString status_reserve;
             QString run_mode;
             QString emu_sys_time;
-            QString last_time;
+            QString last_time = "";
             //读取最后异常action的通讯时间
-            tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
+            last_time = m_emucid_hand_lastTime.value(emu_cid[j],"");
+            //内存不存在时  读库
+            if(last_time == "")
+            {
+                tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
+            }
+
             tmp_emu_obj.insert("last_act_time",last_time);
             //读取网关最新工作状态
             tmp_emu_sta_tb.r_last_data(m_db,emu_cid[j],status,status_reserve,run_mode,emu_sys_time);

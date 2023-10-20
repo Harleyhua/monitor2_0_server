@@ -12,7 +12,7 @@
 #include <QJsonArray>
 
 #include <QMap>
-
+#include <QHash>
 #include "ag_mi_report_table.h"
 #include "ag_device_control_table.h"
 #define POWER_DATA_TABLE_MAX_MI   5000
@@ -38,6 +38,8 @@ class mysql : public QObject
 public:
     explicit mysql(QString db_name,QObject *parent = nullptr);
     ~mysql();
+
+
     //各个表格初始化
     bool table_init();
     //底层设备 访问的数据库接口
@@ -138,6 +140,12 @@ public:
 private:
     QString db_name; //用什么链接名称
     QSqlDatabase m_db; //数据库
+
+
+    static QHash<QString,QString> m_emucid_hand_lastTime;
+
+
+
     //切换当前的数据库
     bool set_current_database(QString database_name);
     bool create_database(QString database_name);   //创建数据库

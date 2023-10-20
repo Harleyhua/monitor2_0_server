@@ -52,6 +52,8 @@ public:
     bool update_algorithm(QSqlDatabase &m_database,QString account,QJsonObject w_data);
     bool read_algorithm(QSqlDatabase &m_database,QString account,QJsonObject &r_data);
     bool read_total_stations(QSqlDatabase &m_database,QString account,QString &total_station);
+    bool read_all_total_station(QSqlDatabase &m_database,QStringList &stations);
+
 
     static const QString c_field_account;
     static const QString c_field_password;

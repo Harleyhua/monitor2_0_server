@@ -134,4 +134,24 @@ bool ag_user_table::read_total_stations(QSqlDatabase &m_database, QString accoun
     return false;
 }
 
+bool ag_user_table::read_all_total_station(QSqlDatabase &m_database, QStringList &stations)
+{
+    QString cmd = QString("SELECT DISTINCT %1 FROM %2").arg(c_field_total_stations,m_name);
+
+    QSqlQuery query(m_database);
+
+    if(query.exec(cmd))
+    {
+        while(query.next())
+        {
+           stations.append(query.value(c_field_total_stations).toString());
+        }
+        return true;
+    }
+
+    return false;
+
+
+}
+
 
