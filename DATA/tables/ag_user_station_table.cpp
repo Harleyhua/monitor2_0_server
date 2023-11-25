@@ -87,11 +87,11 @@ void ag_user_station_table::write_station(QSqlDatabase &m_database, QString tota
 
 //}
 
-void ag_user_station_table::write_station(QSqlDatabase &m_database, QString total_station, QJsonObject &w_data)
+bool ag_user_station_table::write_station(QSqlDatabase &m_database, QString total_station,const QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
     QJsonArray tmp_datas = w_data.value("station").toArray();
-
+    bool b_ret = true;
 
     for(int i=0;i<tmp_datas.size();i++)
     {
@@ -104,14 +104,13 @@ void ag_user_station_table::write_station(QSqlDatabase &m_database, QString tota
 
         if(query.exec())
         {
-
         }
         else
         {
-
+            b_ret = false;
         }
     }
-
+    return b_ret;
 }
 
 //void ag_user_station_table::read_station(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
@@ -158,18 +157,18 @@ void ag_user_station_table::read_station(QSqlDatabase &m_database, QString total
     }
 }
 
-void ag_user_station_table::del_station_by_station(QSqlDatabase &m_database, QString total_station)
+bool ag_user_station_table::del_station_by_station(QSqlDatabase &m_database, QString total_station)
 {
     QSqlQuery query(m_database);
     QString tmp_cmd = QString("DELETE FROM %1 WHERE %2='%3'")
             .arg(m_name,c_field_station,total_station);
     if(query.exec(tmp_cmd))
     {
-
+        return true;
     }
     else
     {
-
+        return false;
     }
 
 

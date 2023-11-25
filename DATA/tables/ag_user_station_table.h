@@ -59,11 +59,11 @@ public:
 
     //void write_station(QSqlDatabase &m_database,QJsonObject &w_data);
     void write_station(QSqlDatabase &m_database,QString total_station,QString station);
-    void write_station(QSqlDatabase &m_database,QString total_station,QJsonObject &w_data);
+    bool write_station(QSqlDatabase &m_database,QString total_station,const QJsonObject &w_data);
     //void read_station(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data);
     void read_station(QSqlDatabase &m_database,QString total_station,QJsonObject &data);
 
-    void del_station_by_station(QSqlDatabase &m_database,QString total_station);
+    bool del_station_by_station(QSqlDatabase &m_database,QString total_station);
     static const QString c_field_account;
     static const QString c_field_station;
 private:

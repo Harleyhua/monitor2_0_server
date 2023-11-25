@@ -43,7 +43,7 @@ void ag_user_table::write_account(QSqlDatabase &m_database, QJsonObject &w_data)
 
 }
 
-bool ag_user_table::read_account(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
+bool ag_user_table::read_account(QSqlDatabase &m_database,const QJsonObject &r_data, QJsonObject &data)
 {
     QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6 FROM %7 WHERE %8='%9'")
             .arg(c_field_account,c_field_password,c_field_total_stations,c_field_permission,

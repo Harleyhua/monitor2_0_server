@@ -63,8 +63,8 @@ public:
     bool create_table(QSqlDatabase &m_database); //
     bool delete_table(QSqlDatabase &m_database); //
 
-    void read_datas(QSqlDatabase &m_database,QJsonObject &s_data,QJsonObject &r_data);
-    void write_datas(QSqlDatabase &m_database,QJsonObject &s_data);
+    bool read_datas(QSqlDatabase &m_database,QJsonObject &s_data,QJsonObject &r_data);
+    bool write_datas(QSqlDatabase &m_database,const QJsonObject &s_data);
 
     static const QString c_field_user;
     static const QString c_field_total_station;  //绑定的总站

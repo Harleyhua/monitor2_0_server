@@ -50,8 +50,8 @@ public:
     bool create_table(QSqlDatabase &m_database); //
     bool delete_table(QSqlDatabase &m_database); //
 
-    void write_workorder(QSqlDatabase &m_database,QJsonObject &w_data);
-    void read_workorder(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data);
+    bool write_workorder(QSqlDatabase &m_database,const QJsonObject &w_data);
+    bool read_workorder(QSqlDatabase &m_database,const QJsonObject &r_data,QJsonObject &data);
 
     static const QString c_field_workorder_id;
     static const QString c_field_mi_series_id;

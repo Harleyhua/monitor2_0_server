@@ -9,6 +9,7 @@
 #include "QsLog.h"
 #include "common.h"
 #include "abstract_bym.h"
+
 #include "ag_gateway_data_table.h"
 #include "ag_mi_property_table.h"
 #include "ag_power_data_table.h"
@@ -35,7 +36,6 @@
 #include "ag_rack_extra_data_table.h"
 #include "ag_mi_extra_property_table.h"
 #include "ag_emu_extra_property_table.h"
-
 
 QMutex sql_lock;   //数据库建立连接锁，避免多线程是同时连接的异常
 mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试 本机
@@ -338,7 +338,7 @@ void mysql::add_wifimi_cid(QString user,QString station, QString emu, QString mi
 
 }
 
-void mysql::del_station(QString user, QJsonObject &s_data)
+bool mysql::del_station(QString user,const QJsonObject &s_data)
 {
     ag_user_station_table tmp_us_tb;
     ag_station_emu_table tmp_st_emu_tb;
@@ -351,7 +351,7 @@ void mysql::del_station(QString user, QJsonObject &s_data)
     {
         del_emu(user,station,emus[i]);
     }
-    tmp_us_tb.del_station_by_station(m_db,station);
+    return tmp_us_tb.del_station_by_station(m_db,station);
 }
 
 void mysql::del_station(QString user, QString station)
@@ -395,7 +395,7 @@ void mysql::del_emu(QString user, QString station, QString emu)
     }
 }
 
-void mysql::del_emu(QString user, QJsonObject &s_data)
+bool mysql::del_emu(QString user,const QJsonObject &s_data)
 {
     ag_user_station_table tmp_us_tb;
     QString total_station;
@@ -414,7 +414,11 @@ void mysql::del_emu(QString user, QJsonObject &s_data)
                                QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"),0x01,"");
         }
 
-        tmp_st_emu_tb.del_emu_by_emucid(m_db,s_data.value("station").toString(),s_data.value("emu_cid").toString());
+        return tmp_st_emu_tb.del_emu_by_emucid(m_db,s_data.value("station").toString(),s_data.value("emu_cid").toString());
+    }
+    else
+    {
+        return false;
     }
 
 }
@@ -512,11 +516,11 @@ void mysql::w_power(QJsonObject &s_data, uint16_t date)
 
     //写数据要开启事务
     //保证多路微逆的数据原子性
-    m_db.transaction();
+    //m_db.transaction();
     //写发电数据
     tmp_pw_data_tb.write_data(m_db,s_data);
 
-    m_db.commit();
+    //m_db.commit();
 }
 
 void mysql::r_emu_mapping(QJsonObject &s_data, QJsonObject &rt_data)
@@ -1088,7 +1092,7 @@ void mysql::r_batch_list(QJsonObject &s_data, QJsonObject &rt_data)
 void mysql::r_user_act(QJsonObject &s_data, QJsonObject &rt_data)
 {
     ag_user_act_table us_act_tb;
-    return us_act_tb.read_datas(m_db,s_data,rt_data);
+    us_act_tb.read_datas(m_db,s_data,rt_data);
 }
 
 void mysql::r_emu_property(QString emu_cid, QJsonObject &emu_pro_obj)

@@ -38,7 +38,7 @@ public:
     bool delete_table(QSqlDatabase &m_database); //
 
     void w_data(QSqlDatabase &m_database,QJsonObject data);
-    void r_data(QSqlDatabase &m_database,QJsonObject data,QJsonObject &rt_data);
+    bool r_data(QSqlDatabase &m_database,const QJsonObject data,QJsonObject &rt_data);
 
 
     bool r_last_data(QSqlDatabase &m_database,QString emu_cid,QString &status,

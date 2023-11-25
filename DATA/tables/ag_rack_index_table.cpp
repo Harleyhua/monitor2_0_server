@@ -22,7 +22,7 @@ bool ag_rack_index_table::create_table(QSqlDatabase &m_database)
             "%3 VARCHAR(20) NOT NULL,"
             "primary key(%4,%5),"
             "INDEX(%6))").arg(c_field_cid,c_field_date,c_field_pwtable_name,c_field_cid,
-                              c_field_pwtable_name,c_field_cid);
+                              c_field_pwtable_name,c_field_date);
 
     return mysql_table::create_table(m_database,m_name,tmp_field);
 }

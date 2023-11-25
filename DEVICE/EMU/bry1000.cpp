@@ -174,6 +174,84 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
             sql.update_device_data_send_flag(tmp_dev_ctl);
         }
     }
+    else if(cmd == emu_protocolb::C_SET_MORE_TEMPORARY_POWER)
+    {
+        QByteArray send_data;
+        QString data;
+
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"FFFFFFFF",0,""};
+
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
+
+
+        QString mis_data;
+        //读取数据
+        if(tmp_dev_ctl.send_data.size()%8 == 0)
+        {
+            for(int i=0;i<tmp_dev_ctl.send_data.size();i=i+8)
+            {
+                QString tmp_data;
+                QString mi_cid = tmp_dev_ctl.send_data.mid(i,8);
+
+                sql.r_mi_temporary_power(mi_cid,tmp_data);
+
+                mis_data.append(mi_cid);
+                mis_data.append(tmp_data);
+            }
+
+            QString length = QString("%1").arg(mis_data.size()/2,4,16,QLatin1Char('0'));
+            // 命令+长度(size 1) + app_data(micid data)
+            data = "0B" + length + mis_data;
+            send_data = common::str_to_qbytarray_h16(data);
+            tmp_pcol.to_set_more_temporary_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+        }
+
+        //更新 数据发送标记
+        tmp_dev_ctl.is_data_send = 1;
+        tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+        sql.update_device_data_send_flag(tmp_dev_ctl);
+
+    }
+    else if(cmd == emu_protocolb::C_MICID_MORE_TEMPORARY_POWER)
+    {
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
+        //如果存在未发送的 后进先出
+        if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
+        {
+            tmp_pcol.to_micid_more_temporary_power_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
+
+        }
+    }
+    else if(cmd == emu_protocolb::C_GET_MORE_TEMPORARY_POWER)
+    {
+        //QString mi_cid = QString::number(common::qbtarray_to_u32(frame_data,16),16).toUpper();
+        //QString data = frame_data.mid(20,4).toHex();
+        uint32_t start_index = 0;
+        QByteArray send_data = common::str_to_qbytarray_h16("8f0101");
+        uint8_t t_data_nums = (((((uint8_t)frame_data[15]) << 8) + (uint8_t)frame_data[16])) / 8;
+        for(int i=0;i<t_data_nums;i++)
+        {
+            start_index = 17 + 8*i;
+            QString mi_cid = QString::number(common::qbtarray_to_u32(frame_data,start_index),16).toUpper();
+            QString data = frame_data.mid(start_index +4,4).toHex();
+            sql.w_mi_temporary_power(mi_cid,data);
+        }
+
+
+        tmp_pcol.to_get_more_temporary_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,emu_protocolb::C_MICID_MORE_TEMPORARY_POWER,tmp_dev_ctl);
+        if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == emu_protocolb::C_MICID_MORE_TEMPORARY_POWER)
+        {
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
+        }
+    }
     else if(cmd == emu_protocolb::C_SET_MAX_POWER)
     {
         QByteArray send_data;
@@ -219,6 +297,81 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
         sql.r_device_ctl_last_data_nosend(m_name,emu_protocolb::C_MICID_MAX_POWER,tmp_dev_ctl);
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == emu_protocolb::C_MICID_MAX_POWER)
+        {
+            //更新 数据发送标记
+            tmp_dev_ctl.is_data_send = 1;
+            tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            sql.update_device_data_send_flag(tmp_dev_ctl);
+        }
+
+    }
+    else if(cmd == emu_protocolb::C_SET_MORE_MAX_POWER)
+    {
+        QByteArray send_data;
+        QString data;
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"FFFFFFFF",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
+
+        QString mis_data;
+        if(tmp_dev_ctl.send_data.size()%8 == 0)
+        {
+            for(int i=0;i<tmp_dev_ctl.send_data.size();i=i+8)
+            {
+                QString tmp_data;
+                QString mi_cid = tmp_dev_ctl.send_data.mid(i,8);
+
+                sql.r_mi_max_power(mi_cid,tmp_data);
+
+                mis_data.append(mi_cid);
+                mis_data.append(tmp_data);
+            }
+            QString length = QString("%1").arg(mis_data.size()/2,4,16,QLatin1Char('0'));
+            // 命令+长度(size 1) + app_data(micid data)
+            data = "0C" +length + mis_data;
+            send_data = common::str_to_qbytarray_h16(data);
+            tmp_pcol.to_set_more_max_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+        }
+
+
+        //更新 数据发送标记
+        tmp_dev_ctl.is_data_send = 1;
+        tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+        sql.update_device_data_send_flag(tmp_dev_ctl);
+
+    }
+    else if(cmd == emu_protocolb::C_MICID_MORE_MAX_POWER)
+    {
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
+        //如果存在未发送的 后进先出
+        if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
+        {
+            tmp_pcol.to_micid_more_max_power_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
+
+        }
+    }
+    else if(cmd == emu_protocolb::C_GET_MORE_MAX_POWER)
+    {
+        //QString mi_cid = QString::number(common::qbtarray_to_u32(frame_data,16),16).toUpper();
+        //QString data = frame_data.mid(20,2).toHex();
+        uint32_t start_index = 0;
+        QByteArray send_data = common::str_to_qbytarray_h16("910101");
+        uint8_t t_data_nums = (((((uint8_t)frame_data[15]) << 8) + (uint8_t)frame_data[16])) / 6;
+        for(int i=0;i<t_data_nums;i++)
+        {
+            start_index = 17 + 6*i;
+            QString mi_cid = QString::number(common::qbtarray_to_u32(frame_data,start_index),16).toUpper();
+            QString data = frame_data.mid(start_index +4,2).toHex();
+
+            sql.w_mi_max_power(mi_cid,data);
+        }
+
+        tmp_pcol.to_get_more_max_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
+
+
+        dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
+        sql.r_device_ctl_last_data_nosend(m_name,emu_protocolb::C_MICID_MORE_MAX_POWER,tmp_dev_ctl);
+        if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == emu_protocolb::C_MICID_MORE_MAX_POWER)
         {
             //更新 数据发送标记
             tmp_dev_ctl.is_data_send = 1;

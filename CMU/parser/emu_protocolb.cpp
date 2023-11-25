@@ -27,9 +27,18 @@ const quint8 emu_protocolb::C_SET_TEMPORARY_POWER = 0X07;//网关向服务器查
 const quint8 emu_protocolb::C_MICID_TEMPORARY_POWER = 0X86;
 const quint8 emu_protocolb::C_GET_TEMPORARY_POWER = 0X87;
 
+const quint8 emu_protocolb::C_SET_MORE_TEMPORARY_POWER = 0X0B;//网关向服务器查询该网关下Mi的临时功率系数设置值
+const quint8 emu_protocolb::C_MICID_MORE_TEMPORARY_POWER = 0X8E;
+const quint8 emu_protocolb::C_GET_MORE_TEMPORARY_POWER = 0X8F;
+
+
 const quint8 emu_protocolb::C_SET_MAX_POWER = 0X08; //网关向服务器查询该网关下Mi的最大输出功率
 const quint8 emu_protocolb::C_MICID_MAX_POWER = 0X88;
 const quint8 emu_protocolb::C_GET_MAX_POWER = 0X89;
+
+const quint8 emu_protocolb::C_SET_MORE_MAX_POWER = 0X0C; //网关向服务器查询该网关下Mi的最大输出功率
+const quint8 emu_protocolb::C_MICID_MORE_MAX_POWER = 0X90;
+const quint8 emu_protocolb::C_GET_MORE_MAX_POWER = 0X91;
 
 const quint8 emu_protocolb::C_SET_GRID = 0X09;//网关向服务器查询该网关下Mi的并网参数设置值
 const quint8 emu_protocolb::C_MICID_GRID = 0X8A;
@@ -57,7 +66,11 @@ const QHash<quint8, quint8> emu_protocolb::c_server_to_client = {
     {0x81,0x88},
     {0x82,0x8A},
     {0x83,0x8C},
-    {0xC0,0xE0}
+    {0xC0,0xE0},
+    {0X08,0X0B},
+    {0X09,0X0C},
+    {0X84,0X8E},
+    {0X85,0X90}
 };
 
 emu_protocolb::emu_protocolb(QObject *parent)
@@ -103,14 +116,17 @@ bool emu_protocolb::data_analysis(QByteArray &netdata, uint8_t &rt_cmd, quint32 
                 //一帧数据长度  B协议 固定字节长度20
                 length = common::qbtarray_to_u8(netdata,15) + 19;
             }
-            else if(cmd == C_POWER_CMD || cmd == C_SET_MAPPING_CMD || cmd == C_REISSUE_DATA_MSG_CMD)
+            else if(cmd == C_POWER_CMD || cmd == C_SET_MAPPING_CMD || cmd == C_REISSUE_DATA_MSG_CMD||
+                    cmd == C_GET_MORE_TEMPORARY_POWER|| cmd == C_GET_MORE_MAX_POWER)
             {
                 length = common::qbtarray_to_u16(netdata,15) + 20;
             }//数据域全是空
             else if(cmd == C_HAND_CMD || cmd == C_MAPPING_CMD || cmd == C_MICID_TEMPORARY_POWER ||
                     cmd == C_MICID_MAX_POWER ||cmd == C_MICID_GRID || cmd == C_MICID_CERTIFICATION ||
                     cmd == C_SET_EMU_FUNC ||cmd == C_SET_TEMPORARY_POWER || cmd == C_SET_MAX_POWER ||
-                    cmd == C_SET_GRID || cmd == C_SET_CERTIFICATION)
+                    cmd == C_SET_GRID || cmd == C_SET_CERTIFICATION ||
+                    cmd == C_SET_MORE_TEMPORARY_POWER || cmd == C_SET_MORE_MAX_POWER ||
+                    cmd == C_MICID_MORE_TEMPORARY_POWER || cmd == C_MICID_MORE_MAX_POWER)
             {
                 length = 18;
             }
@@ -195,14 +211,17 @@ bool emu_protocolb::emu_type_analysis(QByteArray &netdata, QString &name, emu_ty
                 //一帧数据长度  B协议 固定字节长度20
                 length = common::qbtarray_to_u8(netdata,15) + 19;
             }
-            else if(cmd == C_POWER_CMD || cmd == C_SET_MAPPING_CMD || cmd == C_REISSUE_DATA_MSG_CMD)
+            else if(cmd == C_POWER_CMD || cmd == C_SET_MAPPING_CMD || cmd == C_REISSUE_DATA_MSG_CMD ||
+                cmd == C_GET_MORE_TEMPORARY_POWER|| cmd == C_GET_MORE_MAX_POWER)
             {
                 length = common::qbtarray_to_u16(netdata,15) + 20;
             }//数据域全是空
             else if(cmd == C_HAND_CMD || cmd == C_MAPPING_CMD || cmd == C_MICID_TEMPORARY_POWER ||
                     cmd == C_MICID_MAX_POWER ||cmd == C_MICID_GRID || cmd == C_MICID_CERTIFICATION ||
                     cmd == C_SET_EMU_FUNC ||cmd == C_SET_TEMPORARY_POWER || cmd == C_SET_MAX_POWER ||
-                    cmd == C_SET_GRID || cmd == C_SET_CERTIFICATION)
+                    cmd == C_SET_GRID || cmd == C_SET_CERTIFICATION ||
+                    cmd == C_SET_MORE_TEMPORARY_POWER || cmd == C_SET_MORE_MAX_POWER ||
+                    cmd == C_MICID_MORE_TEMPORARY_POWER || cmd == C_MICID_MORE_MAX_POWER)
             {
                 length = 18;
             }
@@ -353,6 +372,11 @@ void emu_protocolb::to_powerdata_json(const QByteArray &s_data, QJsonObject &rt_
         return ;
     }
 
+    if(t_emu_date == "0-0-0 0:0:0")
+        t_emu_date = "1970-01-01 00:00:00";
+
+
+
     for(int i=0;i<t_data_nums;i++)
     {
         QJsonObject mi_json;
@@ -419,6 +443,9 @@ void emu_protocolb::to_reissuepower_json(const QByteArray &s_data, QJsonObject &
     {
         return ;
     }
+
+
+    //t_emu_date = QDateTime::fromString(t_emu_date,"yyyy-MM-dd hh:mm:ss").toString("yyyy-MM-dd hh:mm:ss");
 
     for(int i=0;i<t_data_nums;i++)
     {
@@ -882,6 +909,81 @@ void emu_protocolb::to_get_temporary_power_cmd_v2(const QByteArray &s_data, cons
     rt_data[24] = C_TAIL;
 }
 
+void emu_protocolb::to_set_more_temporary_power_cmd_v2(const QByteArray &s_data, const QByteArray &server_data, QByteArray &rt_data, quint8 server_cmd)
+{
+//    if(server_data.size() != 10)
+//        return;
+
+    uint32_t data_size = 15 + server_data.size() + 3;
+
+    if((uint8_t)server_data[0] != C_SET_MORE_TEMPORARY_POWER)
+        return;
+
+    uint16_t msg_index = common::qbtarray_to_u16(s_data,2);
+    uint32_t emu_cid = common::qbtarray_to_u32(s_data,10);
+
+    rt_data.resize(data_size);
+
+    write_frame_head(rt_data,msg_index,emu_cid,server_cmd);
+
+    rt_data.replace(15,server_data.size(),server_data);
+
+    rt_data[data_size-3] = csCalculate_B(rt_data,data_size);
+    rt_data[data_size-2] = C_TAIL;
+    rt_data[data_size-1] = C_TAIL;
+}
+
+void emu_protocolb::to_micid_more_temporary_power_cmd_v2(const QByteArray &s_data, const QString &server_data, QByteArray &rt_data, quint8 server_cmd)
+{
+//    if(server_data.size() != 2*7)
+//        return ;
+
+    uint16_t msg_index = common::qbtarray_to_u16(s_data,2);
+    uint32_t emu_cid = common::qbtarray_to_u32(s_data,10);
+    QByteArray send_data = common::str_to_qbytarray_h16(server_data);
+    uint32_t data_size = 18 + send_data.size();
+
+    if((uint8_t)send_data[0] != C_MICID_MORE_TEMPORARY_POWER)
+        return;
+
+    rt_data.resize(data_size);
+
+    write_frame_head(rt_data,msg_index,emu_cid,server_cmd);
+
+    //rt_data.replace(15,7,send_data);
+
+    rt_data.replace(15,data_size,send_data);
+
+
+    rt_data[data_size-3] = csCalculate_B(rt_data,data_size);
+    rt_data[data_size-2] = C_TAIL;
+    rt_data[data_size-1] = C_TAIL;
+//    rt_data[22] = csCalculate_B(rt_data,25);
+//    rt_data[23] = C_TAIL;
+//    rt_data[24] = C_TAIL;
+}
+
+void emu_protocolb::to_get_more_temporary_power_cmd_v2(const QByteArray &s_data, const QByteArray &server_data, QByteArray &rt_data, quint8 server_cmd)
+{
+    if(server_data.size() != 3)
+        return;
+    if((uint8_t)server_data[0] != C_GET_MORE_TEMPORARY_POWER)
+        return;
+
+    uint16_t msg_index = common::qbtarray_to_u16(s_data,2);
+    uint32_t emu_cid = common::qbtarray_to_u32(s_data,10);
+
+    rt_data.resize(21);
+
+    write_frame_head(rt_data,msg_index,emu_cid,server_cmd);
+
+    rt_data.replace(15,7,server_data);
+
+    rt_data[18] = csCalculate_B(rt_data,21);
+    rt_data[19] = C_TAIL;
+    rt_data[20] = C_TAIL;
+}
+
 void emu_protocolb::to_set_max_power_cmd_v2(const QByteArray &s_data, const QByteArray &server_data, QByteArray &rt_data, quint8 server_cmd)
 {
     if(server_data.size() != 8)
@@ -947,6 +1049,81 @@ void emu_protocolb::to_get_max_power_cmd_v2(const QByteArray &s_data, const QByt
     rt_data[22] = csCalculate_B(rt_data,25);
     rt_data[23] = C_TAIL;
     rt_data[24] = C_TAIL;
+}
+
+void emu_protocolb::to_set_more_max_power_cmd_v2(const QByteArray &s_data, const QByteArray &server_data, QByteArray &rt_data, quint8 server_cmd)
+{
+    //    if(server_data.size() != 10)
+    //        return;
+
+    uint32_t data_size = 15 + server_data.size() + 3;
+
+    if((uint8_t)server_data[0] != C_SET_MORE_MAX_POWER)
+        return;
+
+    uint16_t msg_index = common::qbtarray_to_u16(s_data,2);
+    uint32_t emu_cid = common::qbtarray_to_u32(s_data,10);
+
+    rt_data.resize(data_size);
+
+    write_frame_head(rt_data,msg_index,emu_cid,server_cmd);
+
+    rt_data.replace(15,server_data.size(),server_data);
+
+    rt_data[data_size-3] = csCalculate_B(rt_data,data_size);
+    rt_data[data_size-2] = C_TAIL;
+    rt_data[data_size-1] = C_TAIL;
+}
+
+void emu_protocolb::to_micid_more_max_power_cmd_v2(const QByteArray &s_data, const QString &server_data, QByteArray &rt_data, quint8 server_cmd)
+{
+//    if(server_data.size() != 2*7)
+//        return ;
+
+    uint16_t msg_index = common::qbtarray_to_u16(s_data,2);
+    uint32_t emu_cid = common::qbtarray_to_u32(s_data,10);
+    QByteArray send_data = common::str_to_qbytarray_h16(server_data);
+    uint32_t data_size = 18 + send_data.size();
+
+    if((uint8_t)send_data[0] != C_MICID_MORE_MAX_POWER)
+        return;
+
+    rt_data.resize(data_size);
+
+    write_frame_head(rt_data,msg_index,emu_cid,server_cmd);
+
+    //rt_data.replace(15,7,send_data);
+
+    rt_data.replace(15,data_size,send_data);
+
+
+    rt_data[data_size-3] = csCalculate_B(rt_data,data_size);
+    rt_data[data_size-2] = C_TAIL;
+    rt_data[data_size-1] = C_TAIL;
+//    rt_data[22] = csCalculate_B(rt_data,25);
+//    rt_data[23] = C_TAIL;
+//    rt_data[24] = C_TAIL;
+}
+
+void emu_protocolb::to_get_more_max_power_cmd_v2(const QByteArray &s_data, const QByteArray &server_data, QByteArray &rt_data, quint8 server_cmd)
+{
+    if(server_data.size() != 3)
+        return;
+    if((uint8_t)server_data[0] != C_GET_MORE_MAX_POWER)
+        return;
+
+    uint16_t msg_index = common::qbtarray_to_u16(s_data,2);
+    uint32_t emu_cid = common::qbtarray_to_u32(s_data,10);
+
+    rt_data.resize(21);
+
+    write_frame_head(rt_data,msg_index,emu_cid,server_cmd);
+
+    rt_data.replace(15,7,server_data);
+
+    rt_data[18] = csCalculate_B(rt_data,21);
+    rt_data[19] = C_TAIL;
+    rt_data[20] = C_TAIL;
 }
 
 void emu_protocolb::to_set_grid_cmd_v2(const QByteArray &s_data, const QByteArray &server_data, QByteArray &rt_data, quint8 server_cmd)

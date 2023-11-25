@@ -265,7 +265,7 @@ void ag_rack_data_table::write_data(QSqlDatabase &m_database, QJsonObject &w_dat
     }
 }
 
-void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
+bool ag_rack_data_table::read_data(QSqlDatabase &m_database,const QJsonObject &r_data, QJsonObject &data)
 {
     QString select_cmd_head = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,%14,%15,%16,%17,%18 FROM ")
             .arg(c_field_room_id,c_field_rack_id,c_field_leakage_status,c_field_mi_pos,c_field_mi_cid,
@@ -442,10 +442,11 @@ void ag_rack_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data
         }
 
         data.insert("datas",pv_data_array);
-
+        return true;
         //QLOG_INFO() << "查询 老化架数据成功";
     }
     QLOG_WARN() << "查询 老化架数据失败";
+    return false;
 }
 
 void ag_rack_data_table::read_batch_list(QSqlDatabase &m_database, QString start_time, QString stop_time, QStringList &batch_list)

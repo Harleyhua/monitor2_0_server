@@ -35,11 +35,11 @@ bool ag_station_emu_table::delete_table(QSqlDatabase &m_database)
     return mysql_table::delete_table(m_database,m_name);
 }
 
-void ag_station_emu_table::w_emu(QSqlDatabase &m_database, QString station, QJsonObject &w_data)
+bool ag_station_emu_table::w_emu(QSqlDatabase &m_database, QString station,const QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
     QJsonArray tmp_datas = w_data.value("emus").toArray();
-
+    bool b_ret = true;
 
     for(int i=0;i<tmp_datas.size();i++)
     {
@@ -58,9 +58,10 @@ void ag_station_emu_table::w_emu(QSqlDatabase &m_database, QString station, QJso
         }
         else
         {
-
+            b_ret = false;
         }
     }
+    return b_ret;
 }
 
 void ag_station_emu_table::w_one_emu(QSqlDatabase &m_database, QString station, QString emu_cid, QString desc)
@@ -100,18 +101,18 @@ void ag_station_emu_table::r_emu(QSqlDatabase &m_database, QString station, QStr
     }
 }
 
-void ag_station_emu_table::del_emu_by_emucid(QSqlDatabase &m_database, QString station, QString emu)
+bool ag_station_emu_table::del_emu_by_emucid(QSqlDatabase &m_database, QString station, QString emu)
 {
     QSqlQuery query(m_database);
     QString tmp_cmd = QString("DELETE FROM %1 WHERE %2='%3' AND %4='%5'")
             .arg(m_name,c_field_station,station,c_field_emu,emu);
     if(query.exec(tmp_cmd))
     {
-
+        return true;
     }
     else
     {
-
+        return false;
     }
 }
 

@@ -32,7 +32,7 @@ bool ag_workorder_table::delete_table(QSqlDatabase &m_database)
     return mysql_table::delete_table(m_database,m_name);
 }
 
-void ag_workorder_table::write_workorder(QSqlDatabase &m_database, QJsonObject &w_data)
+bool ag_workorder_table::write_workorder(QSqlDatabase &m_database,const QJsonObject &w_data)
 {
     QJsonArray data_array = w_data.value("datas").toArray();
 
@@ -40,6 +40,8 @@ void ag_workorder_table::write_workorder(QSqlDatabase &m_database, QJsonObject &
             .arg(c_field_workorder_id,c_field_mi_series_id,c_field_extra_id,
                  c_field_vacant_id,c_field_update_record);
     QSqlQuery query(m_database);
+
+    bool b_ret = true;
 
     for(int i=0;i<data_array.size();i++)
     {
@@ -64,11 +66,14 @@ void ag_workorder_table::write_workorder(QSqlDatabase &m_database, QJsonObject &
         }
         else {
             QLOG_WARN() << QString("写入工单数据表失败");
+            b_ret = false;
         }
     }
+
+    return b_ret;
 }
 
-void ag_workorder_table::read_workorder(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
+bool ag_workorder_table::read_workorder(QSqlDatabase &m_database,const QJsonObject &r_data, QJsonObject &data)
 {
     QString tmp_cmd = QString("SELECT %1,%2,%3,%4 FROM %5 WHERE %6='%7' ")
             .arg(c_field_mi_series_id,c_field_extra_id,c_field_vacant_id,c_field_update_record,
@@ -87,9 +92,12 @@ void ag_workorder_table::read_workorder(QSqlDatabase &m_database, QJsonObject &r
             data_obj.insert(c_field_update_record,query.value(c_field_update_record).toString());
 
             data.insert("datas",data_obj);
-            QLOG_INFO() << QString("写入工单数据表成功");
-            return;
+            QLOG_INFO() << QString("读取工单数据表成功");
         }
+
+        return true;
     }
     QLOG_WARN() << QString("读工单数据表失败");
+
+    return false;
 }

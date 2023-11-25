@@ -33,10 +33,10 @@ public:
     bool delete_table(QSqlDatabase &m_database); //
 
     void r_mi(QSqlDatabase &m_database,QString emu,QStringList &mi,QStringList &mi_desc);
-    void w_mi(QSqlDatabase &m_database,QString emu,QJsonObject &w_data);
+    bool w_mi(QSqlDatabase &m_database,QString emu,const QJsonObject &w_data);
     void w_one_mi(QSqlDatabase &m_database,QString emu,QString mi,QString desc);
 
-    void del_one_mi_by_micid(QSqlDatabase &m_database,QString emu,QString mi);
+    bool del_one_mi_by_micid(QSqlDatabase &m_database,QString emu,QString mi);
     void del_mis_by_emucid(QSqlDatabase &m_database,QString emu);
     static const QString c_field_emu;
     static const QString c_field_mi;

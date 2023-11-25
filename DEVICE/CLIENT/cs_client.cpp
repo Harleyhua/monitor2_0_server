@@ -159,7 +159,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             QString us_act_str;
             QString total_station = sql.r_total_station(name);
             QString station = rev_data.value("station").toString();
-            QString emu = rev_data.value("emu").toString();
+            //QString emu = rev_data.value("emu").toString();
             QJsonArray emus_array = rev_data.value("emus").toArray();
 
             QString mi_str;
@@ -342,6 +342,33 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
             ret_data.insert("temporary_power",data);
         }
+        else if(request.getPath().startsWith("/r_more_temporary_power"))
+        {
+            QString data;
+            QString total_station = sql.r_total_station(name);
+            QJsonArray mis = rev_data.value("mis").toArray();
+            QJsonArray ret_mis; //返回的值
+            for(int i=0;i<mis.size();i++)
+            {
+                QJsonObject mi;
+                //读临时功率
+                sql.r_mi_temporary_power(mis[i].toString(),data);
+                mi.insert("mi_cid",mis[i].toString());
+                mi.insert("temporary_power",data);
+
+                ret_mis.append(mi);
+            }
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mis",ret_mis);
+        }
         else if(request.getPath().startsWith("/w_temporary_power"))
         {
             QString total_station = sql.r_total_station(name);
@@ -357,6 +384,30 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             ret_data.insert("station",rev_data.value("station").toString());
             ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
             ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
+
+        }
+        else if(request.getPath().startsWith("/w_more_temporary_power"))
+        {
+            QString total_station = sql.r_total_station(name);
+
+            QJsonArray mis = rev_data.value("mis").toArray();
+            QString mislist_str;
+            for(int i=0;i<mis.size();i++)
+            {
+                sql.w_mi_temporary_power(mis[i].toObject().value("mi_cid").toString(),
+                                         mis[i].toObject().value("temporary_power").toString());
+                mislist_str.append(mis[i].toObject().value("mi_cid").toString());
+            }
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   mislist_str);
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mis",rev_data.value("mis").toArray());
 
         }
         else if(request.getPath().startsWith("/r_max_power"))
@@ -375,6 +426,60 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
             ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
             ret_data.insert("max_power",data);
+        }
+        else if(request.getPath().startsWith("/r_more_max_power"))
+        {
+            QString data;
+            QString total_station = sql.r_total_station(name);
+            sql.r_mi_max_power(rev_data.value("mi_cid").toString(),data);
+            QJsonArray mis = rev_data.value("mis").toArray();
+            QJsonArray ret_mis; //返回的值
+            for(int i=0;i<mis.size();i++)
+            {
+                QJsonObject mi;
+                //读临时功率
+                sql.r_mi_max_power(mis[i].toString(),data);
+                mi.insert("mi_cid",mis[i].toString());
+                mi.insert("max_power",data);
+
+                ret_mis.append(mi);
+            }
+
+
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   rev_data.value("data").toString());
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mis",ret_mis);
+
+        }
+        else if(request.getPath().startsWith("/w_more_max_power"))
+        {
+            QString total_station = sql.r_total_station(name);
+
+            QJsonArray mis = rev_data.value("mis").toArray();
+            QString mislist_str;
+            for(int i=0;i<mis.size();i++)
+            {
+                sql.w_mi_max_power(mis[i].toObject().value("mi_cid").toString(),
+                                   mis[i].toObject().value("max_power").toString());
+                mislist_str.append(mis[i].toObject().value("mi_cid").toString());
+            }
+
+            sql.update_dev_control(total_station,rev_data.value("station").toString(),
+                                   rev_data.value("emu_cid").toString(),
+                                   rev_data.value("ctl_time").toString(),
+                                   rev_data.value("server_cmd").toInt(),
+                                   mislist_str);
+
+            ret_data.insert("station",rev_data.value("station").toString());
+            ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
+            ret_data.insert("mis",rev_data.value("mis").toArray());
         }
         else if(request.getPath().startsWith("/w_max_power"))
         {
@@ -477,72 +582,210 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
         {
             QString maxop_data,cop_data,grid_data,cer_data,
                     r_maxop_data,r_cop_data,r_grid_data,r_cer_data;
+            QJsonObject obj;
 
-            if(rev_data.value("r_maxop_ctl_time").toString() != "" &&
-               sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("r_maxop_ctl_time").toString()))
+            obj = rev_data.value("r_maxop").toObject();
+            if(obj.value("r_maxop_ctl_time").toString() != "" &&
+               sql.r_data_send_flag(rev_data.value("emu_cid").toString(),obj.value("r_maxop_ctl_time").toString()))
             {
-                sql.r_mi_max_power(rev_data.value("mi_cid").toString(),r_maxop_data);
-                ret_data.insert("r_max_power",r_maxop_data);
-            }
-            if(rev_data.value("r_cop_ctl_time").toString() != "" &&
-                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("r_cop_ctl_time").toString()))
-            {
-                sql.r_mi_temporary_power(rev_data.value("mi_cid").toString(),r_cop_data);
-                ret_data.insert("r_temporary_power",r_cop_data);
-            }
-            if(rev_data.value("r_grid_ctl_time").toString() != "" &&
-                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("r_grid_ctl_time").toString()))
-            {
-                sql.r_mi_grid(rev_data.value("mi_cid").toString(),r_grid_data);
-                ret_data.insert("r_grid",r_grid_data);
-            }
-            if(rev_data.value("r_cer_ctl_time").toString() != "" &&
-                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("r_cer_ctl_time").toString()))
-            {
-                sql.r_mi_certification(rev_data.value("mi_cid").toString(),r_cer_data);
-                ret_data.insert("r_certification",r_cer_data);
+                QJsonArray mis_arr = obj.value("mis").toArray();
+                QJsonObject mi_obj;
+                QJsonArray mis_ret_arr;
+                QJsonObject r_mxopret_obj;
+                for(int i=0;i<mis_arr.size();i++)
+                {
+                    r_maxop_data = "";
+                    sql.r_mi_max_power(mis_arr[i].toString(),r_maxop_data);
+
+                    mi_obj.insert("mi_cid",mis_arr[i].toString());
+                    mi_obj.insert("v_max_power",r_maxop_data);
+
+                    mis_ret_arr.append(mi_obj);
+                }
+
+                r_mxopret_obj.insert("r_maxop_time",obj.value("r_maxop_ctl_time").toString());
+                r_mxopret_obj.insert("mis_maxop",mis_ret_arr);
+
+                ret_data.insert("r_maxop",r_mxopret_obj);
             }
 
-            if(rev_data.value("maxop_ctl_time").toString() != "" &&
-               sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("maxop_ctl_time").toString()))
+
+            obj = rev_data.value("r_cop").toObject();
+            if(obj.value("r_cop_ctl_time").toString() != "" &&
+               sql.r_data_send_flag(rev_data.value("emu_cid").toString(),obj.value("r_cop_ctl_time").toString()))
             {
-                sql.r_mi_max_power(rev_data.value("mi_cid").toString(),maxop_data);
-                ret_data.insert("max_power",maxop_data);
+                QJsonArray mis_arr = obj.value("mis").toArray();
+                QJsonObject mi_obj;
+                QJsonArray mis_ret_arr;
+                QJsonObject r_copret_obj;
+                for(int i=0;i<mis_arr.size();i++)
+                {
+                    r_cop_data = "";
+                    sql.r_mi_temporary_power(mis_arr[i].toString(),r_cop_data);
+
+                    mi_obj.insert("mi_cid",mis_arr[i].toString());
+                    mi_obj.insert("v_cop",r_cop_data);
+
+                    mis_ret_arr.append(mi_obj);
+                }
+                r_copret_obj.insert("r_cop_time",obj.value("r_cop_ctl_time").toString());
+                r_copret_obj.insert("mis_cop",mis_ret_arr);
+
+                ret_data.insert("r_cop",r_copret_obj);
             }
-            if(rev_data.value("cop_ctl_time").toString() != "" &&
-                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("cop_ctl_time").toString()))
+
+            obj = rev_data.value("r_grid").toObject();
+            if(obj.value("r_grid_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),obj.value("r_grid_ctl_time").toString()))
             {
-                sql.r_mi_temporary_power(rev_data.value("mi_cid").toString(),cop_data);
-                ret_data.insert("temporary_power",cop_data);
+                QJsonArray mis_arr = obj.value("mis").toArray();
+                QJsonObject mi_obj;
+                QJsonArray mis_ret_arr;
+                QJsonObject r_gridret_obj;
+                for(int i=0;i<mis_arr.size();i++)
+                {
+                    r_grid_data = "";
+                    sql.r_mi_grid(mis_arr[i].toString(),r_grid_data);
+
+                    mi_obj.insert("mi_cid",mis_arr[i].toString());
+                    mi_obj.insert("v_grid",r_grid_data);
+
+                    mis_ret_arr.append(mi_obj);
+                }
+                r_gridret_obj.insert("r_grid_time",obj.value("r_grid_ctl_time").toString());
+                r_gridret_obj.insert("mis_grid",mis_ret_arr);
+
+                ret_data.insert("r_grid",r_gridret_obj);
             }
-            if(rev_data.value("grid_ctl_time").toString() != "" &&
-                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("grid_ctl_time").toString()))
+
+            obj = rev_data.value("r_cer").toObject();
+            if(obj.value("r_cer_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),obj.value("r_cer_ctl_time").toString()))
             {
-                sql.r_mi_grid(rev_data.value("mi_cid").toString(),grid_data);
-                ret_data.insert("grid",grid_data);
+                QJsonArray mis_arr = obj.value("mis").toArray();
+                QJsonObject mi_obj;
+                QJsonArray mis_ret_arr;
+                QJsonObject r_cerret_obj;
+                for(int i=0;i<mis_arr.size();i++)
+                {
+                    r_cer_data = "";
+                    sql.r_mi_certification(mis_arr[i].toString(),r_cer_data);
+
+                    mi_obj.insert("mi_cid",mis_arr[i].toString());
+                    mi_obj.insert("v_cer",r_cer_data);
+
+                    mis_ret_arr.append(mi_obj);
+                }
+                r_cerret_obj.insert("r_cer_time",obj.value("r_cer_ctl_time").toString());
+                r_cerret_obj.insert("mis_cer",mis_ret_arr);
+                ret_data.insert("r_cer",r_cerret_obj);
             }
-            if(rev_data.value("cer_ctl_time").toString() != "" &&
-                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),rev_data.value("cer_ctl_time").toString()))
+
+            obj = rev_data.value("w_maxop").toObject();
+            if(obj.value("maxop_ctl_time").toString() != "" &&
+               sql.r_data_send_flag(rev_data.value("emu_cid").toString(),obj.value("maxop_ctl_time").toString()))
             {
-                sql.r_mi_certification(rev_data.value("mi_cid").toString(),cer_data);
-                ret_data.insert("certification",cer_data);
+
+                QJsonArray mis_arr = obj.value("mis").toArray();
+                QJsonObject mi_obj;
+                QJsonArray mis_ret_arr;
+                QJsonObject r_mxopret_obj;
+                for(int i=0;i<mis_arr.size();i++)
+                {
+                    maxop_data = "";
+                    sql.r_mi_max_power(mis_arr[i].toString(),maxop_data);
+
+                    mi_obj.insert("mi_cid",mis_arr[i].toString());
+                    mi_obj.insert("v_max_power",maxop_data);
+
+                    mis_ret_arr.append(mi_obj);
+                }
+
+                r_mxopret_obj.insert("w_maxop_time",obj.value("maxop_ctl_time").toString());
+                r_mxopret_obj.insert("mis_maxop",mis_ret_arr);
+
+                ret_data.insert("w_maxop",r_mxopret_obj);
+
+            }
+
+            obj = rev_data.value("w_cop").toObject();
+            if(obj.value("cop_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),obj.value("cop_ctl_time").toString()))
+            {
+                QJsonArray mis_arr = obj.value("mis").toArray();
+                QJsonObject mi_obj;
+                QJsonArray mis_ret_arr;
+                QJsonObject r_copret_obj;
+                for(int i=0;i<mis_arr.size();i++)
+                {
+                    cop_data = "";
+                    sql.r_mi_temporary_power(mis_arr[i].toString(),cop_data);
+
+                    mi_obj.insert("mi_cid",mis_arr[i].toString());
+                    mi_obj.insert("v_cop",cop_data);
+
+                    mis_ret_arr.append(mi_obj);
+                }
+                r_copret_obj.insert("w_cop_time",obj.value("cop_ctl_time").toString());
+                r_copret_obj.insert("mis_cop",mis_ret_arr);
+
+                ret_data.insert("w_cop",r_copret_obj);
+            }
+
+            obj = rev_data.value("w_grid").toObject();
+            if(obj.value("grid_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),obj.value("grid_ctl_time").toString()))
+            {
+                QJsonArray mis_arr = obj.value("mis").toArray();
+                QJsonObject mi_obj;
+                QJsonArray mis_ret_arr;
+                QJsonObject r_gridret_obj;
+                for(int i=0;i<mis_arr.size();i++)
+                {
+                    grid_data = "";
+                    sql.r_mi_grid(mis_arr[i].toString(),grid_data);
+
+                    mi_obj.insert("mi_cid",mis_arr[i].toString());
+                    mi_obj.insert("v_grid",grid_data);
+
+                    mis_ret_arr.append(mi_obj);
+                }
+                r_gridret_obj.insert("w_grid_time",obj.value("grid_ctl_time").toString());
+                r_gridret_obj.insert("mis_grid",mis_ret_arr);
+                ret_data.insert("w_grid",r_gridret_obj);
+
+            }
+            obj = rev_data.value("w_cer").toObject();
+            if(obj.value("cer_ctl_time").toString() != "" &&
+                    sql.r_data_send_flag(rev_data.value("emu_cid").toString(),obj.value("cer_ctl_time").toString()))
+            {
+                QJsonArray mis_arr = obj.value("mis").toArray();
+                QJsonObject mi_obj;
+                QJsonArray mis_ret_arr;
+                QJsonObject r_cerret_obj;
+                for(int i=0;i<mis_arr.size();i++)
+                {
+                    cer_data = "";
+                    sql.r_mi_certification(mis_arr[i].toString(),cer_data);
+
+                    mi_obj.insert("mi_cid",mis_arr[i].toString());
+                    mi_obj.insert("mis_cer",cer_data);
+
+                    mis_ret_arr.append(mi_obj);
+                }
+                r_cerret_obj.insert("w_cer_time",obj.value("cer_ctl_time").toString());
+                r_cerret_obj.insert("mis_cer",mis_ret_arr);
+                ret_data.insert("w_cer",r_cerret_obj);
             }
 
             ret_data.insert("station",rev_data.value("station").toString());
             ret_data.insert("emu_cid",rev_data.value("emu_cid").toString());
-            ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
-
-            ret_data.insert("r_maxop_ctl_time",rev_data.value("r_maxop_ctl_time").toString());
-            ret_data.insert("r_cop_ctl_time",rev_data.value("r_cop_ctl_time").toString());
-            ret_data.insert("r_grid_ctl_time",rev_data.value("r_grid_ctl_time").toString());
-            ret_data.insert("r_cer_ctl_time",rev_data.value("r_cer_ctl_time").toString());
-            ret_data.insert("maxop_ctl_time",rev_data.value("maxop_ctl_time").toString());
-            ret_data.insert("cop_ctl_time",rev_data.value("cop_ctl_time").toString());
-            ret_data.insert("grid_ctl_time",rev_data.value("grid_ctl_time").toString());
-            ret_data.insert("cer_ctl_time",rev_data.value("cer_ctl_time").toString());
-
         }
         else if(request.getPath().startsWith("/r_emu_status"))
+        {
+            sql.r_emu_status(rev_data,ret_data);
+        }
+        else if(request.getPath().startsWith("/r_one_emu_status"))
         {
             sql.r_emu_status(rev_data,ret_data);
         }

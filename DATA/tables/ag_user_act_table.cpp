@@ -37,7 +37,7 @@ bool ag_user_act_table::delete_table(QSqlDatabase &m_database)
     return mysql_table::delete_table(m_database,m_name);
 }
 
-void ag_user_act_table::read_datas(QSqlDatabase &m_database, QJsonObject &s_data, QJsonObject &r_data)
+bool ag_user_act_table::read_datas(QSqlDatabase &m_database, QJsonObject &s_data, QJsonObject &r_data)
 {
     QString select_cmd = QString("SELECT %1,%2,%3,%4,%5 FROM %6 ")
             .arg(c_field_user,c_field_total_station,c_field_act,c_field_act_desc,
@@ -95,11 +95,14 @@ void ag_user_act_table::read_datas(QSqlDatabase &m_database, QJsonObject &s_data
             datas_array.append(data);
         }
         r_data.insert("datas",datas_array);
+
+        return true;
     }
 
+    return false;
 }
 
-void ag_user_act_table::write_datas(QSqlDatabase &m_database, QJsonObject &s_data)
+bool ag_user_act_table::write_datas(QSqlDatabase &m_database,const QJsonObject &s_data)
 {
     QString cmd = QString("INSERT INTO %1 (%2,%3,%4,%5,%6) VALUES (?,?,?,?,?)")
             .arg(m_name,c_field_user,c_field_total_station,c_field_act,
@@ -115,11 +118,11 @@ void ag_user_act_table::write_datas(QSqlDatabase &m_database, QJsonObject &s_dat
 
     if(query.exec())
     {
-
+        return true;
     }
     else
     {
-
+        return false;
     }
 }
 

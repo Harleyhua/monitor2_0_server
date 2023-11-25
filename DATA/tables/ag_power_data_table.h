@@ -140,7 +140,7 @@ public:
 
     void write_data(QSqlDatabase &m_database,QJsonObject &w_data);
     void write_reissue_data(QSqlDatabase &m_database,QJsonObject &w_data);
-    void read_data(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data,bool is_one =false);
+    bool read_data(QSqlDatabase &m_database,const QJsonObject &r_data,QJsonObject &data,bool is_one =false);
 
     void read_current_data(QSqlDatabase &m_database,QStringList &mi_list,QJsonObject &data);
 

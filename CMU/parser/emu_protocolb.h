@@ -53,9 +53,17 @@ public:
     void to_micid_temporary_power_cmd_v2(const QByteArray &s_data,const QString &server_data,QByteArray &rt_data,quint8 server_cmd);
     void to_get_temporary_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
 
+    void to_set_more_temporary_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_micid_more_temporary_power_cmd_v2(const QByteArray &s_data,const QString &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_get_more_temporary_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+
     void to_set_max_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
     void to_micid_max_power_cmd_v2(const QByteArray &s_data,const QString &server_data,QByteArray &rt_data,quint8 server_cmd);
     void to_get_max_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+
+    void to_set_more_max_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_micid_more_max_power_cmd_v2(const QByteArray &s_data,const QString &server_data,QByteArray &rt_data,quint8 server_cmd);
+    void to_get_more_max_power_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
 
     void to_set_grid_cmd_v2(const QByteArray &s_data,const QByteArray &server_data,QByteArray &rt_data,quint8 server_cmd);
     void to_micid_grid_cmd_v2(const QByteArray &s_data,const QString &server_data,QByteArray &rt_data,quint8 server_cmd);
@@ -86,9 +94,17 @@ public:
     static const quint8 C_MICID_TEMPORARY_POWER;
     static const quint8 C_GET_TEMPORARY_POWER;
 
+    static const quint8 C_SET_MORE_TEMPORARY_POWER; //多台
+    static const quint8 C_MICID_MORE_TEMPORARY_POWER;
+    static const quint8 C_GET_MORE_TEMPORARY_POWER;
+
     static const quint8 C_SET_MAX_POWER;
     static const quint8 C_MICID_MAX_POWER;
     static const quint8 C_GET_MAX_POWER;
+
+    static const quint8 C_SET_MORE_MAX_POWER;
+    static const quint8 C_MICID_MORE_MAX_POWER;
+    static const quint8 C_GET_MORE_MAX_POWER;
 
     static const quint8 C_SET_GRID;
     static const quint8 C_MICID_GRID;

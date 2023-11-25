@@ -67,7 +67,7 @@ public:
     void read_size(QSqlDatabase &m_database,QJsonObject &r_data,quint64 &size);
 
     void write_data(QSqlDatabase &m_database,QJsonObject &w_data);
-    void read_data(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data);
+    bool read_data(QSqlDatabase &m_database,const QJsonObject &r_data,QJsonObject &data);
 
     void read_last_hand_data_time(QSqlDatabase &m_database,QString emu_cid,QString &time);
 private:

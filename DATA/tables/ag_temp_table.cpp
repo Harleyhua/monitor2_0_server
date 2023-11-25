@@ -86,7 +86,7 @@ void ag_temp_table::write_temp(QSqlDatabase &m_database,QJsonObject &w_data)
     }
 }
 
-void ag_temp_table::read_temp(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
+bool ag_temp_table::read_temp(QSqlDatabase &m_database,const QJsonObject &r_data, QJsonObject &data)
 {
     //QString s_time = time.toString("yyyy-MM-dd hh:mm:ss");
     bool where_flag = false;
@@ -166,14 +166,15 @@ void ag_temp_table::read_temp(QSqlDatabase &m_database, QJsonObject &r_data, QJs
             datas.append(one_datas);
         }
         QLOG_INFO() <<"读取" + m_name + " 温度数据成功";
+        data.insert("datas",datas);
+        return true;
     }
     else
     {
+        data.insert("datas",datas);
         QLOG_WARN() << "读取" + m_name+ " 温度数据失败";
+        return false;
     }
-
-    data.insert("datas",datas);
-
 }
 
 void ag_temp_table::read_temp(QSqlDatabase &m_database, QString room_name, QString start_time, QString stop_time, QHash<QString, uint16_t> &temp)

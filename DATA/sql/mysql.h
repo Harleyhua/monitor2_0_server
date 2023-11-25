@@ -15,6 +15,7 @@
 #include <QHash>
 #include "ag_mi_report_table.h"
 #include "ag_device_control_table.h"
+
 #define POWER_DATA_TABLE_MAX_MI   5000
 #define RACK_DATA_TABLE_MAX_MI    5000
 
@@ -38,6 +39,15 @@ class mysql : public QObject
 public:
     explicit mysql(QString db_name,QObject *parent = nullptr);
     ~mysql();
+    QString dbName()
+    {
+        return db_name;
+    };
+    QSqlDatabase& db()
+    {
+        return m_db;
+    };
+
 
 
     //各个表格初始化
@@ -80,6 +90,7 @@ public:
     void r_emu_property(QString emu_cid,QJsonObject &emu_pro_obj);
     bool update_dev_control(QString total_station,QString station,QString ctl_time,QString emu,quint8 server_cmd,QString send_data);
     bool r_data_send_flag(QString emu_cid,QString data_send_flag);
+
 
     //远程控制相关
     void w_mi_temporary_power(QString name,QString data);
@@ -124,11 +135,11 @@ public:
     void add_plcmi_cid(QString user,QJsonObject &s_data);
     void add_wifimi_cid(QString user,QJsonObject &s_data);
     void add_wifimi_cid(QString user,QString station, QString emu_cid,QString mi_cid,QString mi_desc);
-    void del_station(QString user,QJsonObject &s_data);
+    bool del_station(QString user,const QJsonObject &s_data);
     void del_station(QString user,QString station);
     //void del_station();
     void del_emu(QString user,QString station,QString emu);
-    void del_emu(QString user,QJsonObject &s_data);
+    bool del_emu(QString user,const QJsonObject &s_data);
     void del_mi(QString user,QJsonObject &s_data);
 
 

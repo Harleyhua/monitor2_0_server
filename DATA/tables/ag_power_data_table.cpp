@@ -165,7 +165,7 @@ void ag_power_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_dat
     }
 }
 
-void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data,bool is_one)
+bool ag_power_data_table::read_data(QSqlDatabase &m_database,const QJsonObject &r_data, QJsonObject &data,bool is_one)
 {
     QString select_cmd_head = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,%14,%15,%16,%17 FROM ")
             .arg(c_field_emu_cid,c_field_emu_time,c_field_mi_cid,c_field_mim_version,c_field_mis_version,c_field_pv,
@@ -372,9 +372,11 @@ void ag_power_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_dat
             data.insert("mi_cid",mi_list[0]);
         }
         QLOG_INFO() << "查询 发电数据成功";
-        return;
+        return true;
     }
     QLOG_WARN() << "查询发电数据失败";
+
+    return false;
 }
 
 

@@ -48,11 +48,11 @@ void ag_emu_mi_table::r_mi(QSqlDatabase &m_database, QString emu, QStringList &m
     }
 }
 
-void ag_emu_mi_table::w_mi(QSqlDatabase &m_database, QString emu, QJsonObject &w_data)
+bool ag_emu_mi_table::w_mi(QSqlDatabase &m_database, QString emu,const QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
     QJsonArray tmp_datas = w_data.value("mis").toArray();
-
+    bool b_ret = true;
 
     for(int i=0;i<tmp_datas.size();i++)
     {
@@ -71,9 +71,12 @@ void ag_emu_mi_table::w_mi(QSqlDatabase &m_database, QString emu, QJsonObject &w
         }
         else
         {
+            b_ret = false;
             QLOG_WARN() << "写 网关_微逆关系表 失败";
         }
     }
+
+    return b_ret;
 }
 
 void ag_emu_mi_table::w_one_mi(QSqlDatabase &m_database, QString emu, QString mi, QString desc)
@@ -98,18 +101,19 @@ void ag_emu_mi_table::w_one_mi(QSqlDatabase &m_database, QString emu, QString mi
     }
 }
 
-void ag_emu_mi_table::del_one_mi_by_micid(QSqlDatabase &m_database, QString emu, QString mi)
+bool ag_emu_mi_table::del_one_mi_by_micid(QSqlDatabase &m_database, QString emu, QString mi)
 {
     QSqlQuery query(m_database);
     QString tmp_cmd = QString("DELETE FROM %1 WHERE %2='%3' AND %4='%5'")
             .arg(m_name,c_field_emu,emu,c_field_mi,mi);
     if(query.exec(tmp_cmd))
     {
-
+        return true;
     }
     else
     {
         QLOG_WARN() << "删除 网关_微逆关系表 通过mi_cid 失败";
+        return false;
     }
 }
 

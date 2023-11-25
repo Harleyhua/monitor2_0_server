@@ -38,12 +38,12 @@ public:
     bool create_table(QSqlDatabase &m_database); //
     bool delete_table(QSqlDatabase &m_database); //
 
-    void w_emu(QSqlDatabase &m_database,QString station,QJsonObject &w_data);
+    bool w_emu(QSqlDatabase &m_database,QString station,const QJsonObject &w_data);
     void w_one_emu(QSqlDatabase &m_database,QString station,QString emu_cid,QString desc);
 
     void r_emu(QSqlDatabase &m_database,QString station,QStringList &emu_cid,QStringList &emu_desc);
 
-    void del_emu_by_emucid(QSqlDatabase &m_database,QString station ,QString emu);
+    bool del_emu_by_emucid(QSqlDatabase &m_database,QString station ,QString emu);
     void del_emu_by_station(QSqlDatabase &m_database,QString station);
     bool is_emu_exist(QSqlDatabase &m_database,QString station,QString emu);
     static const QString c_field_station;

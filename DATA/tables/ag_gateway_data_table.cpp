@@ -107,7 +107,7 @@ void ag_gateway_data_table::write_data(QSqlDatabase &m_database, QJsonObject &w_
     }
 }
 
-void ag_gateway_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_data, QJsonObject &data)
+bool ag_gateway_data_table::read_data(QSqlDatabase &m_database,const QJsonObject &r_data, QJsonObject &data)
 {
     QString select_cmd_head = QString("SELECT %1,%2,%3,%4 FROM ").arg(c_field_emu_cid,c_field_version,c_field_action,
                                                                       c_field_sys_time) + m_name + " ";
@@ -189,10 +189,12 @@ void ag_gateway_data_table::read_data(QSqlDatabase &m_database, QJsonObject &r_d
             emu_data_array.append(emu_data_js);
         }
         data.insert("datas",emu_data_array);
+
+        return true;
         //QLOG_INFO() << "查询 网关数据成功";
     }
     QLOG_WARN() << "查询 网关数据失败";
-
+    return false;
 }
 
 void ag_gateway_data_table::read_last_hand_data_time(QSqlDatabase &m_database, QString emu_cid, QString &time)

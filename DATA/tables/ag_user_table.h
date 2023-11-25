@@ -46,7 +46,7 @@ public:
     bool delete_table(QSqlDatabase &m_database); //
 
     void write_account(QSqlDatabase &m_database,QJsonObject &w_data);
-    bool read_account(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data);
+    bool read_account(QSqlDatabase &m_database,const QJsonObject &r_data,QJsonObject &data);
 
     //void write_algorithm(QSqlDatabase &m_database,QString account, QJsonObject w_data);
     bool update_algorithm(QSqlDatabase &m_database,QString account,QJsonObject w_data);

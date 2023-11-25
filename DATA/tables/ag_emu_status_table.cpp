@@ -62,7 +62,7 @@ void ag_emu_status_table::w_data(QSqlDatabase &m_database,QJsonObject data)
     }
 }
 
-void ag_emu_status_table::r_data(QSqlDatabase &m_database, QJsonObject r_data, QJsonObject &data)
+bool ag_emu_status_table::r_data(QSqlDatabase &m_database, const QJsonObject r_data, QJsonObject &data)
 {
     QString select_cmd_head = QString("SELECT %1,%2,%3,%4,%5,%6,%7 FROM ")
                             .arg(c_field_emu_cid,c_field_status,c_field_status_reserve,c_field_run_mode,
@@ -129,10 +129,11 @@ void ag_emu_status_table::r_data(QSqlDatabase &m_database, QJsonObject r_data, Q
             emu_data_array.append(emu_data_js);
         }
         data.insert("datas",emu_data_array);
+        return true;
         //QLOG_INFO() << "查询 网关状态数据成功";
     }
     QLOG_WARN() << "查询 网关状态数据失败";
-
+    return false;
 }
 
 bool ag_emu_status_table::r_last_data(QSqlDatabase &m_database, QString emu_cid, QString &status, QString &reserve, QString &run_mode, QString &sys_time)
