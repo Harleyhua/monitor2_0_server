@@ -4,41 +4,18 @@
 #include <QSqlDriver>
 #include <QSqlError>
 
-
+#include "sqlconnectpool.h"
 
 #include "QsLog.h"
 #include "common.h"
 #include "abstract_bym.h"
-
-#include "ag_gateway_data_table.h"
-#include "ag_mi_property_table.h"
-#include "ag_power_data_table.h"
-#include "ag_power_index_table.h"
-#include "ag_rack_data_table.h"
-#include "ag_rack_index_table.h"
-#include "ag_rack_mi_table.h"
-#include "ag_temp_table.h"
-#include "ag_user_table.h"
-#include "ag_workorder_table.h"
-#include "ag_mi_cmd_table.h"
-#include "ag_pos_table.h"
-#include "ag_user_station_table.h"
-#include "ag_emu_property_table.h"
-#include "ag_station_emu_table.h"
-#include "ag_emu_mi_table.h"
-#include "ag_rack_index_table.h"
-#include "ag_mi_report_table.h"
-#include "ag_device_control_table.h"
-#include "ag_emu_status_table.h"
-#include "ag_user_act_table.h"
-#include "ag_rack_extra_data_table.h"
 #include "emu_protocolb.h"
-#include "ag_rack_extra_data_table.h"
-#include "ag_mi_extra_property_table.h"
-#include "ag_emu_extra_property_table.h"
+
+extern mysql_login_stc login_param;
+
 
 QMutex sql_lock;   //数据库建立连接锁，避免多线程是同时连接的异常
-mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试 本机
+
 //mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas2"};   //本机
 //mysql_login_stc login_param = {"1.117.152.46",3306,"root","zjbeny001","bydas"};
 
@@ -48,29 +25,56 @@ mysql::mysql(QString db_name, QObject *parent)
     : QObject{parent}
 {
     this->db_name = QDateTime::currentDateTime().toString() + db_name;
-    sql_lock.lock();
-    m_db = QSqlDatabase::addDatabase("QMYSQL",this->db_name);
-    m_db.setHostName(login_param.hostname);
-    m_db.setPort(login_param.port);
-    m_db.setUserName(login_param.username);
-    m_db.setPassword(login_param.password);
-    //m_db.setDatabaseName(login_param.database_name);
-    m_db.open();
+    //sql_lock.lock();
+    m_db = sqlconnectpool::openConnection_clh(db_name);
+//    m_db = QSqlDatabase::addDatabase("QMYSQL",this->db_name);
+//    m_db.setHostName(login_param.hostname);
+//    m_db.setPort(login_param.port);
+//    m_db.setUserName(login_param.username);
+//    m_db.setPassword(login_param.password);
+//    //m_db.setDatabaseName(login_param.database_name);
+//    m_db.open();
 
-    sql_lock.unlock();
-    //如果数据库未被建立  不能先setdatabasename
-    m_db.setDatabaseName(login_param.database_name);
-    QSqlQuery query(m_db);
-    query.exec("USE " + login_param.database_name);
+    //sql_lock.unlock();
+
 }
 mysql::~mysql()
 {
-    sql_lock.lock();
-    m_db.close();
-    m_db = QSqlDatabase();  //重置db
-    m_db.removeDatabase(this->db_name);
-    sql_lock.unlock();
+    //sql_lock.lock();
+    sqlconnectpool::closeConnection_clh(m_db,db_name);
+
+//    m_db.close();
+//    m_db = QSqlDatabase();  //重置db
+//    m_db.removeDatabase(this->db_name);
+    //sql_lock.unlock();
 }
+//mysql::mysql(QString db_name, QObject *parent)
+//    : QObject{parent}
+//{
+//    this->db_name = QDateTime::currentDateTime().toString() + db_name;
+//    sql_lock.lock();
+//    m_db = QSqlDatabase::addDatabase("QMYSQL",this->db_name);
+//    m_db.setHostName(login_param.hostname);
+//    m_db.setPort(login_param.port);
+//    m_db.setUserName(login_param.username);
+//    m_db.setPassword(login_param.password);
+//    //m_db.setDatabaseName(login_param.database_name);
+//    m_db.open();
+
+//    sql_lock.unlock();
+//    //如果数据库未被建立  不能先setdatabasename
+//    m_db.setDatabaseName(login_param.database_name);
+//    QSqlQuery query(m_db);
+//    query.exec("USE " + login_param.database_name);
+//}
+//mysql::~mysql()
+//{
+//    sql_lock.lock();
+//    m_db.close();
+//    m_db = QSqlDatabase();  //重置db
+//    m_db.removeDatabase(this->db_name);
+//    sql_lock.unlock();
+//}
 
 
 
@@ -104,7 +108,7 @@ bool mysql::table_init()
     ag_rack_extra_data_table tmp_rack_extra_tb;
     ag_mi_extra_property_table tmp_mi_extra_pty_tb;
     ag_emu_extra_property_table tmp_emu_extra_pty_tb;
-
+    ag_ota_file_table tmp_ota_file_tb;
 
     ret &= create_database(m_db.databaseName()); //创建数据库 if not exist
     ret &= tmp_gt_dt_tb.create_table(m_db);
@@ -128,6 +132,7 @@ bool mysql::table_init()
     ret &= tmp_rack_extra_tb.create_table(m_db);
     ret &= tmp_mi_extra_pty_tb.create_table(m_db);
     ret &= tmp_emu_extra_pty_tb.create_table(m_db);
+    ret &= tmp_ota_file_tb.create_table(m_db);
 
     for(int i=1;i<=12;i++)
     {
@@ -145,12 +150,11 @@ bool mysql::table_init()
         ret &= tmp_rk_dt_tb.create_table(m_db);
     }
 
-
+//不在提前记录 网关的心跳时间(会导致服务器启动时间过长)  仅由与网关通讯交互时记录（最多延时一个心跳时间周期）
+/*
     ag_user_table tmp_us_tb;
     QStringList total_stations;
     tmp_us_tb.read_all_total_station(m_db,total_stations);
-
-
 
     for(int i=0;i<total_stations.size();i++)
     {
@@ -177,7 +181,7 @@ bool mysql::table_init()
             }
         }
     }
-
+*/
 
     return ret;
 }
@@ -866,6 +870,7 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
             if(last_time == "")
             {
                 tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
+                //QLOG_INFO() << "no cache read " + emu_cid[j] + "time:" + last_time;
             }
 
             tmp_emu_obj.insert("last_act_time",last_time);
@@ -892,6 +897,8 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
         st_obj.insert(ag_user_station_table::c_field_station,st_array[i].toString());
 
         datas.append(st_obj);
+
+
     }
     rt_data.insert("mapping_datas",datas);
 }
@@ -1071,8 +1078,6 @@ void mysql::r_batch_list(QJsonObject &s_data, QJsonObject &rt_data)
         QJsonArray mis_array;
         rk_dt_tb.read_mi_list(m_db,batch_list[i],mi_list);
 
-
-
         for(int j=0;j<mi_list.size();j++)
         {
             if(abstract_bym::is_cid_valid(mi_list[j]))
@@ -1161,10 +1166,10 @@ void mysql::w_mi_temporary_power(QString name,QString data)
 
 }
 
-bool mysql::r_mi_temporary_power(QString name, QString &data)
+void mysql::r_mi_temporary_power(QString name, QString &data)
 {
     ag_mi_extra_property_table tmp_mi_extra_pty_tb;
-    return tmp_mi_extra_pty_tb.r_temporary_power(m_db,name,data);
+    tmp_mi_extra_pty_tb.r_temporary_power(m_db,name,data);
 }
 
 void mysql::w_mi_max_power(QString name, QString data)
@@ -1173,10 +1178,10 @@ void mysql::w_mi_max_power(QString name, QString data)
     tmp_mi_extra_pty_tb.w_max_power(m_db,name,data);
 }
 
-bool mysql::r_mi_max_power(QString name, QString &data)
+void mysql::r_mi_max_power(QString name, QString &data)
 {
     ag_mi_extra_property_table tmp_mi_extra_pty_tb;
-    return tmp_mi_extra_pty_tb.r_max_power(m_db,name,data);
+    tmp_mi_extra_pty_tb.r_max_power(m_db,name,data);
 }
 
 void mysql::w_mi_grid(QString name, QString data)
@@ -1185,10 +1190,10 @@ void mysql::w_mi_grid(QString name, QString data)
     tmp_mi_extra_pty_tb.w_grid(m_db,name,data);
 }
 
-bool mysql::r_mi_grid(QString name, QString &data)
+void mysql::r_mi_grid(QString name, QString &data)
 {
     ag_mi_extra_property_table tmp_mi_extra_pty_tb;
-    return tmp_mi_extra_pty_tb.r_grid(m_db,name,data);
+    tmp_mi_extra_pty_tb.r_grid(m_db,name,data);
 }
 
 void mysql::w_mi_certification(QString name, QString data)
@@ -1197,10 +1202,10 @@ void mysql::w_mi_certification(QString name, QString data)
     tmp_mi_extra_pty_tb.w_certification(m_db,name,data);
 }
 
-bool mysql::r_mi_certification(QString name, QString &data)
+void mysql::r_mi_certification(QString name, QString &data)
 {
     ag_mi_extra_property_table tmp_mi_extra_pty_tb;
-    return tmp_mi_extra_pty_tb.r_certification(m_db,name,data);
+    tmp_mi_extra_pty_tb.r_certification(m_db,name,data);
 }
 
 void mysql::w_emu_func_code(QString name, QString data)

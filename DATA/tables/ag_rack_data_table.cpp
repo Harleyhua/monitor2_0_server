@@ -170,7 +170,7 @@ void ag_rack_data_table::read_size(QSqlDatabase &m_database, QJsonObject &r_data
 
 }
 
-void ag_rack_data_table::write_data(QSqlDatabase &m_database, QJsonObject &w_data)
+void ag_rack_data_table::write_data(QSqlDatabase &m_database,const QJsonObject &w_data)
 {
     QJsonArray tmp_datas = w_data.value("datas").toArray();
     QString cmd = QString("(%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,%14,%15,%16,%17,%18) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")

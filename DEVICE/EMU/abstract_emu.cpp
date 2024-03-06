@@ -199,11 +199,39 @@ bool abstract_emu::is_wifiemu_cid_valid(QString wifiemu_cid)
     {
         return false;
     }
-
     //16进制数 8位
     QRegExp hexMatcher("^[0-9A-Fa-f]{8}$");
     if(hexMatcher.exactMatch(wifiemu_cid) && (wifiemu_cid[0] == 'A' || wifiemu_cid[0] == 'B'
        || wifiemu_cid[0] == 'C' || wifiemu_cid[0] == 'a' || wifiemu_cid[0] == 'b' || wifiemu_cid[0] == 'c'))
         return true;
     return false;
+//    //16进制数 8位
+//    QRegExp hexMatcher("^[0-9A-Fa-f]{8}$");
+//    if(hexMatcher.exactMatch(wifiemu_cid) && (wifiemu_cid[0] == 'A' || wifiemu_cid[0] == 'B'
+//       || wifiemu_cid[0] == 'C' || wifiemu_cid[0] == 'a' || wifiemu_cid[0] == 'b' || wifiemu_cid[0] == 'c'))
+//        return true;
+//    return false;
+}
+QString abstract_emu::emu_cid_to_wifi_micid(QString wifiemu_cid)
+{
+    if(is_wifiemu_cid_valid(wifiemu_cid))
+    {
+        if(wifiemu_cid[0] == "A")
+        {
+            wifiemu_cid[0] = '1';
+        }
+        else if(wifiemu_cid[0] == "B")
+        {
+            wifiemu_cid[0] = '2';
+        }
+        else if(wifiemu_cid[0] == "C")
+        {
+            wifiemu_cid[0] = '4';
+        }
+    }
+    else
+    {
+        wifiemu_cid = "";
+    }
+    return wifiemu_cid;
 }

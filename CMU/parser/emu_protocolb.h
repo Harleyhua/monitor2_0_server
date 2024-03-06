@@ -18,19 +18,20 @@ public:
 
     bool data_analysis(QByteArray &netdata,uint8_t &cmd,quint32 &length);
     bool emu_type_analysis(QByteArray &netdata,QString &name,emu_type &type);
-
+    //数据库接口 解析指令并提取出数据库操作的  json格式对象
     void to_login_json(const QByteArray &s_data,QJsonObject &rt_data);
     void to_emu_property_json(const QByteArray &s_data,QJsonObject &rt_data);
 
     void to_handshake_json(const QByteArray &s_data,QJsonObject &rt_data);
     void to_powerdata_json(const QByteArray &s_data,QJsonObject &rt_data,uint16_t &date);
+    void to_newpowerdata_json(const QByteArray &s_data,QJsonObject &rt_data,uint16_t &date);
     void to_mapping_json(const QByteArray &s_data,QJsonObject &rt_data);   //获取设备列表
     void to_reissuemsg_json(const QByteArray &s_data,QJsonObject &rt_data);
     void to_reissuepower_json(const QByteArray &s_data,QJsonObject &rt_data,uint16_t &date);
     void to_mi_property_json(const QByteArray &s_data,QJsonObject &rt_data);
     void to_emu_status_json(const QByteArray &s_data,QString sys_time ,QJsonObject &rt_data);
     void to_emu_status_act_json(const QByteArray &s_data,QString sys_time,QJsonObject &rt_data);
-
+    //生成应答帧  用于回复网关
     void to_login_cmd(const QByteArray &s_data,QByteArray &rt_data,quint8 server_cmd);
     void to_handshake_cmd(const QByteArray &s_data,QByteArray &rt_data,quint8 server_cmd);
     void to_powerdata_cmd(const QByteArray &s_data,QByteArray &rt_data,quint8 server_cmd);
@@ -118,8 +119,9 @@ public:
     static const quint8 C_EMU_STATUS;
 private:
     bool type_analysis(quint16 type_valid,emu_type &type);
-
+    //生成协议固定头部
     bool write_frame_head(QByteArray &send_msg,uint16_t msg_index,uint32_t cid,uint8_t server_cmd);
+    //帧校验
     uint8_t csCalculate_B(const QByteArray &dataarr, uint16_t dataLenth);
 
 };

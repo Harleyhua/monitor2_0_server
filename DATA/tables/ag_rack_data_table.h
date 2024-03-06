@@ -91,7 +91,7 @@ public:
 
     void read_size(QSqlDatabase &m_database,QJsonObject &r_data,quint64 &size);
 
-    void write_data(QSqlDatabase &m_database,QJsonObject &w_data);
+    void write_data(QSqlDatabase &m_database,const QJsonObject &w_data);
     bool read_data(QSqlDatabase &m_database,const QJsonObject &r_data,QJsonObject &data);
 
     void read_batch_list(QSqlDatabase &m_database,QString start_time,QString stop_time,QStringList &batch_list);

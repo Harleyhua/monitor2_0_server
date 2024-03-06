@@ -4,6 +4,10 @@
 #include <QSet>
 #include <QDateTime>
 
+/*
+    老化算法
+*/
+
 //#include "abstract_bym.h"
 aging_alg::aging_alg()
 {

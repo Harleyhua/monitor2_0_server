@@ -7,7 +7,7 @@ const QString ag_mi_property_table::c_field_cid = "mi_cid";
 const QString ag_mi_property_table::c_field_nominal_power = "nominal_power";
 const QString ag_mi_property_table::c_field_mim_version = "mim_version";
 const QString ag_mi_property_table::c_field_mis_version = "mis_version";
-
+const QString ag_mi_property_table::c_field_hard_version = "hard_version";
 ag_mi_property_table::ag_mi_property_table(QObject *parent)
     : QObject{parent}
 {
@@ -21,11 +21,12 @@ bool ag_mi_property_table::create_table(QSqlDatabase &m_database)
                 "%2 SMALLINT UNSIGNED,"
                 "%3 VARCHAR(8) NOT NULL,"
                 "%4 VARCHAR(8) NOT NULL,"
-                "primary key(%5),"
-                "INDEX(%6),"
+                "%5 VARCHAR(8) NOT NULL,"
+                "primary key(%6),"
                 "INDEX(%7),"
-                "INDEX(%8))")
-            .arg(c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version,
+                "INDEX(%8),"
+                "INDEX(%9))")
+            .arg(c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version,c_field_hard_version,
                  c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version);
     return mysql_table::create_table(m_database,m_name,tmp_field);
 }

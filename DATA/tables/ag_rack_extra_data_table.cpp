@@ -33,7 +33,7 @@ bool ag_rack_extra_data_table::delete_table(QSqlDatabase &m_database)
     return mysql_table::delete_table(m_database,m_name);
 }
 
-void ag_rack_extra_data_table::write_data(QSqlDatabase &m_database, QJsonObject &w_data)
+void ag_rack_extra_data_table::write_data(QSqlDatabase &m_database,const QJsonObject &w_data)
 {
     QJsonArray tmp_datas = w_data.value("datas").toArray();
     QString cmd = QString("(%1,%2,%3) values(?,?,?)")

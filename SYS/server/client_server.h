@@ -10,7 +10,7 @@
 #include "filelogger.h"
 
 #include "cs_client.h"
-
+#include "requestmapper.h"
 
 using namespace stefanfrings;
 

@@ -12,17 +12,17 @@ public:
     bool create_table(QSqlDatabase &m_database); //
     bool delete_table(QSqlDatabase &m_database); //
 
-    void w_temporary_power(QSqlDatabase &m_database,QString mi_cid,QString temporary_power);
-    bool r_temporary_power(QSqlDatabase &m_database,QString mi_cid,QString &temporary_power);
+    void w_temporary_power(QSqlDatabase &m_database,QString mi_cid,QString &temporary_power);
+    void r_temporary_power(QSqlDatabase &m_database,QString mi_cid,QString &temporary_power);
 
-    void w_max_power(QSqlDatabase &m_database,QString mi_cid,QString max_power);
-    bool r_max_power(QSqlDatabase &m_database,QString mi_cid,QString &max_power);
+    void w_max_power(QSqlDatabase &m_database,QString mi_cid,QString &max_power);
+    void r_max_power(QSqlDatabase &m_database,QString mi_cid,QString &max_power);
 
-    void w_grid(QSqlDatabase &m_database,QString mi_cid,QString grid);
-    bool r_grid(QSqlDatabase &m_database,QString mi_cid,QString &grid);
+    void w_grid(QSqlDatabase &m_database,QString mi_cid,QString &grid);
+    void r_grid(QSqlDatabase &m_database,QString mi_cid,QString &grid);
 
-    void w_certification(QSqlDatabase &m_database,QString mi_cid,QString certification);
-    bool r_certification(QSqlDatabase &m_database,QString mi_cid,QString &certification);
+    void w_certification(QSqlDatabase &m_database,QString mi_cid,QString &certification);
+    void r_certification(QSqlDatabase &m_database,QString mi_cid,QString &certification);
     static const QString c_field_mi_cid;
     static const QString c_field_temporary_power;
     static const QString c_field_max_power;

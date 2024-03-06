@@ -80,8 +80,8 @@ void client_server::onm_start()
 //        m_listener_setting->setValue("readTimeout",m_readtimeout);
 //        m_listener_setting->setValue("maxRequestSize",m_maxrequestsize);
 //        m_listener_setting->setValue("maxMultiPartSize",m_maxmultipartsize);
-        m_listener = new HttpListener(m_listener_setting,new cs_client);
-
+        m_listener = new HttpListener(m_listener_setting,new RequestMapper);
+        //m_listener = new HttpListener(m_listener_setting,new cs_client);
         m_runing = true;
     }
 }

@@ -14,7 +14,7 @@ public:
     bool create_table(QSqlDatabase &m_database); //
     bool delete_table(QSqlDatabase &m_database); //
 
-    void write_data(QSqlDatabase &m_database,QJsonObject &w_data);
+    void write_data(QSqlDatabase &m_database,const QJsonObject &w_data);
     void read_data(QSqlDatabase &m_database,QString mi_cid,QString start_time,int &aging_time);
 
     static const QString c_field_mi_cid;

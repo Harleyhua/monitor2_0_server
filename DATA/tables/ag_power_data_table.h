@@ -150,11 +150,13 @@ public:
     static const QString c_field_mi_cid;
     static const QString c_field_mim_version;
     static const QString c_field_mis_version;
+    static const QString c_field_hard_version;
     static const QString c_field_pv;
     static const QString c_field_power;
     static const QString c_field_energy;
     static const QString c_field_temperature;
     static const QString c_field_gridv;
+    static const QString c_field_gridcur;
     static const QString c_field_gridf;
     static const QString c_field_mim_err;
     static const QString c_field_mis_err;

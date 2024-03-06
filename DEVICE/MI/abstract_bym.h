@@ -3,6 +3,12 @@
 
 #include <QObject>
 #include <QJsonObject>
+
+/*
+    微逆的基类
+*/
+
+
 class emu_protocolb;
 class emu_socket;
 
@@ -38,6 +44,8 @@ public:
     void set_property(QString nominal,QString mim_ver,QString mis_ver);
 
     static bool is_cid_valid(QString cid);
+
+
     static bym_type analysis_type(QString name);
 
 private:

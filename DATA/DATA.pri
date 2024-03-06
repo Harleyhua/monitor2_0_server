@@ -9,6 +9,7 @@ DEPENDPATH += \
 HEADERS += \
     $$PWD/sql/mysql.h \
     $$PWD/sql/mysql_table.h \
+    $$PWD/sql/sqlconnectpool.h \
     $$PWD/tables/ag_device_control_table.h \
     $$PWD/tables/ag_emu_extra_property_table.h \
     $$PWD/tables/ag_emu_mi_table.h \
@@ -19,6 +20,7 @@ HEADERS += \
     $$PWD/tables/ag_mi_extra_property_table.h \
     $$PWD/tables/ag_mi_property_table.h \
     $$PWD/tables/ag_mi_report_table.h \
+    $$PWD/tables/ag_ota_file_table.h \
     $$PWD/tables/ag_pos_table.h \
     $$PWD/tables/ag_power_data_table.h \
     $$PWD/tables/ag_power_index_table.h \
@@ -37,6 +39,7 @@ HEADERS += \
 SOURCES += \
     $$PWD/sql/mysql.cpp \
     $$PWD/sql/mysql_table.cpp \
+    $$PWD/sql/sqlconnectpool.cpp \
     $$PWD/tables/ag_device_control_table.cpp \
     $$PWD/tables/ag_emu_extra_property_table.cpp \
     $$PWD/tables/ag_emu_mi_table.cpp \
@@ -47,6 +50,7 @@ SOURCES += \
     $$PWD/tables/ag_mi_extra_property_table.cpp \
     $$PWD/tables/ag_mi_property_table.cpp \
     $$PWD/tables/ag_mi_report_table.cpp \
+    $$PWD/tables/ag_ota_file_table.cpp \
     $$PWD/tables/ag_pos_table.cpp \
     $$PWD/tables/ag_power_data_table.cpp \
     $$PWD/tables/ag_power_index_table.cpp \

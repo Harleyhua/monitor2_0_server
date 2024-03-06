@@ -9,6 +9,11 @@
 #include "ag_mi_property_table.h"
 #include "ag_emu_property_table.h"
 #include "ag_emu_status_table.h"
+/*
+    网关的通讯协议解析
+*/
+
+
 const quint8 emu_protocolb::C_HEAD = 0X64;
 const quint8 emu_protocolb::C_TAIL = 0X23;
 
@@ -52,6 +57,7 @@ const quint8 emu_protocolb::C_SET_EMU_FUNC = 0X70;  //设置网关功能码
 
 const quint8 emu_protocolb::C_EMU_STATUS = 0XE0;  //网关自身状态
 
+//网关通讯协议中的  服务器命令映射
 const QHash<quint8, quint8> emu_protocolb::c_server_to_client = {
     {0x00,0x00},
     {0x01,0x04},
@@ -407,6 +413,64 @@ void emu_protocolb::to_powerdata_json(const QByteArray &s_data, QJsonObject &rt_
     }
 
     rt_data .insert("datas",mis_jsarray);
+}
+
+void emu_protocolb::to_newpowerdata_json(const QByteArray &s_data, QJsonObject &rt_data, uint16_t &date)
+{
+    QString t_emu_cid = QString::number(common::qbtarray_to_u32(s_data,10),16).toUpper();
+    QString t_emu_date = QString::number((uint8_t)s_data[4]) + "-" + QString::number((uint8_t)s_data[5]) + "-" +
+                         QString::number((uint8_t)s_data[6]) + " " + QString::number((uint8_t)s_data[7]) + ":" +
+                         QString::number((uint8_t)s_data[8]) + ":" + QString::number((uint8_t)s_data[9]);
+    QString t_cur_date = common::get_system_detail_time();
+    uint8_t t_data_nums = (((((uint8_t)s_data[15]) << 8) + (uint8_t)s_data[16])-1) / 25; //设备数  //每路数据固定25个字节
+    uint32_t start_index = 0;
+    QJsonArray mis_jsarray;
+
+    date = common::get_system_yearmon_time();
+    //如果设备 pv数不为整数 直接返回
+    if(((((((uint8_t)s_data[15]) << 8) + (uint8_t)s_data[16])-1) % 25) != 0)
+    {
+        return ;
+    }
+
+    if(t_emu_date == "0-0-0 0:0:0")
+        t_emu_date = "1970-01-01 00:00:00";
+
+
+
+    for(int i=0;i<t_data_nums;i++)
+    {
+        QJsonObject mi_json;
+        start_index = 18 + 25*i;
+
+        mi_json.insert(ag_power_data_table::c_field_emu_cid,t_emu_cid);
+        mi_json.insert(ag_power_data_table::c_field_emu_time,t_emu_date);
+        mi_json.insert(ag_power_data_table::c_field_mi_cid,QString::number(common::qbtarray_to_u32(s_data,start_index),16)); //index 18-22);
+        mi_json.insert(ag_power_data_table::c_field_pv_id,((uint8_t)s_data[start_index+4]) & 0x0F);
+        mi_json.insert(ag_power_data_table::c_field_mim_version,QString::number(((uint8_t)s_data[start_index + 5]) >> 4) +
+                       "." + QString::number(((uint8_t)s_data[start_index + 5]) &0x0f));
+        mi_json.insert(ag_power_data_table::c_field_mis_version,QString::number(((uint8_t)s_data[start_index + 6]) >> 4) +
+                       "." + QString::number(((uint8_t)s_data[start_index + 6]) &0x0f));
+        mi_json.insert(ag_power_data_table::c_field_pv,((float)(common::qbtarray_to_u16(s_data,start_index + 7)))/512);    //*64/32768);
+        mi_json.insert(ag_power_data_table::c_field_power,((float)(common::qbtarray_to_u16(s_data,start_index + 9)))/32);       //*1024/32768;);
+        mi_json.insert(ag_power_data_table::c_field_energy,((float)(common::qbtarray_to_u32(s_data,start_index + 11)))/8192);   //*4/32768;);
+        mi_json.insert(ag_power_data_table::c_field_temperature,((float)(common::qbtarray_to_u16(s_data,start_index + 15)))/128-40);   //*256/32768 -40;);
+        mi_json.insert(ag_power_data_table::c_field_gridv,((float)(common::qbtarray_to_u16(s_data,start_index + 17)))/64);   //512/32768;);
+        mi_json.insert(ag_power_data_table::c_field_gridf,((float)(common::qbtarray_to_u16(s_data,start_index + 19)))/256);  //*128/32768;);
+
+        mi_json.insert(ag_power_data_table::c_field_mim_err,QString("%1").arg(common::qbtarray_to_u16(s_data,start_index +21),4,16,QLatin1Char('0')));
+        mi_json.insert(ag_power_data_table::c_field_mis_err,QString("%1").arg(common::qbtarray_to_u16(s_data,start_index +23),4,16,QLatin1Char('0')));
+        mi_json.insert(ag_power_data_table::c_field_nominal_power,0);
+        mi_json.insert(ag_power_data_table::c_field_reissue_data,"NO");
+        mi_json.insert(ag_power_data_table::c_field_sys_time,t_cur_date);
+
+        mis_jsarray.append(mi_json);
+    }
+
+    rt_data .insert("datas",mis_jsarray);
+
+
+
 }
 
 void emu_protocolb::to_mapping_json(const QByteArray &s_data, QJsonObject &rt_data)

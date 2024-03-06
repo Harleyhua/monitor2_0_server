@@ -44,7 +44,37 @@ bool ag_temp_table::delete_table(QSqlDatabase &m_database)
     return mysql_table::delete_table(m_database,m_name);
 }
 
-void ag_temp_table::write_temp(QSqlDatabase &m_database,QJsonObject &w_data)
+void ag_temp_table::write_temp(QSqlDatabase &m_database,QString room,bool runstatus,int curtemp,int settemp,QString curtime)
+{
+    QSqlQuery query(m_database);
+    QString tmp_cmd = QString("INSERT INTO %1 (%2,%3,%4,%5,%6) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE %7='%8',%9='%10',%11='%12' ")
+            .arg(m_name,c_field_room_id,c_field_run_status,c_field_cur_temp,c_field_set_temp,c_field_cur_time,
+                 c_field_run_status,QString::number(runstatus),
+                 c_field_cur_temp,QString::number(curtemp),
+                 c_field_set_temp,QString::number(settemp));
+    query.prepare(tmp_cmd);
+
+    query.addBindValue(room);
+    query.addBindValue(runstatus);
+    query.addBindValue(curtemp);
+    query.addBindValue(settemp);
+    query.addBindValue(curtime);
+
+    if(query.exec())
+    {
+        //新建温度记录项成功
+        QLOG_INFO() << "插入新的温度时间段成功 ";
+    }
+    else
+    {
+        QLOG_WARN() << QString("插入新的温度时间段失败 %1,%2,%3,%4,%5").arg(
+                   room,QString::number(runstatus),QString::number(curtemp),
+                   QString::number(settemp),curtime);
+    }
+
+}
+
+void ag_temp_table::write_temp(QSqlDatabase &m_database,const QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
     quint16 data_count = 0;

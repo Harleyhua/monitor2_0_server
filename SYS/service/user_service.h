@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QMutex>
-
+#include <QSqlDatabase>
 
 
 //#include "common.h"

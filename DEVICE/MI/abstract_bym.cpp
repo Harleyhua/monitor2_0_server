@@ -25,6 +25,8 @@ bool abstract_bym::is_cid_valid(QString mi_cid)
     return false;
 }
 
+
+
 bym_type abstract_bym::analysis_type(QString name)
 {
     if(is_cid_valid(name))

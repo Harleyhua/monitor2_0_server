@@ -101,10 +101,9 @@ bool user_service::setMiTemporaryPower(QString userName, const QJsonObject &para
 {
     ag_mi_extra_property_table miExtraPropertyTable;
     QString totalStation = getTotalStation(userName);
+    QString data = param.value("temporary_power").toString();
 
-
-    miExtraPropertyTable.w_temporary_power(mSql.db(),param.value("mi_cid").toString(),
-                                                     param.value("temporary_power").toString());
+    miExtraPropertyTable.w_temporary_power(mSql.db(),param.value("mi_cid").toString(),data);
 
     mSql.update_dev_control(totalStation,param.value("station").toString(),
                             param.value("emu_cid").toString(),
@@ -147,9 +146,8 @@ bool user_service::setMiMaxPower(QString userName, const QJsonObject &param, QJs
 {
     ag_mi_extra_property_table miExtraPropertyTable;
     QString totalStation = getTotalStation(userName);
-
-    miExtraPropertyTable.w_max_power(mSql.db(),param.value("mi_cid").toString(),
-                                               param.value("max_power").toString());
+    QString data = param.value("max_power").toString();
+    miExtraPropertyTable.w_max_power(mSql.db(),param.value("mi_cid").toString(),data);
 
     mSql.update_dev_control(totalStation,param.value("station").toString(),
                             param.value("emu_cid").toString(),
@@ -192,9 +190,8 @@ bool user_service::setMiGridParam(QString userName, const QJsonObject &param, QJ
 {
     ag_mi_extra_property_table miExtraPropertyTable;
     QString totalStation = getTotalStation(userName);
-
-    miExtraPropertyTable.w_grid(mSql.db(),param.value("mi_cid").toString(),
-                                          param.value("grid").toString());
+    QString data = param.value("grid").toString();
+    miExtraPropertyTable.w_grid(mSql.db(),param.value("mi_cid").toString(),data);
 
     mSql.update_dev_control(totalStation,param.value("station").toString(),
                             param.value("emu_cid").toString(),
@@ -236,9 +233,8 @@ bool user_service::setMiCertification(QString userName, const QJsonObject &param
 {
     ag_mi_extra_property_table miExtraPropertyTable;
     QString totalStation = getTotalStation(userName);
-
-    miExtraPropertyTable.w_certification(mSql.db(),param.value("mi_cid").toString(),
-                                                   param.value("certification").toString());
+    QString data = param.value("certification").toString();
+    miExtraPropertyTable.w_certification(mSql.db(),param.value("mi_cid").toString(),data);
 
     mSql.update_dev_control(totalStation,param.value("station").toString(),
                            param.value("emu_cid").toString(),

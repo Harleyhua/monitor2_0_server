@@ -3,6 +3,8 @@
 #include <QByteArray>
 #include <QTextCodec>
 #include <QJsonDocument>
+#include <QDir>
+
 #include "common.h"
 #include "QsLog.h"
 
@@ -12,9 +14,13 @@
 #include "aging_alg.h"
 //#include "abstract_bym.h"
 #include "emu_protocolb.h"
-
+/**
+ * 该类的功能已经被重构了  暂无使用
+ */
 #define SAVE_MI_REPORT 1
 
+extern QString g_ota_beta_dir_path;     //ota测试文件目录
+extern QString g_ota_official_dir_path; //ota正式文件目录
 
 cs_client::cs_client(QObject *parent)
     :HttpRequestHandler(parent)
@@ -150,7 +156,6 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             us_act_str = "添加电站:" + station + "网关:" + emu + "下的PLC版微逆:" + mi_str;
 
             sql.w_user_act(name,total_station,2,us_act_str);
-
 
             sql.add_plcmi_cid(name,rev_data);
         }
@@ -293,7 +298,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             }
             ret_data.insert("report_datas",mis_report);
         }
-        else if(request.getPath().startsWith("/write_room_temp"))
+        else if(request.getPath().startsWith("/write_room_temp"))//
         {
             //老化房的温度采集
             sql.w_room_temp(rev_data);
@@ -342,7 +347,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
             ret_data.insert("temporary_power",data);
         }
-        else if(request.getPath().startsWith("/r_more_temporary_power"))
+        else if(request.getPath().startsWith("/r_more_temporary_power"))//
         {
             QString data;
             QString total_station = sql.r_total_station(name);
@@ -386,7 +391,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
 
         }
-        else if(request.getPath().startsWith("/w_more_temporary_power"))
+        else if(request.getPath().startsWith("/w_more_temporary_power"))//
         {
             QString total_station = sql.r_total_station(name);
 
@@ -427,7 +432,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             ret_data.insert("mi_cid",rev_data.value("mi_cid").toString());
             ret_data.insert("max_power",data);
         }
-        else if(request.getPath().startsWith("/r_more_max_power"))
+        else if(request.getPath().startsWith("/r_more_max_power"))//
         {
             QString data;
             QString total_station = sql.r_total_station(name);
@@ -458,7 +463,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             ret_data.insert("mis",ret_mis);
 
         }
-        else if(request.getPath().startsWith("/w_more_max_power"))
+        else if(request.getPath().startsWith("/w_more_max_power"))//
         {
             QString total_station = sql.r_total_station(name);
 
@@ -785,10 +790,22 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
         {
             sql.r_emu_status(rev_data,ret_data);
         }
-        else if(request.getPath().startsWith("/r_one_emu_status"))
+        else if(request.getPath().startsWith("/r_one_emu_status"))//
         {
             sql.r_emu_status(rev_data,ret_data);
         }
+//        else if(request.getPath().startsWith("/upload_ota_file"))//
+//        {
+//            QString newfileName = g_ota_beta_dir_path + QDir::separator() + QString(request.getParameter("file_name"));
+//            QFile file(newfileName);
+//            if (file.open(QIODevice::WriteOnly))
+//            {
+//                file.write(request.getBody());
+//                // 关闭文件
+//                file.close();
+//            }
+
+//        }
         else
         {
             response.setStatus(401,"没当前指令的解析");

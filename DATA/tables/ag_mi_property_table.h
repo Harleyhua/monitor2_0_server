@@ -76,6 +76,7 @@ public:
     static const QString c_field_nominal_power;
     static const QString c_field_mim_version;
     static const QString c_field_mis_version;
+    static const QString c_field_hard_version;
 private:
     QString m_name = "mi_table";
 

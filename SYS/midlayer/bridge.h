@@ -7,6 +7,12 @@
 #include "client_server.h"
 #include "emu_server.h"
 #include "aging_server.h"
+
+/**
+  用于各个模块的启动(线程载入和初始化)
+*/
+
+
 class bridge : public QObject
 {
     Q_OBJECT
@@ -63,12 +69,12 @@ private:
 
     static bridge* m_ins;
 
-    client_server * m_client_server = nullptr;
-    emu_server *m_emu_server = nullptr;
+    client_server * m_client_server = nullptr;//客户端通讯服务器   http  端口 38700
+    emu_server *m_emu_server = nullptr;       //网关设备通讯服务器 TCP/IP自定义协议  端口 40031
     QThread *m_emu_server_thd = nullptr;
     QThread *m_client_server_thd = nullptr;
 
-    aging_server *m_aging_server = nullptr;
+    aging_server *m_aging_server = nullptr;   //老化房通讯服务器  TCP/IP 自定义协议  端口 40032
     QThread *m_aging_server_thd = nullptr;
 
 signals:

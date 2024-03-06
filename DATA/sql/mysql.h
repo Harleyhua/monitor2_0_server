@@ -15,6 +15,43 @@
 #include <QHash>
 #include "ag_mi_report_table.h"
 #include "ag_device_control_table.h"
+#include "ag_gateway_data_table.h"
+#include "ag_mi_property_table.h"
+#include "ag_power_data_table.h"
+#include "ag_power_index_table.h"
+#include "ag_rack_data_table.h"
+#include "ag_rack_index_table.h"
+#include "ag_rack_mi_table.h"
+#include "ag_temp_table.h"
+#include "ag_user_table.h"
+#include "ag_workorder_table.h"
+#include "ag_mi_cmd_table.h"
+#include "ag_pos_table.h"
+#include "ag_user_station_table.h"
+#include "ag_emu_property_table.h"
+#include "ag_station_emu_table.h"
+#include "ag_emu_mi_table.h"
+#include "ag_rack_index_table.h"
+#include "ag_mi_report_table.h"
+#include "ag_device_control_table.h"
+#include "ag_emu_status_table.h"
+#include "ag_user_act_table.h"
+#include "ag_rack_extra_data_table.h"
+#include "ag_rack_extra_data_table.h"
+#include "ag_mi_extra_property_table.h"
+#include "ag_emu_extra_property_table.h"
+#include "ag_ota_file_table.h"
+
+/*
+    目前大部分功能已经被  控制器-服务的模式重构了
+    只用到了 数据库表的初始化 bool table_init();
+    以及 网关的上报(数据库相关）的操作
+*/
+
+
+
+
+
 
 #define POWER_DATA_TABLE_MAX_MI   5000
 #define RACK_DATA_TABLE_MAX_MI    5000
@@ -23,14 +60,7 @@
 enum sql_type {MYSQL};
 
 
-typedef struct
-{
-    QString hostname;
-    uint16_t port;
-    QString username;
-    QString password;
-    QString database_name;
-}mysql_login_stc;  //数据库登录参数
+
 
 
 class mysql : public QObject
@@ -47,8 +77,6 @@ public:
     {
         return m_db;
     };
-
-
 
     //各个表格初始化
     bool table_init();
@@ -94,16 +122,16 @@ public:
 
     //远程控制相关
     void w_mi_temporary_power(QString name,QString data);
-    bool r_mi_temporary_power(QString name,QString &data);
+    void r_mi_temporary_power(QString name,QString &data);
 
     void w_mi_max_power(QString name,QString data);
-    bool r_mi_max_power(QString name,QString &data);
+    void r_mi_max_power(QString name,QString &data);
 
     void w_mi_grid(QString name,QString data);
-    bool r_mi_grid(QString name,QString &data);
+    void r_mi_grid(QString name,QString &data);
 
     void w_mi_certification(QString name,QString data);
-    bool r_mi_certification(QString name,QString &data);
+    void r_mi_certification(QString name,QString &data);
 
     void w_emu_func_code(QString name,QString data);
     bool r_emu_func_code(QString name,QString &data);
@@ -148,12 +176,13 @@ public:
     void r_device_ctl_last_data_nosend(QString emu_cid,uint8_t cmd,dev_ctl_strc &ctl_data);
     void update_device_cmd_send_flag(dev_ctl_strc ctl_data);
     void update_device_data_send_flag(dev_ctl_strc ctl_data);
+    static QHash<QString,QString> m_emucid_hand_lastTime;
 private:
     QString db_name; //用什么链接名称
     QSqlDatabase m_db; //数据库
 
 
-    static QHash<QString,QString> m_emucid_hand_lastTime;
+
 
 
 

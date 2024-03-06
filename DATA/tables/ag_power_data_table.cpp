@@ -11,11 +11,13 @@ const QString ag_power_data_table::c_field_emu_time = "emu_time";
 const QString ag_power_data_table::c_field_mi_cid = "mi_cid";
 const QString ag_power_data_table::c_field_mim_version = "mim_version";
 const QString ag_power_data_table::c_field_mis_version = "mis_version";
+const QString ag_power_data_table::c_field_hard_version = "hard_version";
 const QString ag_power_data_table::c_field_pv = "pv";
 const QString ag_power_data_table::c_field_power = "power";
 const QString ag_power_data_table::c_field_energy = "energy";
 const QString ag_power_data_table::c_field_temperature = "temperature";
 const QString ag_power_data_table::c_field_gridv = "gridv";
+const QString ag_power_data_table::c_field_gridcur = "gridcur";
 const QString ag_power_data_table::c_field_gridf = "gridf";
 const QString ag_power_data_table::c_field_mim_err = "mim_err";
 const QString ag_power_data_table::c_field_mis_err = "mis_err";
@@ -42,29 +44,31 @@ bool ag_power_data_table::create_table(QSqlDatabase &m_database)
             QString("(%1 INT UNSIGNED NOT NULL AUTO_INCREMENT primary key,"
              "%2 VARCHAR(8) NOT NULL,"
              "%3 DATETIME NOT NULL,"
-             "%4 VARCHAR(8) NOT NULL,"
+             "%4 VARCHAR(12) NOT NULL,"
              "%5 TINYINT UNSIGNED NOT NULL,"
-             "%6 VARCHAR(6) NOT NULL,"
-             "%7 VARCHAR(6) NOT NULL,"
-             "%8 FLOAT NOT NULL,"
+             "%6 VARCHAR(7) NOT NULL,"
+             "%7 VARCHAR(7) NOT NULL,"
+             "%8 VARCHAR(7) ,"
              "%9 FLOAT NOT NULL,"
              "%10 FLOAT NOT NULL,"
              "%11 FLOAT NOT NULL,"
              "%12 FLOAT NOT NULL,"
              "%13 FLOAT NOT NULL,"
-             "%14 VARCHAR(4) NOT NULL,"
-             "%15 VARCHAR(4) NOT NULL,"
-             "%16 SMALLINT UNSIGNED,"
-             "%17 VARCHAR(3) NOT NULL,"
-             "%18 DATETIME NOT NULL,"
-             "INDEX(%19),"
-             "INDEX(%20),"
+             "%14 FLOAT ,"
+             "%15 FLOAT NOT NULL,"
+             "%16 VARCHAR(4) NOT NULL,"
+             "%17 VARCHAR(8) NOT NULL,"
+             "%18 SMALLINT UNSIGNED,"
+             "%19 VARCHAR(3) NOT NULL,"
+             "%20 DATETIME NOT NULL,"
              "INDEX(%21),"
-             "INDEX(%22))")
+             "INDEX(%22),"
+             "INDEX(%23),"
+             "INDEX(%24))")
              .arg(c_field_id,c_field_emu_cid,c_field_emu_time,c_field_mi_cid,c_field_pv_id,c_field_mim_version,
-                  c_field_mis_version,c_field_pv,c_field_power,c_field_energy,c_field_temperature,c_field_gridv,
-                  c_field_gridf,c_field_mim_err,c_field_mis_err,c_field_nominal_power,c_field_reissue_data,
-                  c_field_sys_time,c_field_mi_cid,c_field_sys_time,c_field_mim_err,c_field_mis_err);
+                  c_field_mis_version,c_field_hard_version,c_field_pv,c_field_power,c_field_energy,c_field_temperature,
+                  c_field_gridv,c_field_gridcur,c_field_gridf,c_field_mim_err,c_field_mis_err,c_field_nominal_power,
+                  c_field_reissue_data,c_field_sys_time,c_field_mi_cid,c_field_sys_time,c_field_mim_err,c_field_mis_err);
 
     return mysql_table::create_table(m_database,m_name,tmp_field);
 }

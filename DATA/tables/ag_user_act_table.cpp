@@ -37,7 +37,7 @@ bool ag_user_act_table::delete_table(QSqlDatabase &m_database)
     return mysql_table::delete_table(m_database,m_name);
 }
 
-bool ag_user_act_table::read_datas(QSqlDatabase &m_database, QJsonObject &s_data, QJsonObject &r_data)
+bool ag_user_act_table::read_datas(QSqlDatabase &m_database,const QJsonObject &s_data, QJsonObject &r_data)
 {
     QString select_cmd = QString("SELECT %1,%2,%3,%4,%5 FROM %6 ")
             .arg(c_field_user,c_field_total_station,c_field_act,c_field_act_desc,
