@@ -4,10 +4,14 @@
 
 #include "devdataservice.h"
 
+#include <QMutex>
 #include "abstract_bym.h"
 #include "abstract_emu.h"
 #include "QsLog.h"
 #include "mysql.h"
+
+extern QMutex emu_act_cache_lock;
+
 devmgservice::devmgservice(QSqlDatabase &DataBase, QObject *parent)
     : QObject{parent}
 {
@@ -215,7 +219,12 @@ void devmgservice::DevMapping(QString totalStation, QStringList &retMis, QJsonOb
             if(emuLastTime == "")
             {
                 emuDataTable.read_last_hand_data_time(mDataBase,emus[j],emuLastTime);
-                //QLOG_INFO() << "no cache read " + emus[j] + "time:" + emuLastTime;
+                if(emu_act_cache_lock.tryLock(1000))
+                {
+                    mysql::m_emucid_hand_lastTime.insert(emus[j],emuLastTime);
+                    emu_act_cache_lock.unlock();
+                }
+                    //QLOG_INFO() << "no cache read " + emus[j] + "time:" + emuLastTime;
             }
             //插入网关的最后通讯时间
             emuJsObj.insert("last_act_time",emuLastTime);

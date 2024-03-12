@@ -64,6 +64,11 @@ QString devdataservice::readEmuLastActionTime(QString emu)
     if(lastTime == "")
     {
         emuDataTable.read_last_hand_data_time(mDataBase,emu,lastTime);
+        if(emu_act_cache_lock.tryLock(500))
+        {
+            mysql::m_emucid_hand_lastTime.insert(emu,lastTime);
+            emu_act_cache_lock.unlock();
+        }
         //QLOG_INFO() << "no cache read " + emu + "time:" + lastTime;
     }
 

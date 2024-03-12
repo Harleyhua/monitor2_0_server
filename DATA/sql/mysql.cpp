@@ -1,6 +1,6 @@
 #include "mysql.h"
 
-#include <QMutex>
+
 #include <QSqlDriver>
 #include <QSqlError>
 
@@ -15,7 +15,7 @@ extern mysql_login_stc login_param;
 
 
 QMutex sql_lock;   //数据库建立连接锁，避免多线程是同时连接的异常
-
+QMutex emu_act_cache_lock;
 //mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas2"};   //本机
 //mysql_login_stc login_param = {"1.117.152.46",3306,"root","zjbeny001","bydas"};
 
@@ -24,7 +24,7 @@ QHash<QString,QString> mysql::m_emucid_hand_lastTime{};
 mysql::mysql(QString db_name, QObject *parent)
     : QObject{parent}
 {
-    this->db_name = QDateTime::currentDateTime().toString() + db_name;
+    this->db_name = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") + db_name +common::rand_str();
     //sql_lock.lock();
     m_db = sqlconnectpool::openConnection_clh(db_name);
 //    m_db = QSqlDatabase::addDatabase("QMYSQL",this->db_name);
@@ -195,8 +195,13 @@ void mysql::w_emu_action(QJsonObject &s_data)
 
     if(d_obj.value(ag_gateway_data_table::c_field_action).toString() == "handshake")
     {
-        m_emucid_hand_lastTime.insert(d_obj.value(ag_gateway_data_table::c_field_emu_cid).toString(),
-                                  d_obj.value(ag_gateway_data_table::c_field_sys_time).toString());
+        if(emu_act_cache_lock.tryLock(2000))
+        {
+            m_emucid_hand_lastTime.insert(d_obj.value(ag_gateway_data_table::c_field_emu_cid).toString(),
+                                      d_obj.value(ag_gateway_data_table::c_field_sys_time).toString());
+            emu_act_cache_lock.unlock();
+        }
+
     }
 }
 
@@ -872,7 +877,9 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
                 tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
                 //QLOG_INFO() << "no cache read " + emu_cid[j] + "time:" + last_time;
             }
+            else {
 
+            }
             tmp_emu_obj.insert("last_act_time",last_time);
             //读取网关最新工作状态
             tmp_emu_sta_tb.r_last_data(m_db,emu_cid[j],status,status_reserve,run_mode,emu_sys_time);

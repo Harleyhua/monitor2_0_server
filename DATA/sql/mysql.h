@@ -10,7 +10,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-
+#include <QMutex>
 #include <QMap>
 #include <QHash>
 #include "ag_mi_report_table.h"
@@ -56,6 +56,7 @@
 #define POWER_DATA_TABLE_MAX_MI   5000
 #define RACK_DATA_TABLE_MAX_MI    5000
 
+extern QMutex emu_act_cache_lock;
 
 enum sql_type {MYSQL};
 

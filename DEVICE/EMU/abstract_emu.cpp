@@ -27,7 +27,7 @@ abstract_emu::abstract_emu(QString name, emu_type type, QObject *parent)
 
     m_offline_date = QDateTime::currentDateTime();
 
-    set_mapping();
+    //set_mapping();
 
     connect(&m_timer,&QTimer::timeout,this,&abstract_emu::onm_timer_callback);
 

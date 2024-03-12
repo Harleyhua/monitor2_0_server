@@ -77,7 +77,7 @@ private:
     QString m_version = "";
 
     bool m_close_req = false;        //断开同步请求标志
-    uint32_t m_offline_limit = 300;  //离线删除 设定时间5分钟
+    uint32_t m_offline_limit = 30;  //离线删除 设定时间5分钟
 
     QTimer m_timer;
 
