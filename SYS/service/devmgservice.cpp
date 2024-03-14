@@ -52,6 +52,10 @@ void devmgservice::addDevCtl(QString totalStation, QString station, QString emu,
     {
         return ;
     }
+    if(serverCmd == 0x01 && abstract_emu::is_wifiemu_cid_valid(emu))
+    {
+        return ;
+    }
     //尝试更新最新的(指令顺序必须相邻)  不是最新的更新
     if(!devCtlTable.update_first_data(mDataBase,tmpCtl))
     {
