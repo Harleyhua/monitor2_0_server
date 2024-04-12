@@ -5,9 +5,14 @@
 #include <QJsonArray>
 #include "mysql.h"
 #include "common.h"
+#include "QsLog.h"
+
 aging_socket::aging_socket(QObject *parent)
 {
 
+    //定时任务
+    connect(&mtimer,&QTimer::timeout,this,&aging_socket::onm_timer_callback);
+    mtimer.start(5000);
 }
 
 aging_socket::~aging_socket()
@@ -18,6 +23,7 @@ aging_socket::~aging_socket()
 void aging_socket::onm_del_data()
 {
     //按字节流加入
+    mTimerCount = 0;
     m_buff.append(readAll());
     while (m_buff.size() > 0) {
         //数据异常则会清空  若未接收完全则跳出继续接收
@@ -146,4 +152,14 @@ void aging_socket::send_cs_msg(QJsonObject &obj, QString cmd, QString status)
 QString aging_socket::get_response_cmd(QString request)
 {
     return request.replace(0,1,QString::number(request.mid(0,1).toUInt()+1));
+}
+
+void aging_socket::onm_timer_callback()
+{
+    mTimerCount ++;
+    if(mTimerCount >= 5)
+    {
+        mTimerCount = 0;
+        m_buff.clear();
+    }
 }

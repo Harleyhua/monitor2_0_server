@@ -1,7 +1,7 @@
 #ifndef AGING_SOCKET_H
 #define AGING_SOCKET_H
 #include <QTcpSocket>
-
+#include <QTimer>
 
 #define CS_HEAD_FORMAT_LENGTH 27
 #define CS_DEFAULT_HEARD        "HEAD55AA"
@@ -23,8 +23,14 @@ public:
     void deal_cmd_CS(QByteArray &data,QString cmd);  //处理客户端通讯
     bool get_root_jsonobj(QByteArray &data,QJsonObject &root_obj,uint32_t start_index = 27);
     void send_cs_msg(QJsonObject &obj,QString cmd,QString status);
-        QString get_response_cmd(QString request);
+    QString get_response_cmd(QString request);
     QByteArray m_buff;
+
+    QTimer mtimer;
+    uint32_t mTimerCount = 0;
+public slots:
+    void onm_timer_callback();
+
 };
 
 #endif // AGING_SOCKET_H

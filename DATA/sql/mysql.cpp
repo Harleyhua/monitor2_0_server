@@ -1137,6 +1137,12 @@ bool mysql::update_dev_control(QString total_station, QString station, QString e
     tmp_ctl.cmd_time = ctl_time;
     tmp_ctl.server_cmd = server_cmd;
 
+    if(server_cmd == 0x01 && abstract_emu::is_wifiemu_cid_valid(emu))
+    {
+        return false;
+    }
+
+
     ag_user_station_table tmp_us_tb;
     ag_station_emu_table tmp_sta_emu_tb;
     if(tmp_us_tb.is_station_exist(m_db,total_station,station))

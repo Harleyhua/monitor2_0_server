@@ -38,10 +38,11 @@ void ag_rack_extra_data_table::write_data(QSqlDatabase &m_database,const QJsonOb
     QJsonArray tmp_datas = w_data.value("datas").toArray();
     QString cmd = QString("(%1,%2,%3) values(?,?,?)")
                   .arg(c_field_mi_cid,c_field_start_time,c_field_aging_time);
-    QString head = QString("INSERT INTO %1 ").arg(m_name);
+    QString head = QString("INSERT IGNORE INTO %1 ").arg(m_name);   //旧老化房  多路微逆会开多个电源 一定要加 IGNORE
     QSqlQuery query(m_database);
 
     QVariantList record[3];
+//    QSet<QString> emucid;
 
     for(int i=0;i<tmp_datas.size();i++)
     {
@@ -50,6 +51,14 @@ void ag_rack_extra_data_table::write_data(QSqlDatabase &m_database,const QJsonOb
         {
             continue;
         }
+//        //接口如果有重复的编号  已经插入过该编号  不再插入
+//        if(emucid.contains(rack_obj.value(c_field_mi_cid).toString()))
+//        {
+//            continue;
+//        }
+
+//        emucid.insert(rack_obj.value(c_field_mi_cid).toString());
+
         record[0] << rack_obj.value(c_field_mi_cid).toString();
         record[1] << rack_obj.value(c_field_start_time).toString();
         record[2] << rack_obj.value(c_field_aging_time).toInt();

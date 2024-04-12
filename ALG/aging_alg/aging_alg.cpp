@@ -256,7 +256,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
 
 #if CAL_TEMP40_SWITCH
                 //房间温度 40℃
-                if(v_temp >= 390 && v_temp<440)
+                if(v_temp >= 380 && v_temp<440)
                 {
                     // 计算 功率最大,最小值
                     if(cur_power > tmp_40power_max)
@@ -285,7 +285,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
 
 #if CAL_TEMP50_SWITCH
                 //房间温度 50℃
-                if(v_temp >= 490 && v_temp < 540)
+                if(v_temp >= 475 && v_temp < 540)
                 {
                     // 计算功率最大,最小值
                     if(cur_power > tmp_50power_max)
