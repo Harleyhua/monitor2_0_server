@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
     QLOG_INFO() << "启动服务成功";
     //启动服务
     bridge::ins()->start();
-
+    //test2
     QLOG_INFO() << "准备打开界面";
     w.show();
     QLOG_INFO() << "界面打开成功";
