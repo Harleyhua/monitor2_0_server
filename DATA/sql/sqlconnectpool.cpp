@@ -7,7 +7,7 @@ sqlconnectpool* sqlconnectpool::instance = NULL;
 
 
 extern QMutex sql_lock;
-mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试 本机
+mysql_login_stc login_param = {"127.0.0.1",3308,"jack_lin","zbeny001","bydas"};  //老化房 测试 本机
 
 
 sqlconnectpool::sqlconnectpool() {
