@@ -21,6 +21,9 @@ QString gAgingBitchTime[AGINGCABINET];
 
 void agingController::service(HttpRequest& request, HttpResponse& response)
 {
+
+
+
     QByteArray path=request.getPath();
     void (agingController::*deal_method)() = nullptr;
 
@@ -40,6 +43,16 @@ void agingController::service(HttpRequest& request, HttpResponse& response)
         response.setStatus(401,"没当前指令的解析");
         response.write(QString("{}").toUtf8(),true);
     }
+}
+
+bool agingController::writeRoomTemp(QString strJsonData){
+
+    //创建agingservice，传入数据库连接
+    agingservice agingSv(mDataBase);
+    //将字符串转为qbtarray,再转为JSON对象
+    mJsBody = common::qbytearray_to_js(common::str_to_qbtarray(strJsonData));
+    agingSv.writeRoomTemperature(mJsBody);
+    return true;
 }
 
 void agingController::setRoomAndDevData()

@@ -177,6 +177,7 @@ public:
     void r_device_ctl_last_data_nosend(QString emu_cid,uint8_t cmd,dev_ctl_strc &ctl_data);
     void update_device_cmd_send_flag(dev_ctl_strc ctl_data);
     void update_device_data_send_flag(dev_ctl_strc ctl_data);
+    QSqlDatabase getQSqlDatabaseFromMysql();
     static QHash<QString,QString> m_emucid_hand_lastTime;
 private:
     QString db_name; //用什么链接名称

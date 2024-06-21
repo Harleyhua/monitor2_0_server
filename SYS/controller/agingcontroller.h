@@ -15,6 +15,7 @@
 #include "sqlconnectpool.h"
 #include "mysql.h"
 #include <QSqlDatabase>
+#include <QString>
 
 using namespace stefanfrings;
 
@@ -35,7 +36,7 @@ public:
     };
     /** Generates the response */
     void service(HttpRequest& request, HttpResponse& response);
-
+    bool writeRoomTemp(QString strJsonData = "");
 private:
     QSqlDatabase mDataBase; //数据库
     HttpRequest *mRequest = nullptr;

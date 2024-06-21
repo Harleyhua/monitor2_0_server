@@ -5,6 +5,7 @@
 #include "mysql_table.h"
 #include "ag_rack_mi_table.h"
 #include "ag_rack_index_table.h"
+#include <QSqlError>
 
 const QString ag_rack_data_table::c_field_id = "id";
 const QString ag_rack_data_table::c_field_room_id = "room_id";
@@ -261,6 +262,8 @@ void ag_rack_data_table::write_data(QSqlDatabase &m_database,const QJsonObject &
         //QLOG_INFO() << QString("老化架:写入数据表成功");
     }
     else {
+        QLOG_WARN() << query.lastQuery() << query.lastError().text();
+
         QLOG_WARN() << QString("老化架:写入数据表失败: ");
     }
 }

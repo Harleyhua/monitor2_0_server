@@ -25,6 +25,7 @@ void aging_socket::onm_del_data()
     //按字节流加入
     mTimerCount = 0;
     m_buff.append(readAll());
+    qDebug() << m_buff.size();
     while (m_buff.size() > 0) {
         //数据异常则会清空  若未接收完全则跳出继续接收
         //可能会同时收到多条指令 处理完后继续处理下一条
@@ -39,6 +40,7 @@ bool aging_socket::del_buff_data()
 {
     //获取缓存区当前数据长度
     uint32_t data_size = m_buff.size();
+    qDebug() << data_size;
     if(data_size < CS_HEAD_FORMAT_LENGTH)
     {
         //QLOG_WARN() << tr("CS通讯:数据还未收全 继续接收");
@@ -66,6 +68,9 @@ bool aging_socket::del_buff_data()
         if(data_size < length + CS_HEAD_FORMAT_LENGTH)
         {
             //QLOG_WARN() << tr("CS通讯: 数据还未收全 继续接收");
+            //m_buff.clear();
+            //QJsonObject send_js;
+            //send_cs_msg(send_js,CS_ERR_RESPONSE,CS_JSON_LENGTH_ERROR);
             return false;
         }
         cmd = str_netdata.mid(8,4);
@@ -86,7 +91,7 @@ bool aging_socket::del_buff_data()
     }
 }
 
-void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd)
+void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd, bool writeTEMP)
 {
     QJsonObject root_js_recv;
     QJsonObject root_js_send;
@@ -105,6 +110,28 @@ void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd)
         {
             sql.w_rack_data(root_js_recv);
 
+            if(root_js_recv.value(CS_TEMP_KEY).toDouble(2) > 0 ){
+                //识别到有温度上传，直接写入温度
+                ag_temp_table tempTable;
+                QSqlDatabase q1 = sql.getQSqlDatabaseFromMysql();
+                QJsonObject t1;
+                t1.insert("room_id",root_js_recv.value("room_id"));
+                t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
+                t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)*10));
+                t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)*10));
+                t1.insert("cur_time",root_js_recv.value("current_time"));
+
+                tempTable.write_temp(q1,t1,true);
+
+                double temp1 = root_js_recv.value(CS_TEMP_KEY).toDouble(2);
+                qDebug() << temp1;
+
+            }else{
+
+                qDebug() << 0;
+            }
+
+
             QByteArray msg("HEAD55AA2006210000000000000");
             this->write(msg);
         }
@@ -121,6 +148,12 @@ bool aging_socket::get_root_jsonobj(QByteArray &data, QJsonObject &root_obj, uin
     QJsonParseError err_pt;
     bool ok = false;
     int json_data_length = data.mid(16,11).toUInt(&ok);
+
+    if(json_data_length + start_index < data.size()){
+
+        json_data_length = data.size()-start_index;
+    }
+
     QJsonDocument root_doc = QJsonDocument::fromJson(data.mid(start_index,json_data_length),&err_pt);
     if(err_pt.error != QJsonParseError::NoError)
     {
