@@ -4,6 +4,7 @@
 
 #include "QsLog.h"
 #include "mysql_table.h"
+#include "qsqlerror.h"
 
 const QString ag_temp_table::c_field_room_id = "room_id";
 const QString ag_temp_table::c_field_run_status = "run_status";
@@ -85,11 +86,29 @@ void ag_temp_table::write_temp(QSqlDatabase &m_database,const QJsonObject &w_dat
     {
         QJsonObject tmp_temp_data = w_data.value("datas").toArray()[i].toObject();
 
+        //临时调试 修改tmp_temp_data的值
+        //tmp_temp_data = "{'cur_temp':1,'cur_time':'2024-06-19 10:40:00','set_temp':3,'room_id':'2','run_status':true}"
+        //tmp_temp_data.empty();
+        //tmp_temp_data.insert(c_field_cur_temp,1);
+        //tmp_temp_data.insert(c_field_set_temp,3);
+        //tmp_temp_data.insert(c_field_run_status,true);
+        //tmp_temp_data.insert(c_field_room_id,"1");
+        //tmp_temp_data.insert(c_field_cur_time,"2024-06-19 10:40:00");
+
         QString tmp_cmd = QString("INSERT INTO %1 (%2,%3,%4,%5,%6) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE %7='%8',%9='%10',%11='%12' ")
                 .arg(m_name,c_field_room_id,c_field_run_status,c_field_cur_temp,c_field_set_temp,c_field_cur_time,
                      c_field_run_status,QString::number(tmp_temp_data.value(c_field_run_status).toBool(false)),
                      c_field_cur_temp,QString::number(tmp_temp_data.value(c_field_cur_temp).toInt(0)),
-                     c_field_set_temp,QString::number(tmp_temp_data.value(c_field_set_temp).toInt(0)));
+                     c_field_set_temp,QString::number(tmp_temp_data.value(c_field_set_temp).toInt(0)),
+                    tmp_temp_data.value(c_field_room_id).toString(),
+                    QString::number(tmp_temp_data.value(c_field_run_status).toBool(false)),
+                    QString::number(tmp_temp_data.value(c_field_cur_temp).toInt(0)),
+                    QString::number(tmp_temp_data.value(c_field_set_temp).toInt(0)),
+                    tmp_temp_data.value(c_field_cur_time).toString()
+                    );
+
+        QLOG_INFO() << tmp_cmd;
+
         query.prepare(tmp_cmd);
 
         query.addBindValue(tmp_temp_data.value(c_field_room_id).toString(""));
@@ -105,6 +124,12 @@ void ag_temp_table::write_temp(QSqlDatabase &m_database,const QJsonObject &w_dat
         }
         else
         {
+            const QSqlError& error = query.lastError();
+            QString err1 = error.text();
+            qDebug() << "Error:" << err1;
+            QLOG_WARN() << "SQL Error:" << err1;
+
+
             QLOG_WARN() << QString("插入新的温度时间段失败 %1,%2,%3,%4,%5").arg(
                        tmp_temp_data.value(c_field_room_id).toString(""),
                        QString::number(tmp_temp_data.value(c_field_run_status).toBool(false)),
@@ -114,6 +139,65 @@ void ag_temp_table::write_temp(QSqlDatabase &m_database,const QJsonObject &w_dat
                      );
         }
     }
+}
+void ag_temp_table::write_temp(QSqlDatabase &m_database,const QJsonObject &w_data,bool writeOnes){
+    if(!writeOnes){return;}
+    QSqlQuery query(m_database);
+    QJsonObject tmp_temp_data = w_data;
+
+    //临时调试 修改tmp_temp_data的值
+    //tmp_temp_data = "{'cur_temp':1,'cur_time':'2024-06-19 10:40:00','set_temp':3,'room_id':'2','run_status':true}"
+    //tmp_temp_data.empty();
+    //tmp_temp_data.insert(c_field_cur_temp,1);
+    //tmp_temp_data.insert(c_field_set_temp,3);
+    //tmp_temp_data.insert(c_field_run_status,true);
+    //tmp_temp_data.insert(c_field_room_id,"1");
+    //tmp_temp_data.insert(c_field_cur_time,"2024-06-19 10:40:00");
+
+    QString tmp_cmd = QString("INSERT INTO %1 (%2,%3,%4,%5,%6) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE %7='%8',%9='%10',%11='%12' ")
+                          .arg(m_name,c_field_room_id,c_field_run_status,c_field_cur_temp,c_field_set_temp,c_field_cur_time,
+                               c_field_run_status,QString::number(tmp_temp_data.value(c_field_run_status).toInt(0)),
+                               c_field_cur_temp,QString::number(tmp_temp_data.value(c_field_cur_temp).toInt(0)),
+                               c_field_set_temp,QString::number(tmp_temp_data.value(c_field_set_temp).toInt(0)),
+                               tmp_temp_data.value(c_field_room_id).toString(),
+                               QString::number(tmp_temp_data.value(c_field_run_status).toInt(0)),
+                               QString::number(tmp_temp_data.value(c_field_cur_temp).toInt(0)),
+                               QString::number(tmp_temp_data.value(c_field_set_temp).toInt(0)),
+                               tmp_temp_data.value(c_field_cur_time).toString()
+                               );
+
+    QLOG_INFO() << tmp_cmd;
+
+    query.prepare(tmp_cmd);
+
+    query.addBindValue(tmp_temp_data.value(c_field_room_id).toString(""));
+    query.addBindValue(tmp_temp_data.value(c_field_run_status).toInt(0));
+    query.addBindValue(tmp_temp_data.value(c_field_cur_temp).toInt(0));
+    query.addBindValue(tmp_temp_data.value(c_field_set_temp).toInt(0));
+    query.addBindValue(tmp_temp_data.value(c_field_cur_time).toString(""));
+
+    if(query.exec())
+    {
+        //新建温度记录项成功
+        QLOG_INFO() << "插入新的温度时间段成功 ";
+    }
+    else
+    {
+        const QSqlError& error = query.lastError();
+        QString err1 = error.text();
+        qDebug() << "Error:" << err1;
+        QLOG_WARN() << "SQL Error:" << err1;
+
+
+        QLOG_WARN() << QString("插入新的温度时间段失败 %1,%2,%3,%4,%5").arg(
+            tmp_temp_data.value(c_field_room_id).toString(""),
+            QString::number(tmp_temp_data.value(c_field_run_status).toBool(false)),
+            QString::number(tmp_temp_data.value(c_field_cur_temp).toInt(0)),
+            QString::number(tmp_temp_data.value(c_field_set_temp).toInt(0)),
+            tmp_temp_data.value(c_field_cur_time).toString("")
+            );
+    }
+
 }
 
 bool ag_temp_table::read_temp(QSqlDatabase &m_database,const QJsonObject &r_data, QJsonObject &data)

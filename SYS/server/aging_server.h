@@ -22,6 +22,7 @@ public slots:
     void onm_start(); //服务器启动
 private :
     QString m_ip = "127.0.0.1";
+    //QString m_port = "incomingConnection";
     QString m_port = "40032";
 
 

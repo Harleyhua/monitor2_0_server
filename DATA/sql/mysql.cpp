@@ -38,6 +38,9 @@ mysql::mysql(QString db_name, QObject *parent)
     //sql_lock.unlock();
 
 }
+QSqlDatabase mysql::getQSqlDatabaseFromMysql(){
+    return m_db;
+}
 mysql::~mysql()
 {
     //sql_lock.lock();
