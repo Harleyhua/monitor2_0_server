@@ -1006,6 +1006,7 @@ void mysql::r_aging_data_by_mi_date(QString mi, QString start_time, QString stop
     bym_type mi_type = abstract_bym::analysis_type(mi);
     QJsonObject read_pv_data;
     QJsonArray datas;
+    //QHash<QString,int> mi_nominal_pw;
     QHash<QString,QString> mi_nominal_pw;
 
     //版本号
