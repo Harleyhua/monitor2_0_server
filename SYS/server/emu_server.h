@@ -56,7 +56,6 @@ public:
 
 private:
     QString m_ip = "127.0.0.1";
-    //QString m_port = "incomingConnection";
     QString m_port = "40031";
 
     QHash<QString,abstract_emu *> m_emus;

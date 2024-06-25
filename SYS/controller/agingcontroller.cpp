@@ -21,9 +21,6 @@ QString gAgingBitchTime[AGINGCABINET];
 
 void agingController::service(HttpRequest& request, HttpResponse& response)
 {
-
-
-
     QByteArray path=request.getPath();
     void (agingController::*deal_method)() = nullptr;
 
@@ -180,6 +177,7 @@ void agingController::setRoomAndDevData()
             miJsObj.insert("ac_power_out",nodeJsObj.value("ac_W").toDouble());
             miJsObj.insert("ac_volt_eff_k",1);
             miJsObj.insert("ac_volt_eff_b",0);
+            //miJsObj.insert("start_time",nodeJsObj.value("aging_start_time").toString());
             miJsObj.insert("start_time",cabinetStartTime);
             miJsObj.insert("age_time",cabinetAgingTime);
             miJsObj.insert("cur_date",CurrentTime);

@@ -87,18 +87,16 @@ void RequestMapper::service(HttpRequest& request, HttpResponse& response)
     QString password = QString::fromUtf8(request.getParameter("password"));
     QSqlDatabase db = sqlconnectpool::openConnection_clh(db_name);
 
-
+    userservice userSv(db);
     //身份验证
-    //临时调试，注释下面代码块
-    //userservice userSv(db);
-    // if(!userSv.checkAccountValid(name,password))
-    // {
-    //     response.setStatus(500,"账户不存在或密码错误");
-    //     response.write(QString("{}").toUtf8(),true);
-    //     //sqlconnectpool::closeConnection(db);
-    //     sqlconnectpool::closeConnection_clh(db,db_name);
-    //     return;
-    // }
+    if(!userSv.checkAccountValid(name,password))
+    {
+        response.setStatus(500,"账户不存在或密码错误");
+        response.write(QString("{}").toUtf8(),true);
+        //sqlconnectpool::closeConnection(db);
+        sqlconnectpool::closeConnection_clh(db,db_name);
+        return;
+    }
 
 
     if(pathCode == 1)

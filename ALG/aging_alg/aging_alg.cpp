@@ -196,7 +196,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             {
                 ignore_mim_code = 0x0808;
             }
-            else if(pv_size == 4)
+            else if(pv_size == 2 || pv_size == 4)
             {
                 if(i == 0 || i== 2)
                 {

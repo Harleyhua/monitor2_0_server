@@ -23,7 +23,7 @@ public:
 
     void onm_del_data();
     bool del_buff_data();
-    void deal_cmd_CS(QByteArray &data,QString cmd, bool writeTEMP = false);  //处理客户端通讯
+    void deal_cmd_CS(QByteArray &data,QString cmd);  //处理客户端通讯
     bool get_root_jsonobj(QByteArray &data,QJsonObject &root_obj,uint32_t start_index = 27);
     void send_cs_msg(QJsonObject &obj,QString cmd,QString status);
     QString get_response_cmd(QString request);

@@ -226,26 +226,18 @@ void agingservice::readMiAgingData(QString mi, QString startTime, QString stopTi
 
     //创建一个JSON数组，用于存储微逆编号
     QJsonArray mi_cid;
-
     //将变量mi（微逆编号）添加到数组中
     mi_cid.append(mi);
-
     //将微逆编号数组作为"mi_cid"字段插入到s_data对象中
     s_data.insert("mi_cid",mi_cid);
-
     //将开始时间作为"start_date"字段插入到s_data对象中
     s_data.insert("start_date",startTime);
-
     //将结束时间作为"stop_date"字段插入到s_data对象中
     s_data.insert("stop_date",stopTime);
-
     // 插入一个字段，可能用于指定查询的数据量或其他用途
     s_data.insert("nums","-1");
-
-
     //根据微逆编号分析并获取微逆类型
     bym_type mi_type = abstract_bym::analysis_type(mi);
-
     //创建一个JSON对象，用于存储从数据库读取的光伏数据
     QJsonObject read_pv_data;
     QJsonArray datas;
@@ -254,12 +246,11 @@ void agingservice::readMiAgingData(QString mi, QString startTime, QString stopTi
     QHash<QString,QString> mi_nominal_pw;
 
     QHash<QString,QString> mi_mim_version;
+
     //用于存储状态时间的字符串变量
     QString st_time;
-
     //从微逆属性表中读取额定功率并存储到哈希表中
     mi_pty_tb.read_nominal_power(mDataBase,QStringList() << mi,mi_nominal_pw);
-
     //4.22修改
     mi_pty_tb.read_nominal_power(mDataBase,QStringList() << mi,mi_mim_version);
 
@@ -269,24 +260,17 @@ void agingservice::readMiAgingData(QString mi, QString startTime, QString stopTi
         QJsonObject pv_data;
         // 将光伏编号作为"pv_id"字段插入到s_data对象中
         s_data.insert("pv_id",QString::number(i+1));
-
         //从功率数据表中读取数据
         pw_dt_tb.read_data(mDataBase,s_data,read_pv_data);
-
         //将读取到的光伏数据作为"pv_datas"字段插入到pv_data对象中
         pv_data.insert("pv_datas",read_pv_data.value("datas").toArray());
-
         //将光伏编号作为"pv_id"字段插入到pv_data对象中
         pv_data.insert("pv_id",i+1);
-
         //获取状态时间
         st_time = read_pv_data.value("stop_date").toString();
-
         //将光伏数据对象添加到datas数组中
         datas.append(pv_data);
-
     }
-
     //准备最终的响应JSON对象
     // 插入微逆编号
     rt_data.insert("mi_cid", mi);
@@ -295,7 +279,8 @@ void agingservice::readMiAgingData(QString mi, QString startTime, QString stopTi
     // 插入单个微逆的额定功率
     rt_data.insert("pv_nominal_power", mi_nominal_pw.value(mi, "1000000").toInt());
     // 插入总的额定功率
-    rt_data.insert("total_nominal_power", mi_nominal_pw.value(mi, "1000000").toInt() * mi_type);
+    //rt_data.insert("total_nominal_power", mi_nominal_pw.value(mi, "1000000").toInt() * mi_type);
+    rt_data.insert("total_nominal_power",mi_nominal_pw.value(mi,"1000000").toInt() * abstract_bym::analysis_type(mi));
     // 插入开始时间
     rt_data.insert("start_time", startTime);
     // 插入结束时间

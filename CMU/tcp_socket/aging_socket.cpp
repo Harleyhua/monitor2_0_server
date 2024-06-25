@@ -75,6 +75,7 @@ bool aging_socket::del_buff_data()
         cmd = str_netdata.mid(8,4);
         deal_cmd_CS(m_buff,cmd);
 
+        //m_buff.remove(0,length + CS_HEAD_FORMAT_LENGTH);//处理过的数据抛出
         m_buff.remove(0,data_size);//处理过的数据抛出
 
         return true;
@@ -89,7 +90,7 @@ bool aging_socket::del_buff_data()
     }
 }
 
-void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd, bool writeTEMP)
+void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd)
 {
     QJsonObject root_js_recv;
     QJsonObject root_js_send;
@@ -107,7 +108,6 @@ void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd, bool writeTEMP)
         if(cmd == CS_RACK_DATA_REQUEST)
         {
             sql.w_rack_data(root_js_recv);
-
             if(root_js_recv.value(CS_TEMP_KEY).toDouble(2) > 0 ){
                 //识别到有温度上传，直接写入温度
                 ag_temp_table tempTable;
@@ -128,8 +128,6 @@ void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd, bool writeTEMP)
 
                 qDebug() << 0;
             }
-
-
             QByteArray msg("HEAD55AA2006210000000000000");
             this->write(msg);
         }

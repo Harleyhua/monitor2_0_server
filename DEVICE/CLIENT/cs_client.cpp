@@ -54,6 +54,11 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             //登录指令
             sql.r_user_property(rev_data,ret_data);
         }
+//        else if(request.getPath().startsWith("/r_mapping"))
+//        {
+//            //读关系列表数据
+//            //sql.r_mapping(rev_data,ret_data);
+//        }
         else if(request.getPath().startsWith("/r_emu_action"))
         {
             //读网关action

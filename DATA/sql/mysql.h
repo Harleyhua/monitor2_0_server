@@ -184,10 +184,6 @@ private:
     QSqlDatabase m_db; //数据库
 
 
-
-
-
-
     //切换当前的数据库
     bool set_current_database(QString database_name);
     bool create_database(QString database_name);   //创建数据库

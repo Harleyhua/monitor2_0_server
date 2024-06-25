@@ -148,6 +148,8 @@ void ag_mi_property_table::read_nominal_power(QSqlDatabase &m_database, QStringL
     for(int i=0;i<mi_cids.size();i++)
     {
         QJsonObject one_mi;
+        //QString tmp_cmd = QString("SELECT %1,%2 FROM %3 WHERE %4='%5'")
+        //        .arg(c_field_cid,c_field_nominal_power,m_name,c_field_cid,mi_cids[i]);
         //添加版本号的读取Mis_version
         QString tmp_cmd = QString("SELECT %1,%2,%3,%4 FROM %5 WHERE %6='%7'")
                               .arg(c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version,m_name,c_field_cid,mi_cids[i]);
@@ -156,6 +158,7 @@ void ag_mi_property_table::read_nominal_power(QSqlDatabase &m_database, QStringL
         if(query.exec())
         {
             query.next();
+            //data.insert(query.value(c_field_cid).toString(),query.value(c_field_nominal_power).toInt());
             data.insert(query.value(c_field_cid).toString(),query.value(c_field_nominal_power).toString());
             data.insert(c_field_mim_version,query.value(c_field_mim_version).toString());
             data.insert(c_field_mis_version,query.value(c_field_mis_version).toString());
@@ -167,4 +170,5 @@ void ag_mi_property_table::read_nominal_power(QSqlDatabase &m_database, QStringL
         }
     }
 }
+
 

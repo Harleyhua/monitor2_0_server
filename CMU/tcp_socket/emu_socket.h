@@ -30,6 +30,7 @@ public:
     QTimer *m_timer = nullptr;
 
     QByteArray m_data_cache;   //socket_data_cache
+    //uint32_t m_timer_count = 0;
 
 public slots:   
     void onm_deal_socket_data(); //获取到新数据
