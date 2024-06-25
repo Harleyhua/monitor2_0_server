@@ -57,10 +57,9 @@ bool aging_socket::del_buff_data()
         QString cmd;
         if(!ok)
         {
-            m_buff.clear();
-
-            QJsonObject send_js;
             //QLOG_WARN() << tr("CS通讯:数据长度字符异常(非数字类型)");
+            m_buff.clear();
+            QJsonObject send_js;
             send_cs_msg(send_js,CS_MI_HISTORY_RESPONSE,CS_JSON_FORMAET_ERROR);
             return false;
         }
@@ -68,16 +67,15 @@ bool aging_socket::del_buff_data()
         if(data_size < length + CS_HEAD_FORMAT_LENGTH)
         {
             //QLOG_WARN() << tr("CS通讯: 数据还未收全 继续接收");
-            //m_buff.clear();
-            //QJsonObject send_js;
-            //send_cs_msg(send_js,CS_ERR_RESPONSE,CS_JSON_LENGTH_ERROR);
+            m_buff.clear();
+            QJsonObject send_js;
+            send_cs_msg(send_js,CS_ERR_RESPONSE,CS_JSON_LENGTH_ERROR);
             return false;
         }
         cmd = str_netdata.mid(8,4);
         deal_cmd_CS(m_buff,cmd);
 
-        m_buff.remove(0,length + CS_HEAD_FORMAT_LENGTH);//处理过的数据抛出
-
+        m_buff.remove(0,data_size);//处理过的数据抛出
 
         return true;
     }
