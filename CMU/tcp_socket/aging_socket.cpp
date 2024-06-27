@@ -67,16 +67,16 @@ bool aging_socket::del_buff_data()
         if(data_size < length + CS_HEAD_FORMAT_LENGTH)
         {
             //QLOG_WARN() << tr("CS通讯: 数据还未收全 继续接收");
-            m_buff.clear();
-            QJsonObject send_js;
-            send_cs_msg(send_js,CS_ERR_RESPONSE,CS_JSON_LENGTH_ERROR);
+            //m_buff.clear();
+            //QJsonObject send_js;
+            //send_cs_msg(send_js,CS_ERR_RESPONSE,CS_JSON_LENGTH_ERROR);
             return false;
         }
         cmd = str_netdata.mid(8,4);
         deal_cmd_CS(m_buff,cmd);
 
-        //m_buff.remove(0,length + CS_HEAD_FORMAT_LENGTH);//处理过的数据抛出
-        m_buff.remove(0,data_size);//处理过的数据抛出
+        m_buff.remove(0,length + CS_HEAD_FORMAT_LENGTH);//处理过的数据抛出
+        //m_buff.remove(0,data_size);//处理过的数据抛出
 
         return true;
     }
@@ -115,9 +115,10 @@ void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd)
                 QJsonObject t1;
                 t1.insert("room_id",root_js_recv.value("room_id"));
                 t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
-                t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)*10));
-                t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)*10));
+                t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)));
+                t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)));
                 t1.insert("cur_time",root_js_recv.value("current_time"));
+                //t1.insert("cur_time",root_js_recv.value("room start time"));
 
                 tempTable.write_temp(q1,t1,true);
 
@@ -145,10 +146,10 @@ bool aging_socket::get_root_jsonobj(QByteArray &data, QJsonObject &root_obj, uin
     bool ok = false;
     int json_data_length = data.mid(16,11).toUInt(&ok);
 
-    if(json_data_length + start_index < data.size()){
+    // if(json_data_length + start_index < data.size()){
 
-        json_data_length = data.size()-start_index;
-    }
+    //    json_data_length = data.size()-start_index;
+    // }
 
     QJsonDocument root_doc = QJsonDocument::fromJson(data.mid(start_index,json_data_length),&err_pt);
     if(err_pt.error != QJsonParseError::NoError)
