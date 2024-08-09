@@ -40,7 +40,7 @@ DISTFILES += \
     ../build-monitor2_0_server-Desktop_Qt_5_15_2_MinGW_64_bit-Debug/debug/sys_config/http_server.ini
 
 #程序版本
-VERSION = 0.2.4.4
+VERSION = 0.2.4.5
 
 #程序名称
 QMAKE_TARGET_PRODUCT = "monitor2_0_server"
