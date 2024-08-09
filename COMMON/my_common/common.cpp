@@ -7,6 +7,8 @@
 #include <QTextCodec>
 #include <QTime>
 #include <QRandomGenerator>
+#include <QFile>
+#include <QTextStream>
 
 
 common::common(QObject *parent)
@@ -14,6 +16,27 @@ common::common(QObject *parent)
 {
 
 }
+
+bool common::writeFile(QString fileName, QByteArray data){
+    // 创建QFile对象，并尝试打开文件用于写入
+    QFile file(fileName);
+    if (file.open(QIODevice::WriteOnly)) {
+        // 将QByteArray写入文件
+        file.write(data);
+
+        // 检查是否有错误发生
+        if (file.error()) {
+            QTextStream(stderr) << "Error writing to file: " << file.errorString();
+        }
+        // 关闭文件
+        file.close();
+    } else {
+        QTextStream(stderr) << "Failed to open file for writing: " << fileName;
+    }
+
+    return 0;
+}
+
 
 bool common::is_ip_valid(QString ip)
 {

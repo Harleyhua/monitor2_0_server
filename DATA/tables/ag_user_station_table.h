@@ -66,7 +66,9 @@ public:
     bool del_station_by_station(QSqlDatabase &m_database,QString total_station);
     static const QString c_field_account;
     static const QString c_field_station;
+
 private:
+    //添加电站到数据库
     QString m_name = "user_station_table";
 signals:
 

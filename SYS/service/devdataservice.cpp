@@ -22,6 +22,7 @@ void devdataservice::readEmuStatus(const QJsonObject &s, QJsonObject &retData)
     emuStatusTable.r_data(mDataBase,s,retData);
 }
 
+//读取微逆数据
 void devdataservice::readMiCurrentPowerData(QStringList Mis, QJsonObject &retData)
 {
     ag_power_data_table powerDataTable;

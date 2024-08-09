@@ -233,11 +233,38 @@ void agingController::getMiAgingReport()
     mResponse->write(common::js_to_qbytearray(retDataJsObj),true);
 }
 
+
+void agingController::getMiHistoryReport()
+{
+    agingservice agingSv(mDataBase);
+    QString startTime = mJsBody.value("select_param").toObject().value("start_time").toString();
+    int mode = mJsBody.value("select_param").toObject().value("mode").toInt(-1);
+    QJsonArray misArray = mJsBody.value("select_param").toObject().value("mis").toArray();
+    //QJsonArray misReport;
+    QJsonObject algorithm;
+    QJsonArray miReport;
+    QJsonObject retDataJsObj;
+    agingSv.readAgingAlgorithm(mName,algorithm);
+
+    for(int i=0;i<misArray.size();i++)
+    {
+        agingSv.ReadMiHistoryReport(mode,misArray[i].toString(""),startTime,algorithm,miReport);
+
+        //misReport.append(miReport);
+    }
+    retDataJsObj.insert("report_datas",miReport);
+
+    mResponse->write(common::js_to_qbytearray(retDataJsObj),true);
+}
+
+
+//获取批次
 void agingController::getMiAgingBatch()
 {
     agingservice agingSv(mDataBase);
     QJsonObject retDataJsObj;
-    agingSv.readBatchList(mJsBody,retDataJsObj);
+    //agingSv.readBatchList(mJsBody,retDataJsObj);
+    agingSv.readBatchList_new(mJsBody,retDataJsObj);
 
     mResponse->write(common::js_to_qbytearray(retDataJsObj),true);
 }

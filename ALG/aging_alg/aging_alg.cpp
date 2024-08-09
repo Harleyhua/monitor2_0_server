@@ -14,7 +14,7 @@ aging_alg::aging_alg()
 
 }
 
-void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<QString, uint16_t> &temp, QJsonObject &r_data)
+void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<QString, uint16_t> &temp, QJsonObject &r_data,int age_time)
 {
     int pv_size = s_data.value("all_pv").toString().toInt();
     int pv_nominal_power = s_data.value("pv_nominal_power").toInt(1000000);
@@ -25,6 +25,12 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     int drop_points_thr = judge_param.value("drop_points_max").toInt(5);
     int ignore_points_thr = judge_param.value("ignore_points_max").toInt(10);
     //int nominal_pw_thr = judge_param.value("nominal_pw_thr").toInt(100000);
+
+    //阈值
+    int agingPoints = judge_param.value("v_aging_points").toInt();
+    int agingTime = judge_param.value("v_aging_time").toInt();
+    //int age_Time = age_time;
+
 
     QJsonArray pv_ret;
     QSet<uint> rm_idx_set;
@@ -106,8 +112,39 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         uint16_t mim_code = 0; //累计故障码
         uint16_t mis_code = 0;
 
+        //原边故障定义(14)
+        uint16_t pv_ov_point = 0; //光伏板过压次数
+        uint16_t pv_un_point = 0; //光伏板欠压次数
         uint16_t dcov_point = 0; //变压器过压次数
         uint16_t dcoa_point = 0; //变压器过流次数
+        uint16_t mi_island_point = 0; //逆变器孤岛
+        uint16_t low_res_point = 0; //绝缘阻抗低
+        uint16_t pv_ov_point2 = 0; //光伏板过压2
+        uint16_t pv_un_point2 = 0; //光伏板欠压2
+        uint16_t dc_ov_point2 = 0; //开关管过压2
+        uint16_t dc_oc_point2 = 0; //开关管过流2
+        uint16_t sync_err_point = 0; //原副边同步异常
+        uint16_t safe_err_point = 0; //安全链信号异常
+        uint16_t grid_point = 0; //电网电压频率异常
+        uint16_t remote_point = 0; //遥控关机使能
+
+        //副边故障定义(16)
+        uint16_t grid_ov_point = 0; //电网过压
+        uint16_t grid_un_point = 0; //电网欠压
+        uint16_t grid_ovfre_point = 0; //电网过频
+        uint16_t grid_unfre_point = 0; //电网欠频
+        uint16_t lock_err_point = 0; //锁相异常
+        uint16_t grid_surge_point = 0; //电网电压冲击
+        uint16_t SEC_MCU_point = 0; //副边 MCU 电压过低
+        uint16_t mispv_un_point = 0; //PV 电压过低
+        uint16_t H_oc_point = 0; //H 桥过流
+        uint16_t H_ov_point = 0; //H 桥过压
+        uint16_t grid_dis_point = 0; //电网失真大
+        uint16_t reserved = 0; //保留
+        uint16_t PRI2_point = 0; //原边2与副边通信异常
+        uint16_t PRI1_point = 0; //原边1与副边通信异常
+        uint16_t grid_fre_point = 0; //电网频率未达恢复区间
+        uint16_t grid_vo_point = 0; //电网电压未达恢复区间
 
         int ignore_points = 0; //发生异常时后续忽略的点数
         int ignore_times = 0;  //异常忽略的次数
@@ -152,23 +189,174 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             {
                bool ret = false;
                uint16_t new_code = QString(mim_err).toInt(&ret,16);
+               //光伏板过压
+               if(new_code & 0x8000)
+               {
+                   pv_ov_point++;
+               }
+               //光伏板欠压
+               if(new_code & 0x4000)
+               {
+                   pv_un_point++;
+               }
                //变压器过压
                if(new_code & 0x2000)
                {
-                  dcov_point++;
+                   dcov_point++;
                }
                //变压器过流
                if(new_code & 0x1000)
                {
-                  dcoa_point++;
+                   dcoa_point++;
+               }
+               // //开关管过温
+               // if(new_code & 0x0800)
+               // {
+               //     dcov_point++;
+               // }
+               //逆变器孤岛
+               if(new_code & 0x0400)
+               {
+                   mi_island_point++;
+               }
+               //绝缘阻抗低
+               if(new_code & 0x0200)
+               {
+                   low_res_point++;
+               }
+               // //开关管过温2
+               // if(new_code & 0x0100)
+               // {
+               //     dcoa_point++;
+               // }
+               //光伏板过压2
+               if(new_code & 0x0080)
+               {
+                   pv_ov_point2++;
+               }
+               //光伏板欠压2
+               if(new_code & 0x0040)
+               {
+                   pv_un_point2++;
+               }
+               //开关管过压2
+               if(new_code & 0x0020)
+               {
+                   dc_ov_point2++;
+               }
+               //开关管过流2
+               if(new_code & 0x0010)
+               {
+                   dc_oc_point2++;
+               }
+               //原副边同步异常
+               if(new_code & 0x0008)
+               {
+                   sync_err_point++;
+               }
+               //安全链信号异常
+               if(new_code & 0x0004)
+               {
+                   safe_err_point++;
+               }
+               //电网电压频率异常
+               if(new_code & 0x0002)
+               {
+                   grid_point++;
+               }
+               //遥控关机使能
+               if(new_code & 0x0001)
+               {
+                   remote_point++;
                }
                mim_code |= new_code;
             }
 
+            //副边故障
             if(mis_err != "0000")
             {
                 bool ret = false;
                 uint16_t new_code = QString(mis_err).toInt(&ret,16);
+                //电网过压
+                if(new_code & 0x8000)
+                {
+                    grid_ov_point++;
+                }
+                //电网欠压
+                if(new_code & 0x4000)
+                {
+                    grid_un_point++;
+                }
+                //电网过频
+                if(new_code & 0x2000)
+                {
+                    grid_ovfre_point++;
+                }
+                //电网欠频
+                if(new_code & 0x1000)
+                {
+                    grid_unfre_point++;
+                }
+                //锁相异常
+                if(new_code & 0x0800)
+                {
+                    lock_err_point++;
+                }
+                //电网电压冲击
+                if(new_code & 0x0400)
+                {
+                    grid_surge_point++;
+                }
+                //副边 MCU 电压过低
+                if(new_code & 0x0200)
+                {
+                    SEC_MCU_point++;
+                }
+                //PV 电压过低
+                if(new_code & 0x0100)
+                {
+                    mispv_un_point++;
+                }
+                //H 桥过流
+                if(new_code & 0x0080)
+                {
+                    H_oc_point++;
+                }
+                //H 桥过压
+                if(new_code & 0x0040)
+                {
+                    H_ov_point++;
+                }
+                //电网失真大
+                if(new_code & 0x0020)
+                {
+                    grid_dis_point++;
+                }
+                //保留
+                if(new_code & 0x0010)
+                {
+                    reserved++;
+                }
+                //原边2与副边通信异常
+                if(new_code & 0x0008)
+                {
+                    PRI2_point++;
+                }
+                //原边1与副边通信异常
+                if(new_code & 0x0004)
+                {
+                    PRI1_point++;
+                }
+                //电网频率未达恢复区间
+                if(new_code & 0x0002)
+                {
+                    grid_fre_point++;
+                }
+                //电网电压未达恢复区间
+                if(new_code & 0x0001)
+                {
+                    grid_vo_point++;
+                }
                 mis_code |= new_code;
             }
 
@@ -444,8 +632,13 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         {
             if(~(uint)judge_param.value("mim1_err").toInt() & mim_code)
             {
-                if(dcov_point > DCOV_ERR_COUNT_MAX ||
-                   dcoa_point > DCOA_ERR_COUNT_MAX)
+                if(pv_ov_point  > PVOV_ERR_COUNT_MAX  ||pv_un_point  > PVUN_ERR_COUNT_MAX ||
+                dcov_point > DCOV_ERR_COUNT_MAX ||dcoa_point > DCOA_ERR_COUNT_MAX||
+                mi_island_point > MIIS_ERR_COUNT_MAX ||low_res_point  > LOW_RES_COUNT_MAX ||
+                pv_ov_point2 > PVOV2_ERR_COUNT_MAX ||pv_un_point2 > PVUN2_ERR_COUNT_MAX ||
+                dc_ov_point2 > DC_OV2_ERR_COUNT_MAX ||dc_oc_point2 > DC_UN2_ERR_COUNT_MAX ||
+                sync_err_point > SYNC_ERR_COUNT_MAX ||safe_err_point > SAFE_ERR_COUNT_MAX ||
+                grid_point > GRID_ERR_COUNT_MAX ||remote_point > REMOTE_ERR_COUNT_MAX )
                 {
                     tmp_ret = errcode_data;
                 }
@@ -455,17 +648,34 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         {
             if(~(uint)judge_param.value("mim2_err").toInt() & mim_code)
             {
-                if(dcov_point > DCOV_ERR_COUNT_MAX ||
-                   dcoa_point > DCOA_ERR_COUNT_MAX)
+                if(pv_ov_point  > PVOV_ERR_COUNT_MAX  ||pv_un_point  > PVUN_ERR_COUNT_MAX ||
+                    dcov_point > DCOV_ERR_COUNT_MAX ||dcoa_point > DCOA_ERR_COUNT_MAX||
+                    mi_island_point > MIIS_ERR_COUNT_MAX ||low_res_point  > LOW_RES_COUNT_MAX ||
+                    pv_ov_point2 > PVOV2_ERR_COUNT_MAX ||pv_un_point2 > PVUN2_ERR_COUNT_MAX ||
+                    dc_ov_point2 > DC_OV2_ERR_COUNT_MAX ||dc_oc_point2 > DC_UN2_ERR_COUNT_MAX ||
+                    sync_err_point > SYNC_ERR_COUNT_MAX ||safe_err_point > SAFE_ERR_COUNT_MAX ||
+                    grid_point > GRID_ERR_COUNT_MAX ||remote_point > REMOTE_ERR_COUNT_MAX )
                 {
                     tmp_ret = errcode_data;
                 }
             }
         }
-        // if(~(uint)judge_param.value("mis_err").toInt() & mis_code)
-        // {
-        //     tmp_ret = errcode_data;
-        // }
+        //副边故障打开，判断每一个故障
+        if(~(uint)judge_param.value("mis_err").toInt() & mis_code)
+        {
+            if(grid_ov_point > GRID_OV_COUNT_MAX || grid_un_point > GRID_UN_COUNT_MAX ||
+            grid_ovfre_point  > GRID_OVF_COUNT_MAX  || grid_unfre_point  > GRID_UNF_COUNT_MAX ||
+            lock_err_point > LOCK_ERR_COUNT_MAX || grid_surge_point > GRID_SUR_COUNT_MAX ||
+            SEC_MCU_point > MCU_UN_COUNT_MAX  || mispv_un_point > PV_UN_COUNT_MAX ||
+            H_oc_point > HOC_ERR_COUNT_MAX || H_ov_point > HOV_ERR_COUNT_MAX ||
+            grid_dis_point > GRID_DIS_ERR_COUNT_MAX || reserved > RESERVER_ERR_COUNT_MAX ||
+            PRI2_point > PRI2CM_ERR_COUNT_MAX || PRI1_point > PRI1CM_ERR_COUNT_MAX ||
+            grid_fre_point > GF_ERR_COUNT_MAX || grid_vo_point > GV_ERR_COUNT_MAX )
+            {
+                tmp_ret = errcode_data;
+            }
+
+        }
 
 #if CAL_TEMP40_SWITCH
         if(pv_judge_param.value("v_pv_rm40_pwmin").toInt() != -1)
@@ -627,26 +837,64 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
 
             tmp_ret = nopower_data;
         }
+
+        int a1 = pv_datas.size(); //实际值
+        int aging_points_now = age_time /2 ; //标准值
+
+        // 计算实际点数占阈值的百分比 (实际值/标准值*100)
+        double percen_points = (double)a1 / aging_points_now * 100.0;
         if(judge_param.value("v_aging_points").toInt() != -1)
         {
-            if(pv_datas.size() < judge_param.value("v_aging_points").toInt())
+            if(percen_points < agingPoints)
             {
                 tmp_ret = missing_point_data;
             }
         }
+
+        // if(judge_param.value("v_aging_points").toInt() != -1)
+        // {
+        //     if(pv_datas.size() < judge_param.value("v_aging_points").toInt())
+        //     {
+        //         tmp_ret = missing_point_data;
+        //     }
+        // }
+
+        start_time = s_data.value("start_time").toString();
         if(judge_param.value("v_aging_time").toInt() != -1)
         {
             QDateTime start_time_dt  =  QDateTime::fromString(start_time,"yyyy-MM-dd hh:mm:ss");
             QDateTime stop_time_dt = QDateTime::fromString(stop_time,"yyyy-MM-dd hh:mm:ss");
-            if((start_time_dt.secsTo(stop_time_dt)/60) < judge_param.value("v_aging_time").toInt())
+
+            qint64 min = start_time_dt.secsTo(stop_time_dt);
+            int d = min / 60; //老化的分钟数
+
+            // 实际老化时长/规定老化的时间 *100.0
+            double percent_time = (double)d / age_time * 100.0;
+
+            if(percent_time < agingTime)
             {
                 tmp_ret = missing_time_data;
             }
         }
+
+        // if(judge_param.value("v_aging_time").toInt() != -1)
+        // {
+        //     QDateTime start_time_dt  =  QDateTime::fromString(start_time,"yyyy-MM-dd hh:mm:ss");
+        //     QDateTime stop_time_dt = QDateTime::fromString(stop_time,"yyyy-MM-dd hh:mm:ss");
+
+        //     //int c = start_time_dt.secsTo(stop_time_dt)/60;
+
+        //     if((start_time_dt.secsTo(stop_time_dt)/60) < judge_param.value("v_aging_time").toInt())
+        //     {
+        //         tmp_ret = missing_time_data;
+        //     }
+        // }
+
         if(pv_datas.size() == 0)
         {
             tmp_power_max = DEFAULT_VALUE_MAX;
             tmp_power_min = DEFAULT_VALUE_MIN;
+
 #if CAL_TEMP40_SWITCH
         tmp_40power_max = DEFAULT_VALUE_MAX;
         tmp_40power_min = DEFAULT_VALUE_MIN;

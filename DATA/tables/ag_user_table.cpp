@@ -117,6 +117,25 @@ bool ag_user_table::read_algorithm(QSqlDatabase &m_database, QString account, QJ
 
 }
 
+//数据库查询
+// bool ag_user_table::read_total_stations(QSqlDatabase &m_database, QString account, QString &total_station)
+// {
+//     QString cmd = QString("SELECT %1 FROM %2 WHERE %3='%4'").arg(c_field_total_stations,m_name,c_field_account,account);
+//     QSqlQuery query(m_database);
+
+//     if(query.exec(cmd))
+//     {
+//         if(query.next())
+//         {
+//             total_station = query.value(c_field_total_stations).toString();
+//             return true;
+//         }
+//     }
+
+//     return false;
+// }
+
+
 bool ag_user_table::read_total_stations(QSqlDatabase &m_database, QString account, QString &total_station)
 {
     QString cmd = QString("SELECT %1 FROM %2 WHERE %3='%4'").arg(c_field_total_stations,m_name,c_field_account,account);
@@ -133,6 +152,7 @@ bool ag_user_table::read_total_stations(QSqlDatabase &m_database, QString accoun
 
     return false;
 }
+
 
 bool ag_user_table::read_all_total_station(QSqlDatabase &m_database, QStringList &stations)
 {

@@ -277,9 +277,10 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
                     //读取该微逆的温度数据
                     sql.r_temp(room,aging_data.value("start_time").toString(),aging_data.value("stop_time").toString(),room_temp);
 
+                    int agetime = 0;
                     //进行老化分析
                     tmp_aging_alg.aging_report(aging_data,jud_params.value("bym" + QString::number(aging_data.value("total_nominal_power").toInt())).toObject(),
-                                               room_temp,mi_report);
+                                               room_temp,mi_report,agetime);
 
 #if(SAVE_MI_REPORT)
                     //已经老化结束的情况下

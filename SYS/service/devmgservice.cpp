@@ -187,7 +187,7 @@ void devmgservice::DevMapping(QString totalStation, QStringList &retMis, QJsonOb
     ag_station_emu_table stationEmuTable;
 
     QJsonArray mapDataArray;
-    //
+
     //获取电站列表
     userStationTable.read_station(mDataBase,totalStation,stationsJsObj);
     stationsArray = stationsJsObj.value("datas").toObject().value("station").toArray();
@@ -252,6 +252,7 @@ void devmgservice::DevMapping(QString totalStation, QStringList &retMis, QJsonOb
     retData.insert("mapping_datas",mapDataArray);
 }
 
+//添加电站函数
 void devmgservice::addStation(QString totalStation, const QJsonObject &s)
 {
     ag_user_station_table userStationTable;

@@ -35,6 +35,7 @@ void userservice::readUserInfo(const QJsonObject &s, QJsonObject &rtData)
     userTable.read_account(mDataBase,s,rtData);
 }
 
+//查找实时数据函数
 QString userservice::readUserTotalStation(QString account)
 {
     ag_user_table userTable;

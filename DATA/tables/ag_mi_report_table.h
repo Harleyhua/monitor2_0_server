@@ -31,6 +31,8 @@ public:
     bool read_mi_report(QSqlDatabase &m_database,QString mi,QString start_time,QString stop_time,QVector<aging_report_strc> &rt_data);
     void write_mi_report(QSqlDatabase &m_database,aging_report_strc &s_data);
 
+    bool read_mi_history_report(QSqlDatabase &m_database,QString mi,QString start_time,QString stop_time,QVector<aging_report_strc> &rt_data);
+
 
     static const QString c_field_mi_cid;
     static const QString c_field_start_time;

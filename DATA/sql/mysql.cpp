@@ -347,7 +347,6 @@ void mysql::add_wifimi_cid(QString user,QString station, QString emu, QString mi
             tmp_emu_mi_tb.w_one_mi(m_db,emu,mi,mi_desc);
         }
     }
-
 }
 
 bool mysql::del_station(QString user,const QJsonObject &s_data)
@@ -467,9 +466,6 @@ void mysql::del_mi(QString user, QJsonObject &s_data)
 //}
 
 
-
-
-
 void mysql::w_mi_property(QJsonObject &s_data)
 {
     ag_mi_property_table tmp_mi_pty_tb;
@@ -583,6 +579,7 @@ void mysql::w_rack_data(QJsonObject &s_data)
     QString room = s_data.value("room_id").toString();
     QString current = s_data.value("current_time").toString();
     QJsonArray racks = s_data.value("racks").toArray();
+    QString aging_room = "aging_room" + room.mid(5, 2);
 
     QJsonObject rk_data_obj;
     QJsonArray w_datas_array;
@@ -590,21 +587,49 @@ void mysql::w_rack_data(QJsonObject &s_data)
     QStringList default_aging_emu;
     ag_station_emu_table station_emu_tb;
 
+    del_station(aging_room, room);
+    add_station(aging_room, room);
 
-    del_station("aging_room1","room-1");
+    // del_station("aging_room1","room-1");
+    // add_station("aging_room1","room-1");
 
-    add_station("aging_room1","room-1");
-
-    for(int i=1;i<=6;i++)
-    {
-        for(int j=1;j<=8;j++)
+    // //网关编号和位置
+    QString emu_cid_values[3] = {"0108", "0916", "1724"};
+    if(room == "room-1"){
+        for(int i=1;i<=6;i++)
         {
-            QString emu_cid = "909999" + QString::number(i)+QString::number(j);
-            QString emu_desc = "rack-" + QString::number(i) + " L" + QString::number(j);
-            default_aging_emu.append(emu_cid);
-            emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
-
-            station_emu_tb.w_one_emu(m_db,"room-1",emu_cid,emu_desc);
+            for(int j=1;j<=8;j++)
+            {
+                QString emu_cid = "909999" + QString::number(i)+QString::number(j);
+                //rack-1 L2
+                QString emu_desc = "rack-" + QString::number(i) + " L" + QString::number(j);
+                default_aging_emu.append(emu_cid);
+                //调用 emu_mi_tb 的 del_mis_by_emucid 函数，删除数据库中对应 emu_cid 的记录
+                emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
+                station_emu_tb.w_one_emu(m_db,room,emu_cid,emu_desc);
+                //station_emu_tb.w_one_emu(m_db,"room-1",emu_cid,emu_desc);
+            }
+        }
+    }
+    else{
+        QString emu_desc;
+        for(int i = 0; i <= 2; i++)
+        {
+            QString emu_cid = "9" + room.mid(5, 2) + "0" + emu_cid_values[i];
+            for(int j = 1; j <= 3; j++)
+            {
+                emu_desc = "rack-" + QString::number(i + 1) + " L" + QString::number(j);
+                // 尝试执行数据库操作
+                try {
+                    default_aging_emu.append(emu_cid);
+                    //调用 emu_mi_tb 的 del_mis_by_emucid 函数，删除数据库中对应 emu_cid 的记录
+                    emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
+                    station_emu_tb.w_one_emu(m_db,room,emu_cid,emu_desc);
+                } catch (const std::bad_alloc& ba) {
+                    // 处理内存分配失败的情况
+                    //std::cerr << "Memory allocation failed: " << ba.what() << std::endl;
+                }
+            }
         }
     }
 
@@ -633,8 +658,17 @@ void mysql::w_rack_data(QJsonObject &s_data)
             {
                 continue;
             }
+            QString emu_cid;
             QString mi_cid = node_obj.value("mi_cid").toString();
-            QString emu_cid = "909999" + rack_name.rightRef(1) + pos.mid(0,1);//默认规则  需要人为支持
+
+            //需要修改
+            if(room == "room-1"){
+                emu_cid = "909999" + rack_name.rightRef(1) + pos.mid(0,1);//默认规则  需要人为支持
+            }
+            else{
+                emu_cid= "9" + room.mid(5, 2) + "0" + emu_cid_values[i];
+            }
+
             QStringList plc_mis = emu_mi.value(emu_cid);
             bool is_wifi = false;
             QString old_emu_wifi_mi_cid = mi_cid;
@@ -665,7 +699,6 @@ void mysql::w_rack_data(QJsonObject &s_data)
                 {
                     plc_mis.append(mi_cid);
                 }
-
                 mi_desc.insert(mi_cid, rack_name + " " + pos);
             }
             emu_mi.insert(emu_cid,plc_mis);
@@ -697,9 +730,11 @@ void mysql::w_rack_data(QJsonObject &s_data)
         //处理映射
         QStringList keys = emu_mi.keys();
 
+        // 遍历keys列表
         for(int j=0;j<keys.size();j++)
         {
             QStringList e_mis = emu_mi[keys[j]];
+            // 遍历当前key下的e_mis列表
             for(int k = 0;k<e_mis.size();k++)
             {
                 emu_mi_tb.w_one_mi(m_db,keys[j],e_mis[k],mi_desc[e_mis[k]]);
@@ -709,13 +744,18 @@ void mysql::w_rack_data(QJsonObject &s_data)
         keys = emu_wifi_mis.keys();
         for(int j=0;j<keys.size();j++)
         {
-             add_wifimi_cid("aging_room1","room-1",keys[j],emu_wifi_mis[keys[j]],mi_desc[emu_wifi_mis[keys[j]]]);
+            //wifi版微逆通过这个函数添加，需要在user_table表中存在toltal_station
+            //add_wifimi_cid("aging_room1","room-1",keys[j],emu_wifi_mis[keys[j]],mi_desc[emu_wifi_mis[keys[j]]]);
+            add_wifimi_cid(aging_room,room,keys[j],emu_wifi_mis[keys[j]],mi_desc[emu_wifi_mis[keys[j]]]);
         }
     }
 
+    //遍历default_aging_emu列表
     for(int i=0;i<default_aging_emu.size();i++)
     {
-        update_dev_control("total_station1","room-1",default_aging_emu[i],
+        //update_dev_control("total_station1","room-1",default_aging_emu[i],
+        //                   QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"),0x01,"");
+        update_dev_control("total_station1",room,default_aging_emu[i],
                            QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"),0x01,"");
     }
 
@@ -1006,11 +1046,11 @@ void mysql::r_aging_data_by_mi_date(QString mi, QString start_time, QString stop
     bym_type mi_type = abstract_bym::analysis_type(mi);
     QJsonObject read_pv_data;
     QJsonArray datas;
-    //QHash<QString,int> mi_nominal_pw;
-    QHash<QString,QString> mi_nominal_pw;
+    QHash<QString,int> mi_nominal_pw;
+    //QHash<QString,QString> mi_nominal_pw;
 
     //版本号
-    QHash<QString,QString> mi_mim_version;
+    //QHash<QString,QString> mi_mim_version;
 
     QString st_time;
     mi_pty_tb.read_nominal_power(m_db,QStringList() << mi,mi_nominal_pw);
@@ -1028,14 +1068,16 @@ void mysql::r_aging_data_by_mi_date(QString mi, QString start_time, QString stop
 
     rt_data.insert("mi_cid",mi);
     rt_data.insert("all_pv",QString::number(mi_type));
-    rt_data.insert("pv_nominal_power",mi_nominal_pw.value(mi,"1000000"));
-    rt_data.insert("total_nominal_power",mi_nominal_pw.value(mi,"1000000").toInt() * abstract_bym::analysis_type(mi));
+    // rt_data.insert("pv_nominal_power",mi_nominal_pw.value(mi,"1000000"));
+    // rt_data.insert("total_nominal_power",mi_nominal_pw.value(mi,"1000000").toInt() * abstract_bym::analysis_type(mi));
+    rt_data.insert("pv_nominal_power",mi_nominal_pw.value(mi,1000000));
+    rt_data.insert("total_nominal_power",mi_nominal_pw.value(mi,1000000) * abstract_bym::analysis_type(mi));
     rt_data.insert("start_time",start_time);
     rt_data.insert("stop_time",st_time);
     rt_data.insert("datas",datas);
 
     //版本号
-    rt_data.insert("pv_nominal_power",mi_mim_version.value(mi,"0.0"));
+    //rt_data.insert("pv_nominal_power",mi_mim_version.value(mi,"0.0"));
 }
 bool mysql::r_mi_report(QString mi, QString start_time,QString stop_time,QString alg, QString &report)
 {
@@ -1085,6 +1127,7 @@ void mysql::r_batch_list(QJsonObject &s_data, QJsonObject &rt_data)
 {
     ag_rack_data_table rk_dt_tb;
     QStringList batch_list;  //开始时间列表
+    //rk_dt_tb.read_batch_list(m_db,s_data.value("start_time").toString(),s_data.value("stop_time").toString(),s_data.value("room").toString(),batch_list);
     rk_dt_tb.read_batch_list(m_db,s_data.value("start_time").toString(),s_data.value("stop_time").toString(),batch_list);
 
     QJsonArray batch_array;

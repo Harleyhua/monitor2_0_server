@@ -351,6 +351,7 @@ bool ag_power_data_table::read_data(QSqlDatabase &m_database,const QJsonObject &
             pv_data_js.insert(c_field_gridf,QString::number(query.value(c_field_gridf).toFloat(),'f',2));
             pv_data_js.insert(c_field_mim_err,query.value(c_field_mim_err).toString());
             pv_data_js.insert(c_field_mis_err,query.value(c_field_mis_err).toString());
+            pv_data_js.insert(c_field_mis_err,query.value(c_field_mis_err).toString());
             //pv_data_js.insert("nominal_power",(int64_t)tmp_nominal.value(query.value(m_powertable_field.mi_cid).toString()));
             pv_data_js.insert(c_field_reissue_data,query.value(c_field_reissue_data).toString());
             pv_data_js.insert(c_field_sys_time,query.value(c_field_sys_time).toDateTime().toString("yyyy-MM-dd hh:mm:ss"));
@@ -384,9 +385,7 @@ bool ag_power_data_table::read_data(QSqlDatabase &m_database,const QJsonObject &
 }
 
 
-
-
-
+//从数据库中读取
 void ag_power_data_table::read_current_data(QSqlDatabase &m_database, QStringList &mi_list, QJsonObject &data)
 {
     //QJsonObject tmp_param = r_data.value("params").toObject();
@@ -399,7 +398,8 @@ void ag_power_data_table::read_current_data(QSqlDatabase &m_database, QStringLis
     QStringList table_list;
     ag_power_index_table pw_tb;
     ag_mi_property_table mi_pty_tb;
-    QHash<QString,QString> mi_nominal_pw;
+    //QHash<QString,QString> mi_nominal_pw;
+    QHash<QString,int> mi_nominal_pw;
     QJsonArray pv_data_array;
 
     mi_pty_tb.read_nominal_power(m_database,mi_list,mi_nominal_pw);
@@ -409,6 +409,7 @@ void ag_power_data_table::read_current_data(QSqlDatabase &m_database, QStringLis
         QString tmp_cur_table = "";
         QString tmp_cmd;
 
+        //通过表中的索引去找 表power_data_2412_1
         table_list = pw_tb.read_tablelist_from_mi(m_database,QStringList() << mi_list[i]);
         //找到日期最大的表
         for(int j=0;j<table_list.size();j++)

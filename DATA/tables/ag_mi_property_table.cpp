@@ -142,26 +142,55 @@ void ag_mi_property_table::read_property(QSqlDatabase &m_database, QString mi_ci
     }
 }
 
-void ag_mi_property_table::read_nominal_power(QSqlDatabase &m_database, QStringList mi_cids, QHash<QString, QString> &data)
+// void ag_mi_property_table::read_nominal_power(QSqlDatabase &m_database, QStringList mi_cids, QHash<QString, QString> &data)
+// {
+//     QSqlQuery query(m_database);
+//     for(int i=0;i<mi_cids.size();i++)
+//     {
+//         QJsonObject one_mi;
+//         //QString tmp_cmd = QString("SELECT %1,%2 FROM %3 WHERE %4='%5'")
+//         //        .arg(c_field_cid,c_field_nominal_power,m_name,c_field_cid,mi_cids[i]);
+//         //添加版本号的读取Mis_version
+//         QString tmp_cmd = QString("SELECT %1,%2,%3,%4 FROM %5 WHERE %6='%7'")
+//                               .arg(c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version,m_name,c_field_cid,mi_cids[i]);
+
+//         query.prepare(tmp_cmd);
+//         if(query.exec())
+//         {
+//             query.next();
+//             //data.insert(query.value(c_field_cid).toString(),query.value(c_field_nominal_power).toInt());
+//             data.insert(query.value(c_field_cid).toString(),query.value(c_field_nominal_power).toString());
+//             data.insert(c_field_mim_version,query.value(c_field_mim_version).toString());
+//             data.insert(c_field_mis_version,query.value(c_field_mis_version).toString());
+//             //QLOG_INFO() << "读取微逆对象属性成功";
+//         }
+//         else
+//         {
+//             QLOG_WARN() << "读取微逆对象属性失败";
+//         }
+//     }
+// }
+
+void ag_mi_property_table::read_nominal_power(QSqlDatabase &m_database, QStringList mi_cids, QHash<QString,int> &data)
 {
     QSqlQuery query(m_database);
     for(int i=0;i<mi_cids.size();i++)
     {
         QJsonObject one_mi;
-        //QString tmp_cmd = QString("SELECT %1,%2 FROM %3 WHERE %4='%5'")
-        //        .arg(c_field_cid,c_field_nominal_power,m_name,c_field_cid,mi_cids[i]);
-        //添加版本号的读取Mis_version
-        QString tmp_cmd = QString("SELECT %1,%2,%3,%4 FROM %5 WHERE %6='%7'")
-                              .arg(c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version,m_name,c_field_cid,mi_cids[i]);
+        QString tmp_cmd = QString("SELECT %1,%2 FROM %3 WHERE %4='%5'")
+               .arg(c_field_cid,c_field_nominal_power,m_name,c_field_cid,mi_cids[i]);
+        // 添加版本号的读取Mis_version
+        // QString tmp_cmd = QString("SELECT %1,%2,%3,%4 FROM %5 WHERE %6='%7'")
+        //                       .arg(c_field_cid,c_field_nominal_power,c_field_mim_version,c_field_mis_version,m_name,c_field_cid,mi_cids[i]);
 
         query.prepare(tmp_cmd);
         if(query.exec())
         {
             query.next();
-            //data.insert(query.value(c_field_cid).toString(),query.value(c_field_nominal_power).toInt());
-            data.insert(query.value(c_field_cid).toString(),query.value(c_field_nominal_power).toString());
-            data.insert(c_field_mim_version,query.value(c_field_mim_version).toString());
-            data.insert(c_field_mis_version,query.value(c_field_mis_version).toString());
+            data.insert(query.value(c_field_cid).toString(),query.value(c_field_nominal_power).toInt());
+            //data.insert(query.value(c_field_cid).toString(),query.value(c_field_nominal_power).toString());
+            data.insert(c_field_mim_version,query.value(c_field_mim_version).toInt());
+            data.insert(c_field_mis_version,query.value(c_field_mis_version).toInt());
             //QLOG_INFO() << "读取微逆对象属性成功";
         }
         else

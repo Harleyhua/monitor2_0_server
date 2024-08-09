@@ -15,7 +15,7 @@
 #include "QsLog.h"
 //#include "common.h"
 
-#define VERSION "软件版本2.38"
+#define VERSION "软件版本2.44"
 
 QString g_ota_beta_dir_path = "";     //ota测试文件目录
 QString g_ota_official_dir_path = ""; //ota正式文件目录

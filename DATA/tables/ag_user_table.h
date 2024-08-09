@@ -63,6 +63,7 @@ public:
     static const QString c_field_login_date;
 
 private:
+    //数据库
     QString m_name = "user_table";
 
 };

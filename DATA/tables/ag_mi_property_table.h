@@ -70,8 +70,8 @@ public:
     void read_property(QSqlDatabase &m_database,QJsonObject &r_data,QJsonObject &data);
     void read_property(QSqlDatabase &m_database,QString mi_cid,QJsonObject &data);
 
-    //void read_nominal_power(QSqlDatabase &m_database,QStringList mi_cid,QHash<QString,int> &data);
-    void read_nominal_power(QSqlDatabase &m_database,QStringList mi_cid,QHash<QString,QString> &data);
+    void read_nominal_power(QSqlDatabase &m_database,QStringList mi_cid,QHash<QString,int> &data);
+    //void read_nominal_power(QSqlDatabase &m_database,QStringList mi_cid,QHash<QString,QString> &data);
 
     static const QString c_field_cid;
     static const QString c_field_nominal_power;

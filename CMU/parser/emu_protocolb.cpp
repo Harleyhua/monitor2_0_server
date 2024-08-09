@@ -257,28 +257,6 @@ bool emu_protocolb::emu_type_analysis(QByteArray &netdata, QString &name, emu_ty
             {
                 name = QString::number(common::qbtarray_to_u32(netdata,10),16).toUpper();
                 return true;
-
-//                if(cmd == C_HAND_CMD ||cmd == C_LOGIN_CMD || cmd== C_POWER_CMD)
-//                {
-//                    name = QString::number(common::qbtarray_to_u32(netdata,10),16);
-//                    return true;
-// //                    if(type_analysis(common::qbtarray_to_u16(netdata,30),type))
-// //                    {
-// //                        return true;
-// //                    }
-// //                    else
-// //                    {
-// //                        QLOG_INFO() << "服务器接收: " + QString(netdata.toHex(' '));
-// //                        netdata.clear();
-// //                        return false;
-// //                    }
-//                }
-//                else
-//                {
-//                     netdata.clear();
-//                }
- //                    deal_cmd_B(netdata,cmd);
- //                    pop_cache(length); //处理过的数据抛出
             }
             else {
                 QLOG_INFO() << "服务器接收: " + QString(netdata.toHex(' '));
@@ -387,7 +365,6 @@ void emu_protocolb::to_powerdata_json(const QByteArray &s_data, QJsonObject &rt_
     {
         QJsonObject mi_json;
         start_index = 18 + 25*i;
-
         mi_json.insert(ag_power_data_table::c_field_emu_cid,t_emu_cid);
         mi_json.insert(ag_power_data_table::c_field_emu_time,t_emu_date);
         mi_json.insert(ag_power_data_table::c_field_mi_cid,QString::number(common::qbtarray_to_u32(s_data,start_index),16)); //index 18-22);

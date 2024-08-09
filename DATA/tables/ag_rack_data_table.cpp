@@ -3,8 +3,8 @@
 
 #include "QsLog.h"
 #include "mysql_table.h"
-#include "ag_rack_mi_table.h"
 #include "ag_rack_index_table.h"
+#include "ag_rack_extra_data_table.h"
 #include <QSqlError>
 
 const QString ag_rack_data_table::c_field_id = "id";
@@ -26,6 +26,8 @@ const QString ag_rack_data_table::c_field_ac_power_out = "ac_power_out";
 const QString ag_rack_data_table::c_field_efficiency = "efficiency";
 const QString ag_rack_data_table::c_field_start_time = "start_time";
 const QString ag_rack_data_table::c_field_cur_date = "cur_date";
+
+const QString ag_rack_data_table::c_field_room = "room";
 
 
 
@@ -259,7 +261,7 @@ void ag_rack_data_table::write_data(QSqlDatabase &m_database,const QJsonObject &
 
     if(query.execBatch())
     {
-        //QLOG_INFO() << QString("老化架:写入数据表成功");
+        QLOG_INFO() << QString("老化架:写入数据表成功");
     }
     else {
         QLOG_WARN() << query.lastQuery() << query.lastError().text();
@@ -452,13 +454,15 @@ bool ag_rack_data_table::read_data(QSqlDatabase &m_database,const QJsonObject &r
     return false;
 }
 
-void ag_rack_data_table::read_batch_list(QSqlDatabase &m_database, QString start_time, QString stop_time, QStringList &batch_list)
+//数据库读取批次数据
+void ag_rack_data_table::read_batch_list(QSqlDatabase &m_database, QString start_time, QString stop_time,QStringList &batch_list)
 {
     QSqlQuery query(m_database);
     QString head_cmd = QString("SELECT DISTINCT %1 FROM ").arg(c_field_start_time);
     QString tail_cmd = QString(" WHERE %1>='%2' AND %3<='%4'").arg(c_field_start_time,start_time,c_field_start_time,stop_time);
     ag_rack_index_table rk_idx_tb;
 
+    //调用索引表的成员函数，根据时间范围读取表列表
     QStringList table_list = rk_idx_tb.read_tablelist_from_time(m_database,start_time,stop_time);
     QString cmd;
     for(int i=0;i<table_list.size();i++)
@@ -467,10 +471,11 @@ void ag_rack_data_table::read_batch_list(QSqlDatabase &m_database, QString start
         {
            cmd.append(" UNION ALL ");
         }
-        cmd.append(head_cmd);
-        cmd.append(table_list[i]);
-        cmd.append(tail_cmd);
+        cmd.append(head_cmd); //添加查询头部命令
+        cmd.append(table_list[i]); //添加表名
+        cmd.append(tail_cmd); //添加查询尾部命令，包括时间过滤
     }
+    //添加ORDER BY子句，按开始时间降序排序结果
     cmd.append(QString(" ORDER BY %1 DESC").arg(c_field_start_time));
 
     if(query.exec(cmd))
@@ -617,6 +622,47 @@ void ag_rack_data_table::read_mi_stop_time_after_start_time(QSqlDatabase &m_data
         {
             query.next();
             pos_desc = query.value(c_field_rack_id).toString() + " " + query.value(c_field_mi_pos).toString();
+        }
+    }
+}
+
+void ag_rack_data_table::read_mi_all(QSqlDatabase &m_database, const QString &mi, QStringList &rooms, QStringList &start_times, QStringList &stop_times, QStringList &pos_descs)
+{
+
+    QString cmd_ret;
+    QStringList table_list;
+    ag_rack_index_table ag_rack_inx_tb;
+    table_list =  ag_rack_inx_tb.read_tablelist_from_mi(m_database,QStringList() << mi);
+
+    QString select_head = QString("SELECT %1,%2,%3,%4 FROM ").arg(c_field_room_id,c_field_rack_id,c_field_mi_pos,c_field_start_time);
+    QString select_tail = QString(" WHERE %1='%2' ").arg(c_field_mi_cid,mi);
+
+    if(table_list.size() == 0)
+        return;
+
+    //cmd_ret.append(select_head + " ( ");
+    for(int i=0;i<table_list.size();i++)
+    {
+        if(i !=0)
+        {
+            cmd_ret.append(" UNION ALL ");
+        }
+        cmd_ret.append(select_head);
+        cmd_ret.append(table_list[i]);
+        cmd_ret.append(select_tail);
+    }
+    //cmd_ret.append(" ) "); // 查询命令的结尾
+
+    QSqlQuery query(m_database);
+    if (query.exec(cmd_ret)) // 执行查询
+    {
+        while (query.next()) // 循环处理查询结果
+        {
+            // 从查询结果中获取房间号、开始时间、停止时间、位置描述，并添加到相应的列表中
+            rooms.append(query.value(c_field_room_id).toString());
+            start_times.append(query.value(c_field_start_time).toDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+            stop_times.append("2030-01-30 17:05:33"); // 硬编码的停止时间，可以根据需要修改
+            pos_descs.append(query.value(c_field_rack_id).toString() + " " + query.value(c_field_mi_pos).toString());
         }
     }
 }

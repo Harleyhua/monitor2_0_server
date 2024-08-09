@@ -10,10 +10,13 @@
 #include "powerstationcontroller.h"
 #include "usercontroller.h"
 #include "userservice.h"
-
 #include "sqlconnectpool.h"
+
 static QHash<QString,int> gPathMapping = {
     {"/aging_report",1},
+    //历史报告
+    {"/history_report",1},
+    //批次查询
     {"/batch_list",1},
     {"/r_ag_room_temp",1},
     {"/write_room_temp",1},
@@ -39,6 +42,7 @@ static QHash<QString,int> gPathMapping = {
     {"/r_more_certification",2},
     {"/r_select_back",2},
 
+    //查询实时数据
     {"/r_mi_current_power",3},
     {"/r_emu_action",3},
     {"/r_emu_status",3},
@@ -51,6 +55,7 @@ static QHash<QString,int> gPathMapping = {
     {"/r_workorder",4},
     {"/w_workorder",4},
 
+    //添加电站
     {"/add_station",5},
     {"/del_station",5},
     {"/add_emu_cid",5},

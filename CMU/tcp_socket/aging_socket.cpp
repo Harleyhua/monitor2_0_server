@@ -22,10 +22,12 @@ aging_socket::~aging_socket()
 
 void aging_socket::onm_del_data()
 {
+    //common com;
     //按字节流加入
     mTimerCount = 0;
     m_buff.append(readAll());
     qDebug() << m_buff.size();
+    //common::writeFile("d:/1.txt",m_buff);
     while (m_buff.size() > 0) {
         //数据异常则会清空  若未接收完全则跳出继续接收
         //可能会同时收到多条指令 处理完后继续处理下一条
@@ -35,6 +37,8 @@ void aging_socket::onm_del_data()
         }
     }
 }
+
+
 
 bool aging_socket::del_buff_data()
 {
@@ -117,8 +121,13 @@ void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd)
                 t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
                 t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)));
                 t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)));
-                t1.insert("cur_time",root_js_recv.value("current_time"));
-                //t1.insert("cur_time",root_js_recv.value("room start time"));
+
+                //修正时间
+                QString min = QDateTime::currentDateTime().toString("mm");
+                uint16_t min_int = (min.toUInt() / 5) *5;
+                QString cur_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
+                                   QString("%1").arg(min_int,2,10,QLatin1Char('0')) + ":00";
+                t1.insert("cur_time",cur_time);
 
                 tempTable.write_temp(q1,t1,true);
 

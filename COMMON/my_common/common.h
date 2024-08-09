@@ -13,6 +13,9 @@ class common : public QObject
 public:
     explicit common(QObject *parent = nullptr);
 
+
+    static bool writeFile(QString fileName, QByteArray data);
+
     static bool is_ip_valid(QString ip);
     static bool is_port_valid(QString port);
     static bool is_port_valid(uint32_t port);

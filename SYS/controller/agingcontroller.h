@@ -47,6 +47,7 @@ private:
     QHash<QString, void (agingController::*)()> mMethodMapper=
     {
         {"/aging_report",&agingController::getMiAgingReport},
+        {"/history_report",&agingController::getMiHistoryReport},
         {"/batch_list",&agingController::getMiAgingBatch},
         {"/r_ag_room_temp",&agingController::getRoomTemp},
         {"/write_room_temp",&agingController::setRoomTemp},
@@ -57,6 +58,8 @@ private:
     void setRoomAndDevData();
     //获取微逆老化报告
     void getMiAgingReport();
+    //获取微逆历史老化报告
+    void getMiHistoryReport();
     //获取微逆老化批次
     void getMiAgingBatch();
     //获取老化房温度

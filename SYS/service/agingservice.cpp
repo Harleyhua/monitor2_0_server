@@ -37,13 +37,20 @@ void agingservice::writeNewRoomTemperature(QString room, bool runstatus, int cur
     tempTable.write_temp(mDataBase,room,runstatus,curtemp,settemp,curtime);
 }
 
+//读取批次
 void agingservice::readBatchList(const QJsonObject &s, QJsonObject &retData)
 {
     ag_rack_data_table rackDataTable;
     QStringList startTimeList;
     QJsonArray batchArray;
+    QString room = s.value("room").toString(); //从输入参数中获取room的值
+    // 根据传入的开始时间和结束时间参数，并将结果存储在startTimeList中。
+    // rackDataTable.read_batch_list(mDataBase,s.value("start_time").toString(),
+    //                               s.value("stop_time").toString(),room,startTimeList);
     rackDataTable.read_batch_list(mDataBase,s.value("start_time").toString(),
                                   s.value("stop_time").toString(),startTimeList);
+
+    // 使用for循环遍历startTimeList中的每个开始时间
     for(int i=0;i<startTimeList.size();i++)
     {
         QStringList mis;
@@ -118,6 +125,42 @@ void agingservice::writeRackData(const QJsonObject &s)
     tmp_rk_extra_tb.write_data(mDataBase,s);
 }
 
+//读取批次列表（新）
+void agingservice::readBatchList_new(const QJsonObject &s, QJsonObject &retData)
+{
+    ag_rack_extra_data_table rack_extra_table;
+    QStringList startTimeList;
+    QJsonArray batchArray;
+    //从输入参数中获取room的值
+    QString room = s.value("room_id").toString();
+    //传入参数值
+    rack_extra_table.read_list_data(mDataBase,s.value("room_id").toString(),s.value("start_time").toString(),
+                                  s.value("stop_time").toString(),startTimeList);
+
+    // 使用for循环遍历startTimeList中的每个开始时间
+    for(int i=0;i<startTimeList.size();i++)
+    {
+        QStringList mis;
+        QJsonObject oneBatchJsObj;
+        QJsonArray misArray;
+
+        //根据当前的开始时间和room参数，读取mi列表
+        rack_extra_table.read_mi_list(mDataBase,room,startTimeList[i],mis);
+
+        for(int j=0;j<mis.size();j++)
+        {
+            if(abstract_bym::is_cid_valid(mis[j]))
+            {
+                misArray.append(mis[j]);
+            }
+        }
+        oneBatchJsObj.insert("start_time",startTimeList[i]);
+        oneBatchJsObj.insert("mis",misArray);
+        batchArray.append(oneBatchJsObj);
+    }
+    retData.insert("batchs",batchArray);
+}
+
 void agingservice::readRackData(const QJsonObject &s, QJsonObject &retData)
 {
     ag_rack_data_table rackDataTable;
@@ -157,11 +200,18 @@ void agingservice::generateMiAgingReport(int mode,QString Mi,QString startTime,c
     qint64 setStopTime = 0; //预设的停止时间
     qint64 nextStopTime = 0;//实际的下次的停止时间
 
+    QStringList rooms;
+    QStringList startTimes;
+    QStringList stopTimes;
+    QStringList posDescs;
+
+
 
     if(mode == 0)//按编号解析
     {
         //读取最后一次老化的  参数  用于读取老化数据
         rackDataTable.read_mi_last_aging_time_by_mi(mDataBase,Mi,room,startTime,stopTime,posDesc);
+        //rackDataTable.read_mi_all(mDataBase,Mi,rooms,startTimes,stopTimes,posDescs);
     }
     else if(mode == 1)//按老化批次
     {
@@ -169,7 +219,7 @@ void agingservice::generateMiAgingReport(int mode,QString Mi,QString startTime,c
     }
 
 
-    //读取该微逆  当前老化的老化时间
+    //读取该微逆  当前老化的老化时间 agingMinute->老化分钟
     rackExtraDataTable.read_data(mDataBase,Mi,startTime,agingMinute);
     setStopTime = QDateTime::fromString(startTime,"yyyy-MM-dd hh:mm:ss").toSecsSinceEpoch() + agingMinute *60;
     nextStopTime = QDateTime::fromString(stopTime,"yyyy-MM-dd hh:mm:ss").toSecsSinceEpoch();
@@ -195,7 +245,7 @@ void agingservice::generateMiAgingReport(int mode,QString Mi,QString startTime,c
         tempTable.read_temp(mDataBase,room,agingData.value("start_time").toString(),agingData.value("stop_time").toString(),roomTemp);
         //进行老化分析
         agingAlg.aging_report(agingData,algorithm.value("bym" + QString::number(agingData.value("total_nominal_power").toInt())).toObject(),
-                              roomTemp,retReport);
+                              roomTemp,retReport,agingMinute);
 #if(SAVE_MI_REPORT)
         //已经老化结束的情况下
         if(stopTime < QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
@@ -205,14 +255,63 @@ void agingservice::generateMiAgingReport(int mode,QString Mi,QString startTime,c
                                agingData.value("start_time").toString(),
                                agingData.value("stop_time").toString(),
                                judgeParam,QString(QJsonDocument(retReport).toJson()));
-
         }
 #endif
     }
-    //顺带记录 老化房间  回溯老化环境温度
     retReport.insert("room",room);
     retReport.insert("pos_desc",posDesc);
 }
+
+
+void agingservice::ReadMiHistoryReport(int mode,QString Mi,QString startTime,const QJsonObject &algorithm, QJsonArray &reportsList)
+{
+    //ag_user_table userTable;
+    ag_temp_table tempTable;
+    ag_rack_data_table rackDataTable;
+    ag_rack_extra_data_table rackExtraDataTable;
+    QString room;
+    QString stopTime;
+    QString posDesc;            //微逆老化时的位置信息
+    QString judgeParam;
+    QJsonObject agingData;
+    QString historyReport;     //当前参数下的历史报告
+
+    aging_alg agingAlg;
+    QHash<QString, uint16_t> roomTemp;
+
+    QStringList rooms;
+    QStringList startTimes;
+    QStringList stopTimes;
+    QStringList posDescs;
+
+    QStringList historyReportsList;
+    //QJsonArray reportsList;
+    QJsonObject retReport;
+
+
+    if(mode == 0)//按编号解析
+    {
+        rackDataTable.read_mi_all(mDataBase,Mi,rooms,startTimes,stopTimes,posDescs);
+    }
+
+    readMiAgingData(Mi,startTime,stopTime,agingData);
+
+    judgeParam = QString(QJsonDocument(algorithm.value("bym" + QString::number(agingData.value("total_nominal_power").toInt())).toObject()).toJson());
+
+    if(readHistoryReport(agingData.value("mi_cid").toString(),agingData.value("start_time").toString(),
+                          agingData.value("stop_time").toString(),judgeParam,historyReportsList))
+    {
+        for(int i=0;i<historyReportsList.size();i++){
+            QString reportString = historyReportsList[i];
+            retReport = QJsonDocument::fromJson(reportString.toUtf8()).object();
+            retReport.insert("room",room);
+            retReport.insert("pos_desc",posDesc);
+            reportsList.append(retReport);
+        }
+    }
+}
+
+
 
 void agingservice::readMiAgingData(QString mi, QString startTime, QString stopTime, QJsonObject &rt_data)
 {
@@ -243,7 +342,8 @@ void agingservice::readMiAgingData(QString mi, QString startTime, QString stopTi
     QJsonArray datas;
 
     //创建一个哈希表，用于存储微逆额定功率
-    QHash<QString,QString> mi_nominal_pw;
+    //QHash<QString,QString> mi_nominal_pw;
+    QHash<QString,int> mi_nominal_pw;
 
     QHash<QString,QString> mi_mim_version;
 
@@ -252,7 +352,7 @@ void agingservice::readMiAgingData(QString mi, QString startTime, QString stopTi
     //从微逆属性表中读取额定功率并存储到哈希表中
     mi_pty_tb.read_nominal_power(mDataBase,QStringList() << mi,mi_nominal_pw);
     //4.22修改
-    mi_pty_tb.read_nominal_power(mDataBase,QStringList() << mi,mi_mim_version);
+    //mi_pty_tb.read_nominal_power(mDataBase,QStringList() << mi,mi_mim_version);
 
     //根据微逆类型（单路、双路或四路）进行循环
     for(int i=0;i<mi_type;i++)
@@ -277,10 +377,11 @@ void agingservice::readMiAgingData(QString mi, QString startTime, QString stopTi
     // 插入微逆类型的数量
     rt_data.insert("all_pv", QString::number(mi_type));
     // 插入单个微逆的额定功率
-    rt_data.insert("pv_nominal_power", mi_nominal_pw.value(mi, "1000000").toInt());
+    //rt_data.insert("pv_nominal_power", mi_nominal_pw.value(mi, "1000000").toInt());
+    rt_data.insert("pv_nominal_power", mi_nominal_pw.value(mi, 1000000));
     // 插入总的额定功率
-    //rt_data.insert("total_nominal_power", mi_nominal_pw.value(mi, "1000000").toInt() * mi_type);
-    rt_data.insert("total_nominal_power",mi_nominal_pw.value(mi,"1000000").toInt() * abstract_bym::analysis_type(mi));
+    rt_data.insert("total_nominal_power", mi_nominal_pw.value(mi, 1000000) * abstract_bym::analysis_type(mi));
+    //rt_data.insert("total_nominal_power",mi_nominal_pw.value(mi,"1000000").toInt() * abstract_bym::analysis_type(mi));
     // 插入开始时间
     rt_data.insert("start_time", startTime);
     // 插入结束时间
@@ -321,4 +422,17 @@ bool agingservice::readMiAgingReport(QString mi, QString startTime, QString stop
         }
     }
     return false;
+}
+
+bool agingservice::readHistoryReport(QString mi,QString startTime,QString stopTime,QString alg,QStringList &report)
+{
+    ag_mi_report_table mi_report_tb;
+    QVector<aging_report_strc> r_data;
+    mi_report_tb.read_mi_history_report(mDataBase,mi,startTime,stopTime,r_data);
+
+    for(int i=0;i<r_data.size();i++)
+    {
+        report.append(r_data[i].report);
+    }
+    return true;
 }

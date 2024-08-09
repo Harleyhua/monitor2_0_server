@@ -40,6 +40,7 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
 {
     QJsonObject js_obj;
     QByteArray rt_data;  //生成的回应数据
+    ag_emu_mi_table emu_mi;
     mysql sql(m_name + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
     dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
     uint8_t tmp_server_cmd = 0;
@@ -91,6 +92,9 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
     else if(cmd == emu_protocolb::C_POWER_CMD)
     {
         uint16_t date = 0;
+        // QString station = s.value("station").toString();
+        // QString emu = s.value("emu").toString();
+        // emu_mi.w_mi(mDataBase,emu,s);
         tmp_pcol.to_powerdata_json(frame_data,js_obj,date);
         sql.w_power(js_obj,date);
         tmp_pcol.to_powerdata_cmd(frame_data,rt_data,tmp_server_cmd);

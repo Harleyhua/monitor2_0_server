@@ -2,6 +2,7 @@
 
 
 #include "common.h"
+#include "QsLog.h"
 
 
 
@@ -51,7 +52,7 @@ void aging_server::onm_close_socket()
             m_socket_list.removeAt(i);
 
 
-            //QLOG_INFO() << QString("断开一个socket 当前连接数: %1").arg(m_socket_list.size());
+            QLOG_INFO() << QString("断开一个socket 当前连接数: %1").arg(m_socket_list.size());
             break;
         }
     }
@@ -76,6 +77,8 @@ void aging_server::incomingConnection(qintptr socketDescriptor)
 
     m_thd_list.append(tmp_thd);
     m_socket_list.append(tmp_socket);
+
+    QLOG_INFO() << QString("一个socket连接 当前连接数: %1").arg(m_socket_list.size());
 
     tmp_socket->setSocketDescriptor(socketDescriptor);
 

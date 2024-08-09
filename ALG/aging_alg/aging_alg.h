@@ -108,8 +108,41 @@
 
 #define DEFAULT_VALUE_MIN (400000)
 #define DEFAULT_VALUE_MAX (-400000)
-#define DCOV_ERR_COUNT_MAX 10
-#define DCOA_ERR_COUNT_MAX 10
+
+//原边
+#define PVOV_ERR_COUNT_MAX 3
+#define PVUN_ERR_COUNT_MAX 3
+#define DCOV_ERR_COUNT_MAX 3
+#define DCOA_ERR_COUNT_MAX 3
+#define MIIS_ERR_COUNT_MAX 3
+#define LOW_RES_COUNT_MAX 3
+#define PVOV2_ERR_COUNT_MAX 3
+#define PVUN2_ERR_COUNT_MAX 3
+#define DC_OV2_ERR_COUNT_MAX 3
+#define DC_UN2_ERR_COUNT_MAX 3
+#define SYNC_ERR_COUNT_MAX 3
+#define SAFE_ERR_COUNT_MAX 3
+#define GRID_ERR_COUNT_MAX 3
+#define REMOTE_ERR_COUNT_MAX 3
+
+//副边
+#define GRID_OV_COUNT_MAX 3
+#define GRID_UN_COUNT_MAX 3
+#define GRID_OVF_COUNT_MAX 3
+#define GRID_UNF_COUNT_MAX 3
+#define LOCK_ERR_COUNT_MAX 3
+#define GRID_SUR_COUNT_MAX 3
+#define MCU_UN_COUNT_MAX 3
+#define PV_UN_COUNT_MAX 3
+#define HOC_ERR_COUNT_MAX 3
+#define HOV_ERR_COUNT_MAX 3
+#define GRID_DIS_ERR_COUNT_MAX 3
+#define RESERVER_ERR_COUNT_MAX 3
+#define PRI2CM_ERR_COUNT_MAX 3
+#define PRI1CM_ERR_COUNT_MAX 3
+#define GF_ERR_COUNT_MAX 3
+#define GV_ERR_COUNT_MAX 3
+
 enum aging_err_cause{
     errcode_data,     //错误代码
     lowpower_data,    //功率低
@@ -130,7 +163,7 @@ class aging_alg
 public:
     aging_alg();
 
-    void aging_report(QJsonObject s_data,QJsonObject judge_param,QHash<QString,uint16_t> &temp,QJsonObject &r_data);
+    void aging_report(QJsonObject s_data,QJsonObject judge_param,QHash<QString,uint16_t> &temp,QJsonObject &r_data,int age_time);
 
 
     QString get_aging_err_cause_str(aging_err_cause err_cause);

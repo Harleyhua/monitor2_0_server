@@ -28,10 +28,15 @@ public:
 
     void generateMiAgingReport(int mode,QString Mi,QString startTime,const QJsonObject &algorithm,QJsonObject &retReport);
 
+    void ReadMiHistoryReport(int mode,QString Mi,QString startTime,const QJsonObject &algorithm,QJsonArray &reportsList);
+    bool readHistoryReport(QString mi, QString startTime, QString stopTime, QString alg, QStringList &report);
+
     void readMiAgingData(QString mi, QString startTime, QString stopTime,QJsonObject &rt_data);
     void writeMiAgingReport(QString mi,QString startTime,QString stopTime,QString alg,QString report);
     bool readMiAgingReport(QString mi,QString startTime,QString stopTime,QString alg,QString &report);
 
+    //读取批次（新）
+    void readBatchList_new(const QJsonObject &s,QJsonObject &retData);
 
 private:
     QSqlDatabase mDataBase;

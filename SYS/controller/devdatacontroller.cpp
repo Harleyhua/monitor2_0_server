@@ -5,12 +5,11 @@
 
 
 #include "devdatacontroller.h"
-
 #include "common.h"
-
 #include "userservice.h"
 #include "devdataservice.h"
 #include "devmgservice.h"
+
 void devDataController::service(HttpRequest& request, HttpResponse& response)
 {
     QByteArray path=request.getPath();
@@ -35,6 +34,7 @@ void devDataController::service(HttpRequest& request, HttpResponse& response)
     }
 }
 
+//获取实时数据
 void devDataController::getUserDeviceMapperAndLastData()
 {
     devmgservice devMgSv(mDataBase);
@@ -43,8 +43,11 @@ void devDataController::getUserDeviceMapperAndLastData()
     QString totalStation;
     QStringList Mis;
     QJsonObject retData;
+    //user_table => 电站总数
     totalStation = userSv.readUserTotalStation(mName);
+    //user_station => 电站名
     devMgSv.DevMapping(totalStation,Mis,retData);
+    //
     devDataSv.readMiCurrentPowerData(Mis,retData);
 
     mResponse->write(common::js_to_qbytearray(retData),true);

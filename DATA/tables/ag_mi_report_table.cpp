@@ -13,8 +13,6 @@ const QString ag_mi_report_table::c_field_update_time = "update_time";
 
 
 
-
-
 ag_mi_report_table::ag_mi_report_table(QObject *parent)
     : QObject{parent}
 {
@@ -93,6 +91,38 @@ void ag_mi_report_table::write_mi_report(QSqlDatabase &m_database, aging_report_
     }
 }
 
+
+bool ag_mi_report_table::read_mi_history_report(QSqlDatabase &m_database, QString mi, QString start_time, QString stop_time, QVector<aging_report_strc> &rt_data)
+{
+    // 构建 SQL 查询语句，包含所有提供的过滤条件
+    QString cmd = QString("SELECT %1,%2,%3,%4,%5 FROM %6 WHERE %7='%8'")
+                      .arg(c_field_mi_cid, c_field_start_time, c_field_stop_time, c_field_alg, c_field_aging_report,
+                           m_name, c_field_mi_cid, mi);
+
+    QSqlQuery query(m_database);
+
+    if (query.exec(cmd))
+    {
+        rt_data.clear();
+
+        // 遍历查询结果
+        while (query.next())
+        {
+            aging_report_strc one_report;
+            one_report.mi_cid = query.value(c_field_mi_cid).toString();
+            one_report.start_time = query.value(c_field_start_time).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            one_report.stop_time = query.value(c_field_stop_time).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            one_report.alg = query.value(c_field_alg).toString();
+            one_report.report = query.value(c_field_aging_report).toString();
+
+            rt_data.append(one_report);
+        }
+
+        return !rt_data.isEmpty();
+    }
+
+    return false;
+}
 
 
 

@@ -87,6 +87,7 @@ void ag_user_station_table::write_station(QSqlDatabase &m_database, QString tota
 
 //}
 
+//写入电站
 bool ag_user_station_table::write_station(QSqlDatabase &m_database, QString total_station,const QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
@@ -135,10 +136,10 @@ bool ag_user_station_table::write_station(QSqlDatabase &m_database, QString tota
 //    }
 //}
 
+//读取电站列表
 void ag_user_station_table::read_station(QSqlDatabase &m_database, QString total_station, QJsonObject &data)
 {
     QSqlQuery query(m_database);
-    //QString account = r_data.value("params").toObject().value(c_field_account).toString();
     QString tmp_cmd = QString("SELECT DISTINCT %1 FROM %2 WHERE %3='%4' ORDER BY %5")
             .arg(c_field_station,m_name,c_field_account,total_station,c_field_station);
     if(query.exec(tmp_cmd))

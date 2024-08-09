@@ -95,13 +95,14 @@ public:
     bool read_data(QSqlDatabase &m_database,const QJsonObject &r_data,QJsonObject &data);
 
     void read_batch_list(QSqlDatabase &m_database,QString start_time,QString stop_time,QStringList &batch_list);
+    //void read_batch_list(QSqlDatabase &m_database,QString room,QString start_time,QString stop_time,QStringList &batch_list);
     void read_mi_list(QSqlDatabase &m_database,QString start_time,QStringList &mi_list);
     //某个微逆 读取开始时间-结束时间
     //void read_last_date_by_mi(QStringList mi_list,QMap<QString,QString> mi_st,QMap<QString,QString> mi_sp);
     void read_mi_last_aging_time_by_mi(QSqlDatabase &m_database,QString mi,QString &room,QString &start_time,QString &stop_time,QString &pos_desc);
     void read_mi_stop_time_after_start_time(QSqlDatabase &m_database,QString mi, QString &room,QString start_time, QString &stop_time,QString &pos_desc);
 
-
+    void read_mi_all(QSqlDatabase &m_database, const QString &mi, QStringList &rooms, QStringList &start_times, QStringList &stop_times, QStringList &pos_descs);
 
 private:
     QString m_name = "";
@@ -125,6 +126,8 @@ private:
     static const QString c_field_efficiency;
     static const QString c_field_start_time;
     static const QString c_field_cur_date;
+
+    static const QString c_field_room;
 
     void read_mi_stop_time_after_start_time(QString mi,QString start_time,QString &stop_time);
 signals:

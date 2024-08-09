@@ -129,8 +129,6 @@ void ag_station_emu_table::del_emu_by_station(QSqlDatabase &m_database, QString 
     {
 
     }
-
-
 }
 
 bool ag_station_emu_table::is_emu_exist(QSqlDatabase &m_database, QString station, QString emu)

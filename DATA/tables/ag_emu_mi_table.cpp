@@ -97,7 +97,7 @@ void ag_emu_mi_table::w_one_mi(QSqlDatabase &m_database, QString emu, QString mi
     }
     else
     {
-        QLOG_WARN() << "读 网关_微逆关系表 失败";
+        QLOG_WARN() << "写 网关_微逆关系表 失败";
     }
 }
 
