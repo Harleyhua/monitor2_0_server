@@ -125,9 +125,10 @@ void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd)
                 //修正时间
                 QString min = QDateTime::currentDateTime().toString("mm");
                 uint16_t min_int = (min.toUInt() / 5) *5;
-                QString cur_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
+                QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
                                    QString("%1").arg(min_int,2,10,QLatin1Char('0')) + ":00";
-                t1.insert("cur_time",cur_time);
+                //t1.insert("cur_time",cur_time);
+                t1.insert("cur_time",root_js_recv.value("curr_time"));
 
                 tempTable.write_temp(q1,t1,true);
 
