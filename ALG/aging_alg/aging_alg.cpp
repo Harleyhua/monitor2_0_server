@@ -29,7 +29,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     //阈值
     int agingPoints = judge_param.value("v_aging_points").toInt();
     int agingTime = judge_param.value("v_aging_time").toInt();
-    //int age_Time = age_time;
+    QString MI = s_data.value("mi_cid").toString();
 
 
     QJsonArray pv_ret;
@@ -838,57 +838,75 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             tmp_ret = nopower_data;
         }
 
-        int a1 = pv_datas.size(); //实际值
-        int aging_points_now = age_time /2 ; //标准值
+        int mi_cid_int = MI.toInt();
+        if(mi_cid_int >= 10150222 && mi_cid_int <= 10152907 && age_time == 300) {
+            int a1 = pv_datas.size(); //实际值
+            int aging_points_now = 240 /2 ; //标准值
 
-        // 计算实际点数占阈值的百分比 (实际值/标准值*100)
-        double percen_points = (double)a1 / aging_points_now * 100.0;
-        if(judge_param.value("v_aging_points").toInt() != -1)
-        {
-            if(percen_points < agingPoints)
+            // 计算实际点数占阈值的百分比 (实际值/标准值*100)
+            double percen_points = (double)a1 / aging_points_now * 100.0;
+            if(judge_param.value("v_aging_points").toInt() != -1)
             {
-                tmp_ret = missing_point_data;
+                if(percen_points < agingPoints)
+                {
+                    tmp_ret = missing_point_data;
+                }
+            }
+        }
+        else{
+            int a1 = pv_datas.size(); //实际值
+            int aging_points_now = age_time /2 ; //标准值
+
+            // 计算实际点数占阈值的百分比 (实际值/标准值*100)
+            double percen_points = (double)a1 / aging_points_now * 100.0;
+            if(judge_param.value("v_aging_points").toInt() != -1)
+            {
+                if(percen_points < agingPoints)
+                {
+                    tmp_ret = missing_point_data;
+                }
             }
         }
 
-        // if(judge_param.value("v_aging_points").toInt() != -1)
-        // {
-        //     if(pv_datas.size() < judge_param.value("v_aging_points").toInt())
-        //     {
-        //         tmp_ret = missing_point_data;
-        //     }
-        // }
 
-        start_time = s_data.value("start_time").toString();
-        if(judge_param.value("v_aging_time").toInt() != -1)
-        {
-            QDateTime start_time_dt  =  QDateTime::fromString(start_time,"yyyy-MM-dd hh:mm:ss");
-            QDateTime stop_time_dt = QDateTime::fromString(stop_time,"yyyy-MM-dd hh:mm:ss");
-
-            qint64 min = start_time_dt.secsTo(stop_time_dt);
-            int d = min / 60; //老化的分钟数
-
-            // 实际老化时长/规定老化的时间 *100.0
-            double percent_time = (double)d / age_time * 100.0;
-
-            if(percent_time < agingTime)
+        if(mi_cid_int >= 10150222 && mi_cid_int <= 10152970 && age_time == 300) {
+            if(judge_param.value("v_aging_time").toInt() != -1)
             {
-                tmp_ret = missing_time_data;
+                QDateTime start_time_dt  =  QDateTime::fromString(start_time,"yyyy-MM-dd hh:mm:ss");
+                QDateTime stop_time_dt = QDateTime::fromString(stop_time,"yyyy-MM-dd hh:mm:ss");
+
+                qint64 min = start_time_dt.secsTo(stop_time_dt);
+                int c = min / 60; //老化的分钟数
+
+                // 实际老化时长/规定老化的时间 *100.0
+                double percent_time = (double)c / 240 * 100.0;
+
+                if(percent_time < agingTime)
+                {
+                    tmp_ret = missing_time_data;
+                }
             }
         }
+        else
+        {
+            start_time = s_data.value("start_time").toString();
+            if(judge_param.value("v_aging_time").toInt() != -1)
+            {
+                QDateTime start_time_dt  =  QDateTime::fromString(start_time,"yyyy-MM-dd hh:mm:ss");
+                QDateTime stop_time_dt = QDateTime::fromString(stop_time,"yyyy-MM-dd hh:mm:ss");
 
-        // if(judge_param.value("v_aging_time").toInt() != -1)
-        // {
-        //     QDateTime start_time_dt  =  QDateTime::fromString(start_time,"yyyy-MM-dd hh:mm:ss");
-        //     QDateTime stop_time_dt = QDateTime::fromString(stop_time,"yyyy-MM-dd hh:mm:ss");
+                qint64 min = start_time_dt.secsTo(stop_time_dt);
+                int d = min / 60; //老化的分钟数
 
-        //     //int c = start_time_dt.secsTo(stop_time_dt)/60;
+                // 实际老化时长/规定老化的时间 *100.0
+                double percent_time = (double)d / age_time * 100.0;
 
-        //     if((start_time_dt.secsTo(stop_time_dt)/60) < judge_param.value("v_aging_time").toInt())
-        //     {
-        //         tmp_ret = missing_time_data;
-        //     }
-        // }
+                if(percent_time < agingTime)
+                {
+                    tmp_ret = missing_time_data;
+                }
+            }
+        }
 
         if(pv_datas.size() == 0)
         {
