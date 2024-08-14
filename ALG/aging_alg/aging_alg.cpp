@@ -839,7 +839,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         }
 
         int mi_cid_int = MI.toInt();
-        if(mi_cid_int >= 10150222 && mi_cid_int <= 10152907 && age_time == 300) {
+        if(mi_cid_int >= 10100000 && mi_cid_int <= 10155065 && age_time == 300) {
             int a1 = pv_datas.size(); //实际值
             int aging_points_now = 240 /2 ; //标准值
 
@@ -869,7 +869,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         }
 
 
-        if(mi_cid_int >= 10150222 && mi_cid_int <= 10152970 && age_time == 300) {
+        if(mi_cid_int >= 10100000 && mi_cid_int <= 10155065 && age_time == 300) {
             if(judge_param.value("v_aging_time").toInt() != -1)
             {
                 QDateTime start_time_dt  =  QDateTime::fromString(start_time,"yyyy-MM-dd hh:mm:ss");
