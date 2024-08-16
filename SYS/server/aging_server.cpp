@@ -10,7 +10,25 @@ aging_server::aging_server(QObject *parent)
     : QTcpServer(parent)
 {
     m_ip = common::Get_LocalIp();
+
+    // 初始化定时器
+    checkListeningTimer = new QTimer(this);
+    connect(checkListeningTimer, &QTimer::timeout, this, &aging_server::checkServerListening);
+    checkListeningTimer->start(5000); // 每5秒检查一次监听状态
 }
+
+
+void aging_server::checkServerListening() {
+    if (!isListening()) {
+        qDebug() << "服务器未在监听，尝试重新监听...";
+        if (!listen(QHostAddress(m_ip), m_port.toUInt())) {
+            qDebug() << "服务器重新监听失败:" << this->errorString();
+        } else {
+            qDebug() << "服务器重新监听成功";
+        }
+    }
+}
+
 
 void aging_server::onm_close_socket()
 {
@@ -64,9 +82,15 @@ void aging_server::onm_start()
 {
     QHostAddress tmp_ip(m_ip);
     //监听  无法开启
-    if(listen(tmp_ip,m_port.toUInt()))
-    {
+    // if(listen(tmp_ip,m_port.toUInt()))
+    // {
 
+    // }
+    if (!listen(tmp_ip, m_port.toUInt())) {
+        QLOG_INFO() << "监听失败:" << this->errorString();
+    } else {
+        QLOG_INFO() << "服务器已成功监听";
+        checkListeningTimer->stop();
     }
 }
 
