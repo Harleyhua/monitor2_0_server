@@ -89,14 +89,27 @@ bool ag_user_table::update_algorithm(QSqlDatabase &m_database, QString account, 
     return false;
 }
 
-//void ag_user_table::write_algorithm(QSqlDatabase &m_database, QString account, QJsonObject w_data)
-//{
-//    QString cmd = QString("INSERT INTO %1 (%2,%3,%4,%5,%6) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE %7='%8',%9='%10',%11='%12',%13='%14' ");
+bool ag_user_table::update_algorithm_new(QSqlDatabase &m_database, QString account, QJsonObject w_data)
+{
+    QString permission;
 
+    if (read_permission(m_database, account, permission)) {
+        if (permission == "1") {
+            QJsonDocument jDoc;
+            jDoc.setObject(w_data);
+            QString cmd = QString("UPDATE %1 SET %2='%3' WHERE %4='%5' and %6='%7'").arg(m_name,c_field_algorithm,QString(jDoc.toJson(QJsonDocument::Compact)),c_field_account,account,c_field_permission,permission);
+            QSqlQuery query(m_database);
 
-
-
-//}
+            if(query.exec(cmd))
+            {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+    return false;
+}
 
 bool ag_user_table::read_algorithm(QSqlDatabase &m_database, QString account, QJsonObject &r_data)
 {
@@ -170,8 +183,23 @@ bool ag_user_table::read_all_total_station(QSqlDatabase &m_database, QStringList
     }
 
     return false;
+}
 
 
+bool ag_user_table::read_permission(QSqlDatabase &m_database,QString account, QString &permision)
+{
+    QString cmd = QString("SELECT %1 FROM %2 WHERE %3='%4'").arg(c_field_permission,m_name,c_field_account,account);
+    QSqlQuery query(m_database);
+
+    if(query.exec(cmd))
+    {
+        if(query.next())
+        {
+            permision = query.value(c_field_permission).toString();
+            return true;
+        }
+    }
+    return false;
 }
 
 

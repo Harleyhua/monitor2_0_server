@@ -33,6 +33,7 @@ private:
     HttpResponse *mResponse = nullptr;
 
     QString mName;
+    QString Per;
     QJsonObject mJsBody;
 
     QHash<QString, void (usercontroller::*)()> mMethodMapper=

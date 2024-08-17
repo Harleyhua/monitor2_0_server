@@ -54,5 +54,11 @@ bool userservice::writeUserAlgorithm(QString account, const QJsonObject &s)
 }
 
 
+bool userservice::writeUserAlgorithm_new(QString account, const QJsonObject &s)
+{
+    ag_user_table userTable;
+
+    return userTable.update_algorithm_new(mDataBase,account,s);
+}
 
 

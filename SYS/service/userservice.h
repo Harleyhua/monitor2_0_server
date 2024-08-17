@@ -16,7 +16,10 @@ public:
     void readUserInfo(const QJsonObject &s,QJsonObject &rtData);
     QString readUserTotalStation(QString account);
 
+    void readPerssion(QString account,QString permission,const QJsonObject &s);
+
     bool writeUserAlgorithm(QString account,const QJsonObject &s);    //写用户老化算法
+    bool writeUserAlgorithm_new(QString account,const QJsonObject &s);
 private:
     QSqlDatabase mDataBase;
 signals:

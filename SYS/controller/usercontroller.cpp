@@ -62,7 +62,8 @@ void usercontroller::setUserAlgorithm()
 
     bool ret = false;
 
-    ret = userSv.writeUserAlgorithm(mName,mJsBody);
+    //ret = userSv.writeUserAlgorithm(mName,mJsBody);
+    ret = userSv.writeUserAlgorithm_new(mName,mJsBody);
 
     if(ret)
     {

@@ -90,7 +90,7 @@ void aging_server::onm_start()
         QLOG_INFO() << "监听失败:" << this->errorString();
     } else {
         QLOG_INFO() << "服务器已成功监听";
-        checkListeningTimer->stop();
+        //checkListeningTimer->stop();
     }
 }
 
