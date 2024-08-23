@@ -150,6 +150,7 @@ enum aging_err_cause{
     ignore_max_data,  //频繁异常 忽略点数过多 故障过多
     drop_max_data,    //功率跌落次数过多
     nonominal_power,  //功率没达到标称功率上
+    over_power,       //功率过高
     nopower_data,     //无功率输出
     missing_point_data, //老化采集点数丢失
     missing_time_data,  //老化时间不充分

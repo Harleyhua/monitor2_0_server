@@ -596,20 +596,53 @@ void mysql::w_rack_data(QJsonObject &s_data)
     // //网关编号和位置
     QString emu_cid_values[3] = {"0108", "0916", "1724"};
     if(room == "room-1"){
+        //rack-1 ~ rack-6
         for(int i=1;i<=6;i++)
         {
+            //L1 ~ L8
             for(int j=1;j<=8;j++)
             {
                 QString emu_cid = "909999" + QString::number(i)+QString::number(j);
                 //rack-1 L2
                 QString emu_desc = "rack-" + QString::number(i) + " L" + QString::number(j);
                 default_aging_emu.append(emu_cid);
-                //调用 emu_mi_tb 的 del_mis_by_emucid 函数，删除数据库中对应 emu_cid 的记录
+
                 emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
                 station_emu_tb.w_one_emu(m_db,room,emu_cid,emu_desc);
-                //station_emu_tb.w_one_emu(m_db,"room-1",emu_cid,emu_desc);
             }
         }
+    //     //rack-5 ~ rack-6
+    //     for(int i=5;i<=6;i++)
+    //     {
+    //         //L1 ~ L8
+    //         for(int j=1;j<=8;j++)
+    //         {
+    //             QString emu_cid = "909999" + QString::number(i)+QString::number(j);
+    //             //rack-1 L2
+    //             QString emu_desc = "rack-" + QString::number(i) + " L" + QString::number(j);
+    //             default_aging_emu.append(emu_cid);
+
+    //             emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
+    //             station_emu_tb.w_one_emu(m_db,room,emu_cid,emu_desc);
+    //         }
+    //     }
+    // }
+    // else if(room == "room-2"){
+    //     //rack-3 ~ rack-4
+    //     for(int i=3;i<=4;i++)
+    //     {
+    //         //L1 ~ L8
+    //         for(int j=1;j<=8;j++)
+    //         {
+    //             QString emu_cid = "909999" + QString::number(i)+QString::number(j);
+    //             //rack-1 L2
+    //             QString emu_desc = "rack-" + QString::number(i) + " L" + QString::number(j);
+    //             default_aging_emu.append(emu_cid);
+
+    //             emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
+    //             station_emu_tb.w_one_emu(m_db,room,emu_cid,emu_desc);
+    //         }
+    //     }
     }
     else{
         QString emu_desc;
@@ -662,6 +695,7 @@ void mysql::w_rack_data(QJsonObject &s_data)
             QString mi_cid = node_obj.value("mi_cid").toString();
 
             //需要修改
+            //if(room == "room-1" && room =="room-2"){
             if(room == "room-1"){
                 emu_cid = "909999" + rack_name.rightRef(1) + pos.mid(0,1);//默认规则  需要人为支持
             }
@@ -947,8 +981,6 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
         st_obj.insert(ag_user_station_table::c_field_station,st_array[i].toString());
 
         datas.append(st_obj);
-
-
     }
     rt_data.insert("mapping_datas",datas);
 }

@@ -140,8 +140,18 @@ bool ag_user_station_table::write_station(QSqlDatabase &m_database, QString tota
 void ag_user_station_table::read_station(QSqlDatabase &m_database, QString total_station, QJsonObject &data)
 {
     QSqlQuery query(m_database);
-    QString tmp_cmd = QString("SELECT DISTINCT %1 FROM %2 WHERE %3='%4' ORDER BY %5")
-            .arg(c_field_station,m_name,c_field_account,total_station,c_field_station);
+    // QString tmp_cmd = QString("SELECT DISTINCT %1 FROM %2 WHERE %3='%4' ORDER BY %5")
+    //         .arg(c_field_station,m_name,c_field_account,total_station,c_field_station);
+
+    QString tmp_cmd = QString("SELECT DISTINCT %1 FROM %2 WHERE %3='%4' "
+                              "ORDER BY SUBSTRING_INDEX(%5, '-', 1), "
+                              "CAST(SUBSTRING_INDEX(%5, '-', -1) AS UNSIGNED), %5")
+                          .arg(c_field_station)
+                          .arg(m_name)
+                          .arg(c_field_account)
+                          .arg(total_station)
+                          .arg(c_field_station);
+
     if(query.exec(tmp_cmd))
     {
         QJsonArray station_datas;

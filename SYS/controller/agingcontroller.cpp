@@ -52,6 +52,7 @@ bool agingController::writeRoomTemp(QString strJsonData){
     return true;
 }
 
+//写入老化房数据
 void agingController::setRoomAndDevData()
 {
     userservice userSv(mDataBase);
@@ -74,6 +75,7 @@ void agingController::setRoomAndDevData()
         return;
     }
 
+    // 遍历每个老化柜的数据
     for(int i=0;i<cabinetsArray.size();i++)
     {
         QJsonObject cabinetJsObj = cabinetsArray[i].toObject();
