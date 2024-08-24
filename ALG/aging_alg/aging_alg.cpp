@@ -420,7 +420,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             if(j <= pv_datas.size() - start_point_offset)
             {
                 //跌幅超过% 认为波动异常  不统计功率  比较时cur_power都已经放大100倍
-                if((cur_power * 100) < (old_power_value * drop_thr))
+                if( (cur_power * 100) < (old_power_value * (100 - drop_thr)) )
                 {
                     drop_times ++;
                     cal_temp_flag = false;
