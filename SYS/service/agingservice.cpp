@@ -283,6 +283,8 @@ void agingservice::ReadMiHistoryReport(int mode,QString Mi,QString startTime,con
     QStringList startTimes;
     QStringList stopTimes;
     QStringList posDescs;
+    QJsonArray roomsArray;
+    QJsonArray posDescsArray;
 
     QStringList historyReportsList;
     //QJsonArray reportsList;
@@ -304,8 +306,20 @@ void agingservice::ReadMiHistoryReport(int mode,QString Mi,QString startTime,con
         for(int i=0;i<historyReportsList.size();i++){
             QString reportString = historyReportsList[i];
             retReport = QJsonDocument::fromJson(reportString.toUtf8()).object();
-            retReport.insert("room",room);
-            retReport.insert("pos_desc",posDesc);
+
+            //历史报告查询的位置信息和房间信息
+            for (const QString &room : rooms) {
+                roomsArray.append(room);
+            }
+            retReport.insert("room", roomsArray);
+
+            for (const QString &posDesc : posDescs) {
+                posDescsArray.append(posDesc);
+            }
+            retReport.insert("room", roomsArray);
+
+            // retReport.insert("room",room);
+            // retReport.insert("pos_desc",posDesc);
             reportsList.append(retReport);
         }
     }
@@ -315,7 +329,7 @@ void agingservice::ReadMiHistoryReport(int mode,QString Mi,QString startTime,con
 
 void agingservice::readMiAgingData(QString mi, QString startTime, QString stopTime, QJsonObject &rt_data)
 {
-    //创建一个存储功率数据表的实例
+    //创建一个存储功率数据表的实例-
     ag_power_data_table pw_dt_tb;
     //创建一个存储微逆属性表的实例
     ag_mi_property_table mi_pty_tb;
