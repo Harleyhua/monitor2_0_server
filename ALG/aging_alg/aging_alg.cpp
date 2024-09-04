@@ -17,7 +17,9 @@ aging_alg::aging_alg()
 void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<QString, uint16_t> &temp, QJsonObject &r_data,int age_time)
 {
     int pv_size = s_data.value("all_pv").toString().toInt();
+    //pv标称功率
     int pv_nominal_power = s_data.value("pv_nominal_power").toInt(1000000);
+    //整机标称功率
     int total_nominal_power = s_data.value("total_nominal_power").toInt(1000000);
     //起始点测算偏移point数量 默认3个
     int start_point_offset = judge_param.value("v_start_point_offset").toInt(3);
@@ -789,6 +791,22 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             tmp_ret = drop_max_data;
         }
 
+        int pv_power_max_L = ( pv_judge_param.value("pv_power_max_L").toInt() ) * 100;
+        int pv_power_max_H = ( pv_judge_param.value("pv_power_max_H").toInt() ) * 100;
+
+        if(tmp_power_max > pv_power_max_L && tmp_power_max < pv_power_max_H )
+        {
+            tmp_ret = pass_data;
+        }
+        else if( tmp_power_max < pv_power_max_L )
+        {
+            tmp_ret = lower_powermax;
+        }
+        else if( tmp_power_max > pv_power_max_H )
+        {
+            tmp_ret = over_power;
+        }
+
         //四路
         if(pv_size == 4)
         {
@@ -1004,24 +1022,35 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     //整机只判断部分情况
     aging_err_cause tmp_total_casue = pass_data;
 #if CAL_TEMP40_SWITCH
+    //40℃时，最小功率小于标称功率的百分之几
     if(tmp_total_40power_min < (int)(judge_param.value("v_rm40_pwmin").toInt() * total_nominal_power))
         tmp_total_casue = lowpower_data;
+    if(tmp_total_40power_max > (int) ((judge_param.value("v_rm40_pwmax").toDouble() * total_nominal_power) + total_nominal_power) )
+        tmp_total_casue = over_power;
 #endif
 #if CAL_TEMP45_SWITCH
     if(tmp_total_45power_min < (int)(judge_param.value("v_rm45_pwmin").toInt() * total_nominal_power))
         tmp_total_casue = lowpower_data;
+    if(tmp_total_45power_max < (int)(judge_param.value("v_rm45_pwmax").toInt() * total_nominal_power))
+        tmp_total_casue = over_power;
 #endif
 #if CAL_TEMP50_SWITCH
     if(tmp_total_50power_min < (int)(judge_param.value("v_rm50_pwmin").toInt() * total_nominal_power))
         tmp_total_casue = lowpower_data;
+    if(tmp_total_50power_max < (int) ((judge_param.value("v_rm50_pwmax").toDouble() * total_nominal_power) + total_nominal_power) )
+        tmp_total_casue = over_power;
 #endif
 #if CAL_TEMP55_SWITCH
     if(tmp_total_55power_min < (int)(judge_param.value("v_rm55_pwmin").toInt() * nominal_power))
         tmp_total_casue = lowpower_data;
+    if(tmp_total_55power_max < (int)(judge_param.value("v_rm55_pwmax").toInt() * nominal_power))
+        tmp_total_casue = over_power;
 #endif
 #if CAL_TEMP60_SWITCH
     if(tmp_total_60power_min < (int)(judge_param.value("v_rm60_pwmin").toInt() * nominal_power))
         tmp_total_casue = lowpower_data;
+    if(tmp_total_60power_max < (int)(judge_param.value("v_rm60_pwmax").toInt() * nominal_power))
+        tmp_total_casue = over_power;
 #endif
     if(pv_size == 4)
     {
@@ -1030,11 +1059,6 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         {
             tmp_total_casue = nonominal_power;
         }
-        // //功率过高
-        // else if(tmp_total_power_max > total_nominal_power *100)
-        // {
-        //     tmp_total_casue = over_power;
-        // }
     }
     else
     {
@@ -1043,12 +1067,24 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         {
             tmp_total_casue = nonominal_power;
         }
-        // //功率过高
-        // else if(tmp_total_power_max > total_nominal_power *100)
-        // {
-        //     tmp_total_casue = over_power;
-        // }
     }
+
+    int all_power_max_L = ( judge_param.value("all_power_max_L").toInt()) * 100;
+    int all_power_max_H = ( judge_param.value("all_power_max_H").toInt()) * 100;
+
+    if(tmp_total_power_max > all_power_max_L && tmp_total_power_max < all_power_max_H )
+    {
+        tmp_total_casue = pass_data;
+    }
+    else if( tmp_total_power_max < all_power_max_L )
+    {
+        tmp_total_casue = lower_powermax;
+    }
+    else if( tmp_total_power_max > all_power_max_H )
+    {
+        tmp_total_casue = over_power;
+    }
+
 
     if(tmp_total_power_max == DEFAULT_VALUE_MAX && tmp_total_power_min == DEFAULT_VALUE_MIN)
     {
@@ -1136,15 +1172,6 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     {
         b_ret = 2;
     }
-    // else if(cur_err_cause < pass_data && cur_err_cause >= over_power)
-    // {
-    //     b_ret = 3;
-    // }
-    // else if(cur_err_cause < over_power)
-    // {
-    //     b_ret = 4;
-    // }
-
 
     QJsonObject total_obj;
 
@@ -1219,11 +1246,14 @@ QString aging_alg::get_aging_err_cause_str(aging_err_cause err_cause)
     case drop_max_data:
         str.append("异常跌落次数过多");
         break;
+    case lower_powermax:
+        str.append("最高功率没达到最低阈值");
+        break;
+    case over_power:
+        str.append("最高功率过高");
+        break;
     case nonominal_power:
         str.append("最高功率没达到标称功率");
-        break;
-    // case over_power:
-    //     str.append("功率过高");
         break;
     case nopower_data:
         str.append("无功率输出");
