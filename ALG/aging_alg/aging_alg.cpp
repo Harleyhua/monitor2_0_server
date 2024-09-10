@@ -21,8 +21,8 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     int pv_nominal_power = s_data.value("pv_nominal_power").toInt(1000000);
     //整机标称功率
     int total_nominal_power = s_data.value("total_nominal_power").toInt(1000000);
-    //起始点测算偏移point数量 默认3个
-    int start_point_offset = judge_param.value("v_start_point_offset").toInt(3);
+    //起始点测算偏移point数量 默认4个
+    int start_point_offset = judge_param.value("v_start_point_offset").toInt(4);
     int drop_thr = judge_param.value("drop_value").toInt(70);
     int drop_points_thr = judge_param.value("drop_points_max").toInt(5);
     int ignore_points_thr = judge_param.value("ignore_points_max").toInt(10);
@@ -172,7 +172,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
 
         old_power_value = start_power;  //避免第一次的判断
         //不解析前两个点  和后5个点
-        for(int j=pv_datas.size() - start_point_offset;j>=start_point_offset;j--)
+        for(int j=pv_datas.size() - start_point_offset;j>start_point_offset;j--)
         {
             all_data_size += pv_datas.size();
             QJsonObject data = pv_datas[j].toObject();
@@ -807,25 +807,25 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             tmp_ret = over_power;
         }
 
-        //四路
-        if(pv_size == 4)
-        {
-            //pv 最高功率没超过标称功率 95%
-            if(tmp_power_max < 95 * pv_nominal_power)
-            {
-                //未达到标称功率
-                tmp_ret = nonominal_power;
-            }
-        }
-        else
-        {
-            //如果不是四路
-            //pv 最高功率没超过标称功率 100%
-            if(tmp_power_max < 100 * pv_nominal_power)
-            {
-                tmp_ret = nonominal_power;
-            }
-        }
+        // //四路
+        // if(pv_size == 4)
+        // {
+        //     //pv 最高功率没超过标称功率 95%
+        //     if(tmp_power_max < 95 * pv_nominal_power)
+        //     {
+        //         //未达到标称功率
+        //         tmp_ret = nonominal_power;
+        //     }
+        // }
+        // else
+        // {
+        //     //如果不是四路
+        //     //pv 最高功率没超过标称功率 100%
+        //     if(tmp_power_max < 100 * pv_nominal_power)
+        //     {
+        //         tmp_ret = nonominal_power;
+        //     }
+        // }
 
         // 如果最高功率和最低功率都等于预定义的默认值
         if(tmp_power_max == DEFAULT_VALUE_MAX && tmp_power_min == DEFAULT_VALUE_MIN)
@@ -1052,22 +1052,22 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     if(tmp_total_60power_max < (int)(judge_param.value("v_rm60_pwmax").toInt() * nominal_power))
         tmp_total_casue = over_power;
 #endif
-    if(pv_size == 4)
-    {
-        //整机功率过低
-        if(tmp_total_power_max < total_nominal_power *99)
-        {
-            tmp_total_casue = nonominal_power;
-        }
-    }
-    else
-    {
-        //整机功率过低
-        if(tmp_total_power_max < total_nominal_power *100)
-        {
-            tmp_total_casue = nonominal_power;
-        }
-    }
+    // if(pv_size == 4)
+    // {
+    //     //整机功率过低
+    //     if(tmp_total_power_max < total_nominal_power *99)
+    //     {
+    //         tmp_total_casue = nonominal_power;
+    //     }
+    // }
+    // else
+    // {
+    //     //整机功率过低
+    //     if(tmp_total_power_max < total_nominal_power *100)
+    //     {
+    //         tmp_total_casue = nonominal_power;
+    //     }
+    // }
 
     int all_power_max_L = ( judge_param.value("all_power_max_L").toInt()) * 100;
     int all_power_max_H = ( judge_param.value("all_power_max_H").toInt()) * 100;
@@ -1162,13 +1162,23 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     {
         b_ret = 0;
     }
+    // //小于 “通过” ，大于等于 “没达到标称功率”
+    // else if(cur_err_cause < pass_data && cur_err_cause >= nonominal_power)
+    // {
+    //     b_ret = 1;
+    // }
+    // //小于 “没达到标称功率”
+    // else if(cur_err_cause < nonominal_power)
+    // {
+    //     b_ret = 2;
+    // }
     //小于 “通过” ，大于等于 “没达到标称功率”
-    else if(cur_err_cause < pass_data && cur_err_cause >= nonominal_power)
+    else if(cur_err_cause < pass_data && cur_err_cause > over_power)
     {
         b_ret = 1;
     }
     //小于 “没达到标称功率”
-    else if(cur_err_cause < nonominal_power)
+    else if(cur_err_cause <= over_power)
     {
         b_ret = 2;
     }
@@ -1252,8 +1262,8 @@ QString aging_alg::get_aging_err_cause_str(aging_err_cause err_cause)
     case over_power:
         str.append("最高功率过高");
         break;
-    case nonominal_power:
-        str.append("最高功率没达到标称功率");
+    // case nonominal_power:
+    //     str.append("最高功率没达到标称功率");
         break;
     case nopower_data:
         str.append("无功率输出");

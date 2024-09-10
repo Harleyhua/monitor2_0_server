@@ -279,7 +279,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
 
                     int agetime = 0;
                     //进行老化分析
-                    tmp_aging_alg.aging_report(aging_data,jud_params.value("bym" + QString::number(aging_data.value("total_nominal_power").toInt())).toObject(),
+                    tmp_aging_alg.aging_report(aging_data,jud_params.value("bym" + QString::number(aging_data.value("tot al_nominal_power").toInt())).toObject(),
                                                room_temp,mi_report,agetime);
 
 #if(SAVE_MI_REPORT)
