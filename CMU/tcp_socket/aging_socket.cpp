@@ -113,28 +113,34 @@ void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd)
         {
             sql.w_rack_data(root_js_recv);
             if(root_js_recv.value(CS_TEMP_KEY).toDouble(2) > 0 ){
-                //识别到有温度上传，直接写入温度
-                ag_temp_table tempTable;
-                QSqlDatabase q1 = sql.getQSqlDatabaseFromMysql();
-                QJsonObject t1;
-                t1.insert("room_id",root_js_recv.value("room_id"));
-                t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
-                t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)));
-                t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)));
+                // QJsonValue room = root_js_recv.value("room_id");
+                // QString room_id = room.toString();
 
-                //修正时间
-                QString min = QDateTime::currentDateTime().toString("mm");
-                uint16_t min_int = (min.toUInt() / 5) *5;
-                QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
-                                   QString("%1").arg(min_int,2,10,QLatin1Char('0')) + ":00";
+                // if(room_id != "room-1")
+                // {
+                    //识别到有温度上传，直接写入温度
+                    ag_temp_table tempTable;
+                    QSqlDatabase q1 = sql.getQSqlDatabaseFromMysql();
+                    QJsonObject t1;
+                    t1.insert("room_id",root_js_recv.value("room_id"));
+                    t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
+                    t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)));
+                    t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)));
 
-                t1.insert("cur_time",curr_time);
-                //t1.insert("cur_time",root_js_recv.value("curr_time"));
+                    //修正时间
+                    QString min = QDateTime::currentDateTime().toString("mm");
+                    uint16_t min_int = (min.toUInt() / 5) *5;
+                    QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
+                                       QString("%1").arg(min_int,2,10,QLatin1Char('0')) + ":00";
 
-                tempTable.write_temp(q1,t1,true);
+                    t1.insert("cur_time",curr_time);
+                    //t1.insert("cur_time",root_js_recv.value("curr_time"));
 
-                double temp1 = root_js_recv.value(CS_TEMP_KEY).toDouble(2);
-                qDebug() << temp1;
+                    tempTable.write_temp(q1,t1,true);
+
+                    double temp1 = root_js_recv.value(CS_TEMP_KEY).toDouble(2);
+                    qDebug() << temp1;
+                //}
 
             }else{
 

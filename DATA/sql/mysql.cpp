@@ -595,7 +595,8 @@ void mysql::w_rack_data(QJsonObject &s_data)
 
     // //网关编号和位置
     QString emu_cid_values[3] = {"0108", "0916", "1724"};
-    if(room == "room-1"){
+    if(room == "room-1")
+    {
         //rack-1 ~ rack-6
         for(int i=1;i<=6;i++)
         {
@@ -649,20 +650,12 @@ void mysql::w_rack_data(QJsonObject &s_data)
         for(int i = 0; i <= 2; i++)
         {
             QString emu_cid = "9" + room.mid(5, 2) + "0" + emu_cid_values[i];
-            for(int j = 1; j <= 3; j++)
-            {
-                emu_desc = "rack-" + QString::number(i + 1) + " L" + QString::number(j);
-                // 尝试执行数据库操作
-                try {
-                    default_aging_emu.append(emu_cid);
-                    //调用 emu_mi_tb 的 del_mis_by_emucid 函数，删除数据库中对应 emu_cid 的记录
-                    emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
-                    station_emu_tb.w_one_emu(m_db,room,emu_cid,emu_desc);
-                } catch (const std::bad_alloc& ba) {
-                    // 处理内存分配失败的情况
-                    //std::cerr << "Memory allocation failed: " << ba.what() << std::endl;
-                }
-            }
+            emu_desc = "rack-" + QString::number(i + 1) + " L" + QString::number(i + 1);
+
+            default_aging_emu.append(emu_cid);
+            //调用 emu_mi_tb 的 del_mis_by_emucid 函数，删除数据库中对应 emu_cid 的记录
+            emu_mi_tb.del_mis_by_emucid(m_db,emu_cid);
+            station_emu_tb.w_one_emu(m_db,room,emu_cid,emu_desc);
         }
     }
 
@@ -692,20 +685,28 @@ void mysql::w_rack_data(QJsonObject &s_data)
                 continue;
             }
             QString emu_cid;
+            // QString emu_cid_1;
+            // QString emu_cid_2;
+            // QString emu_cid_3;
             QString mi_cid = node_obj.value("mi_cid").toString();
 
             //需要修改
             //if(room == "room-1" && room =="room-2"){
-            if(room == "room-1"){
+            if(room == "room-1")
+            {
                 emu_cid = "909999" + rack_name.rightRef(1) + pos.mid(0,1);//默认规则  需要人为支持
             }
-            else{
-                emu_cid= "9" + room.mid(5, 2) + "0" + emu_cid_values[i];
-            }
+            // else
+            // {
+            //     emu_cid_1 = "9" + room.mid(5, 2) + "0" + "0108";
+            //     emu_cid_2 = "9" + room.mid(5, 2) + "0" + "0916";
+            //     emu_cid_3 = "9" + room.mid(5, 2) + "0" + "0724";
+            // }
 
             QStringList plc_mis = emu_mi.value(emu_cid);
             bool is_wifi = false;
             QString old_emu_wifi_mi_cid = mi_cid;
+            //wifi版微逆为字母开头，plc版微逆为数字开头
             if(mi_cid.startsWith("A"))
             {
                 mi_cid[0] = '1';
@@ -735,7 +736,59 @@ void mysql::w_rack_data(QJsonObject &s_data)
                 }
                 mi_desc.insert(mi_cid, rack_name + " " + pos);
             }
-            emu_mi.insert(emu_cid,plc_mis);
+
+            QString pos_new = node_obj.value("pos").toString();
+            if (pos_new.length() == 4)
+            {
+                pos_new.insert(3, "0");
+            }
+
+            if(room == "room-1")
+            {
+                emu_mi.insert(emu_cid,plc_mis);
+            }
+            else
+            {
+                QString position = pos_new.mid(3, 2);
+                //QString emu_num = emu_cid.mid(4,4);
+
+                if (position.toInt() >= 1 && position.toInt() <= 8)
+                {
+                    emu_cid = "9" + room.mid(5, 2) + "0" + "0108";
+                    if (emu_mi.contains(emu_cid))
+                    {
+                        emu_mi[emu_cid].append(plc_mis);
+                    }
+                    else
+                    {
+                        emu_mi.insert(emu_cid, plc_mis);
+                    }
+                }
+                else if (position.toInt() >= 9 && position.toInt() <= 16)
+                {
+                    emu_cid = "9" + room.mid(5, 2) + "0" + "0916";
+                    if (emu_mi.contains(emu_cid))
+                    {
+                        emu_mi[emu_cid].append(plc_mis);
+                    }
+                    else
+                    {
+                        emu_mi.insert(emu_cid, plc_mis);
+                    }
+                }
+                else if (position.toInt() >= 17 && position.toInt() <= 24)
+                {
+                    emu_cid = "9" + room.mid(5, 2) + "0" + "1724";
+                    if (emu_mi.contains(emu_cid))
+                    {
+                        emu_mi[emu_cid].append(plc_mis);
+                    }
+                    else
+                    {
+                        emu_mi.insert(emu_cid, plc_mis);
+                    }
+                }
+            }
 
             QJsonObject mi_obj;
             mi_obj.insert("room_id",room);
@@ -768,7 +821,6 @@ void mysql::w_rack_data(QJsonObject &s_data)
         for(int j=0;j<keys.size();j++)
         {
             QStringList e_mis = emu_mi[keys[j]];
-            // 遍历当前key下的e_mis列表
             for(int k = 0;k<e_mis.size();k++)
             {
                 emu_mi_tb.w_one_mi(m_db,keys[j],e_mis[k],mi_desc[e_mis[k]]);
@@ -778,8 +830,6 @@ void mysql::w_rack_data(QJsonObject &s_data)
         keys = emu_wifi_mis.keys();
         for(int j=0;j<keys.size();j++)
         {
-            //wifi版微逆通过这个函数添加，需要在user_table表中存在toltal_station
-            //add_wifimi_cid("aging_room1","room-1",keys[j],emu_wifi_mis[keys[j]],mi_desc[emu_wifi_mis[keys[j]]]);
             add_wifimi_cid(aging_room,room,keys[j],emu_wifi_mis[keys[j]],mi_desc[emu_wifi_mis[keys[j]]]);
         }
     }
