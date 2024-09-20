@@ -23,9 +23,20 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     int total_nominal_power = s_data.value("total_nominal_power").toInt(1000000);
     //起始点测算偏移point数量 默认4个
     int start_point_offset = judge_param.value("v_start_point_offset").toInt(4);
+    //异常跌落功率阈值
     int drop_thr = judge_param.value("drop_value").toInt(70);
+    //最大异常跌落次数
     int drop_points_thr = judge_param.value("drop_points_max").toInt(5);
-    int ignore_points_thr = judge_param.value("ignore_points_max").toInt(10);
+
+    //功率异常波动次数
+    int power_flu_time = judge_param.value("power_fluct_time").toInt(3);
+    //功率波动范围下限
+    int fluct_minrange = judge_param.value("power_fluct_minrange").toInt(5);
+    //功率波动范围上限
+    int fluct_maxrange = judge_param.value("power_fluct_maxrange").toInt(15);
+
+    //最大异常忽略点数
+    //int ignore_points_thr = judge_param.value("ignore_points_max").toInt(10);
     //int nominal_pw_thr = judge_param.value("nominal_pw_thr").toInt(100000);
 
     //阈值
@@ -157,6 +168,9 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         QString stop_time = "";
         //没有故障 有异常跌落情况
         int old_power_value = 0;
+
+        //功率异常波动次数
+        int flu_times = 0;
 
         if(pv_datas.size() >start_point_offset)
         {
@@ -368,8 +382,10 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
 
 
             //如果该点为忽略的点  不再统计这个点 跳到下个点
+            //ignore_points 发生异常时后续忽略的点数
             if(ignore_points > 0)
             {
+                // 减少忽略点的数量
                 --ignore_points;
                 //记录被忽略的点  index
                 rm_idx_set.insert(j);
@@ -418,22 +434,73 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             //     continue;
             // }
 
+            // //当前大于滤波点
+            // if(j <= pv_datas.size() - start_point_offset)
+            // {
+            //     //跌幅超过% 认为波动异常  不统计功率  比较时cur_power都已经放大100倍
+            //     if( (cur_power * 100) < ((old_power_value * (100 - drop_thr)) * 100) )
+            //     {
+            //         drop_times ++;
+            //         cal_temp_flag = false;
+            //         ignore_points = ERR_IGNORE_POINTS;
+            //         rm_idx_set.insert(j);
+            //         old_power_value = cur_power;
+            //         //总计忽略次数
+            //         ignore_times ++;
+            //         continue;
+            //     }
+            // }
+
             //当前大于滤波点
             if(j <= pv_datas.size() - start_point_offset)
             {
-                //跌幅超过% 认为波动异常  不统计功率  比较时cur_power都已经放大100倍
-                if( (cur_power * 100) < (old_power_value * (100 - drop_thr)) )
+                //当前功率值 < 标称功率值 -（100 * 设定的阈值）
+                if( (cur_power *100) < (pv_nominal_power * (100 - drop_thr)) * 100 )
                 {
+                    // 跌落次数
                     drop_times ++;
+                    // 不计算某环境温度下的标志
                     cal_temp_flag = false;
+                    //发生异常时后续忽略的点数
                     ignore_points = ERR_IGNORE_POINTS;
+
                     rm_idx_set.insert(j);
+                    //功率仍然更新
                     old_power_value = cur_power;
                     //总计忽略次数
                     ignore_times ++;
                     continue;
                 }
             }
+
+            //向上浮动
+            // （ 上一次功率 * （100 + fluct_minrange）<（当前功率 * 100）&& （当前功率 * 100）< (上一次功率 * （100 + fluct_maxrange）)
+            if( old_power_value * (100 + fluct_minrange) <= cur_power * 100 && cur_power * 100 <= old_power_value * (100 + fluct_maxrange))
+            {
+                // 浮动次数
+                flu_times ++;
+                // 不计算某环境温度下的标志
+                cal_temp_flag = false;
+                //功率仍然更新
+                old_power_value = cur_power;
+
+                continue;
+            }
+
+            //向下浮动
+            // (上一次的功率 * 100 - fluct_minrange）) < (当前功率 * 100) && （当前功率 * 100）< (上一次功率 * 100 - fluct_maxrange）)
+            if( old_power_value * (100 - fluct_minrange) >= cur_power * 100 && cur_power * 100 >= old_power_value * (100 - fluct_maxrange) )
+            {
+                // 浮动次数
+                flu_times ++;
+                // 不计算某环境温度下的标志
+                cal_temp_flag = false;
+                //功率仍然更新
+                old_power_value = cur_power;
+
+                continue;
+            }
+
 
             //特定环境温度下数据处理
             if(cal_temp_flag)
@@ -677,7 +744,6 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             {
                 tmp_ret = errcode_data;
             }
-
         }
 
 #if CAL_TEMP40_SWITCH
@@ -782,29 +848,33 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             }
         }
 #endif
-        if(ignore_times > ignore_points_thr)
-        {
-            tmp_ret = ignore_max_data;
-        }
-        if(drop_times > drop_points_thr)
-        {
-            tmp_ret = drop_max_data;
-        }
+        //如果忽略的次数大于设置的阈值（6次）
+        // if(ignore_times > ignore_points_thr)
+        // {
+        //     tmp_ret = ignore_max_data;
+        // }
 
         int pv_power_max_L = ( pv_judge_param.value("pv_power_max_L").toInt() ) * 100;
         int pv_power_max_H = ( pv_judge_param.value("pv_power_max_H").toInt() ) * 100;
 
-        if(tmp_power_max > pv_power_max_L && tmp_power_max < pv_power_max_H )
-        {
-            tmp_ret = pass_data;
-        }
-        else if( tmp_power_max < pv_power_max_L )
+        if( tmp_power_max < pv_power_max_L )
         {
             tmp_ret = lower_powermax;
         }
         else if( tmp_power_max > pv_power_max_H )
         {
             tmp_ret = over_power;
+        }
+
+        if(drop_times > drop_points_thr)
+        {
+            tmp_ret = drop_max_data;
+        }
+
+        //功率异常波动次数 > 设定的次数
+        if(flu_times > power_flu_time)
+        {
+            tmp_ret = power_fluction;
         }
 
         // //四路
@@ -1016,6 +1086,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
         pv_obj.insert("mim_err",mim_code);
         pv_obj.insert("mis_err",mis_code);
         pv_obj.insert("pv_ret",pv_ret_str);
+        pv_obj.insert("flu_times",flu_times);
         pv_ret.append(pv_obj);
     }// i
 
@@ -1025,32 +1096,22 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     //40℃时，最小功率小于标称功率的百分之几
     if(tmp_total_40power_min < (int)(judge_param.value("v_rm40_pwmin").toInt() * total_nominal_power))
         tmp_total_casue = lowpower_data;
-    if(tmp_total_40power_max > (int) ((judge_param.value("v_rm40_pwmax").toDouble() * total_nominal_power) + total_nominal_power) )
-        tmp_total_casue = over_power;
 #endif
 #if CAL_TEMP45_SWITCH
     if(tmp_total_45power_min < (int)(judge_param.value("v_rm45_pwmin").toInt() * total_nominal_power))
         tmp_total_casue = lowpower_data;
-    if(tmp_total_45power_max < (int)(judge_param.value("v_rm45_pwmax").toInt() * total_nominal_power))
-        tmp_total_casue = over_power;
 #endif
 #if CAL_TEMP50_SWITCH
     if(tmp_total_50power_min < (int)(judge_param.value("v_rm50_pwmin").toInt() * total_nominal_power))
         tmp_total_casue = lowpower_data;
-    if(tmp_total_50power_max < (int) ((judge_param.value("v_rm50_pwmax").toDouble() * total_nominal_power) + total_nominal_power) )
-        tmp_total_casue = over_power;
 #endif
 #if CAL_TEMP55_SWITCH
     if(tmp_total_55power_min < (int)(judge_param.value("v_rm55_pwmin").toInt() * nominal_power))
         tmp_total_casue = lowpower_data;
-    if(tmp_total_55power_max < (int)(judge_param.value("v_rm55_pwmax").toInt() * nominal_power))
-        tmp_total_casue = over_power;
 #endif
 #if CAL_TEMP60_SWITCH
     if(tmp_total_60power_min < (int)(judge_param.value("v_rm60_pwmin").toInt() * nominal_power))
         tmp_total_casue = lowpower_data;
-    if(tmp_total_60power_max < (int)(judge_param.value("v_rm60_pwmax").toInt() * nominal_power))
-        tmp_total_casue = over_power;
 #endif
     // if(pv_size == 4)
     // {
@@ -1072,11 +1133,7 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
     int all_power_max_L = ( judge_param.value("all_power_max_L").toInt()) * 100;
     int all_power_max_H = ( judge_param.value("all_power_max_H").toInt()) * 100;
 
-    if(tmp_total_power_max > all_power_max_L && tmp_total_power_max < all_power_max_H )
-    {
-        tmp_total_casue = pass_data;
-    }
-    else if( tmp_total_power_max < all_power_max_L )
+    if( tmp_total_power_max < all_power_max_L )
     {
         tmp_total_casue = lower_powermax;
     }
@@ -1250,8 +1307,11 @@ QString aging_alg::get_aging_err_cause_str(aging_err_cause err_cause)
     case lowpower_data:
         str.append("老化功率低");
         break;
-    case ignore_max_data:
-        str.append("异常忽略点数过多");
+    // case ignore_max_data:
+    //     str.append("异常忽略点数过多");
+    //     break;
+    case power_fluction:
+        str.append("功率异常波动");
         break;
     case drop_max_data:
         str.append("异常跌落次数过多");

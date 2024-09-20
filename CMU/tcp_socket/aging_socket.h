@@ -10,6 +10,8 @@
 #define CS_JSON_LENGTH_ERROR "2104"   //JSON长度错误
 #define CS_RACK_DATA_REQUEST    "1006"
 #define CS_RACK_DATA_RESPONSE   "2006"
+#define CS_TEMP_DATA_REQUEST    "1007"
+#define CS_TEMP_DATA_RESPONSE   "2007"
 #define CS_ERR_RESPONSE         "9000"
 #define CS_HEAD_ERROR         "2101"   //固定头错误
 #define CS_TEMP_KEY         "room_temp_cur"   //温度字段名

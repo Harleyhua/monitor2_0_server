@@ -50,8 +50,6 @@ bool aging_socket::del_buff_data()
         //QLOG_WARN() << tr("CS通讯:数据还未收全 继续接收");
         return false;
     }
-
-    //将bytearray数据转字符串   cs为（字符解析协议） 字符串提供大量的方法
     QString str_netdata = m_buff.mid(0,CS_HEAD_FORMAT_LENGTH);
     //与客户端的协议解析 以HEAD55AA开头
     if(str_netdata.startsWith(CS_DEFAULT_HEARD))
@@ -149,6 +147,43 @@ void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd)
             QByteArray msg("HEAD55AA2006210000000000000");
             this->write(msg);
         }
+
+        // //温度上传
+        // if(cmd == CS_TEMP_DATA_REQUEST)
+        // {
+        //     //sql.w_rack_data(root_js_recv);
+        //     if(root_js_recv.value(CS_TEMP_KEY).toDouble(2) > 0 ){
+        //         //识别到有温度上传，直接写入温度
+        //         ag_temp_table tempTable;
+        //         QSqlDatabase q1 = sql.getQSqlDatabaseFromMysql();
+        //         QJsonObject t1;
+        //         t1.insert("room_id",root_js_recv.value("room_id"));
+        //         t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
+        //         t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)));
+        //         t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)));
+
+        //         //修正时间
+        //         QString min = QDateTime::currentDateTime().toString("mm");
+        //         uint16_t min_int = (min.toUInt() / 5) *5;
+        //         QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
+        //                             QString("%1").arg(min_int,2,10,QLatin1Char('0')) + ":00";
+
+        //         t1.insert("cur_time",curr_time);
+        //         //t1.insert("cur_time",root_js_recv.value("curr_time"));
+
+        //         tempTable.write_temp(q1,t1,true);
+
+        //         double temp1 = root_js_recv.value(CS_TEMP_KEY).toDouble(2);
+        //         qDebug() << temp1;
+        //     }
+        //     else
+        //     {
+
+        //         qDebug() << 0;
+        //     }
+        //     QByteArray msg("HEAD55AA2007210000000000000");
+        //     this->write(msg);
+        // }
     }
     else
     {
