@@ -27,7 +27,6 @@ void aging_socket::onm_del_data()
     mTimerCount = 0;
     m_buff.append(readAll());
     qDebug() << m_buff.size();
-    //common::writeFile("d:/1.txt",m_buff);
     while (m_buff.size() > 0) {
         //数据异常则会清空  若未接收完全则跳出继续接收
         //可能会同时收到多条指令 处理完后继续处理下一条
@@ -110,80 +109,76 @@ void aging_socket::deal_cmd_CS(QByteArray &data, QString cmd)
         if(cmd == CS_RACK_DATA_REQUEST)
         {
             sql.w_rack_data(root_js_recv);
-            if(root_js_recv.value(CS_TEMP_KEY).toDouble(2) > 0 ){
-                // QJsonValue room = root_js_recv.value("room_id");
-                // QString room_id = room.toString();
+            if(root_js_recv.contains(CS_TEMP_KEY) && root_js_recv.value(CS_TEMP_KEY).toDouble(2) > 0 )
+            {
+                //识别到有温度上传，直接写入温度
+                ag_temp_table tempTable;
+                QSqlDatabase q1 = sql.getQSqlDatabaseFromMysql();
+                QJsonObject t1;
+                t1.insert("room_id",root_js_recv.value("room_id"));
+                t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
+                t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)));
+                t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)));
 
-                // if(room_id != "room-1")
-                // {
-                    //识别到有温度上传，直接写入温度
-                    ag_temp_table tempTable;
-                    QSqlDatabase q1 = sql.getQSqlDatabaseFromMysql();
-                    QJsonObject t1;
-                    t1.insert("room_id",root_js_recv.value("room_id"));
-                    t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
-                    t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)));
-                    t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)));
+                //修正时间
+                QString min = QDateTime::currentDateTime().toString("mm");
+                uint16_t min_int = (min.toUInt() / 5) *5;
+                QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
+                                   QString("%1").arg(min_int,2,10,QLatin1Char('0')) + ":00";
 
-                    //修正时间
-                    QString min = QDateTime::currentDateTime().toString("mm");
-                    uint16_t min_int = (min.toUInt() / 5) *5;
-                    QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
-                                       QString("%1").arg(min_int,2,10,QLatin1Char('0')) + ":00";
+                t1.insert("cur_time",curr_time);
+                //t1.insert("cur_time",root_js_recv.value("curr_time"));
 
-                    t1.insert("cur_time",curr_time);
-                    //t1.insert("cur_time",root_js_recv.value("curr_time"));
+                tempTable.write_temp(q1,t1,true);
 
-                    tempTable.write_temp(q1,t1,true);
-
-                    double temp1 = root_js_recv.value(CS_TEMP_KEY).toDouble(2);
-                    qDebug() << temp1;
-                //}
-
-            }else{
-
+                double temp1 = root_js_recv.value(CS_TEMP_KEY).toDouble(2);
+                qDebug() << temp1;
+            }
+            else
+            {
                 qDebug() << 0;
             }
             QByteArray msg("HEAD55AA2006210000000000000");
             this->write(msg);
         }
 
-        // //温度上传
-        // if(cmd == CS_TEMP_DATA_REQUEST)
-        // {
-        //     //sql.w_rack_data(root_js_recv);
-        //     if(root_js_recv.value(CS_TEMP_KEY).toDouble(2) > 0 ){
-        //         //识别到有温度上传，直接写入温度
-        //         ag_temp_table tempTable;
-        //         QSqlDatabase q1 = sql.getQSqlDatabaseFromMysql();
-        //         QJsonObject t1;
-        //         t1.insert("room_id",root_js_recv.value("room_id"));
-        //         t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
-        //         t1.insert("cur_temp",(int)(root_js_recv.value("room_temp_cur").toDouble(2)));
-        //         t1.insert("set_temp",(int)(root_js_recv.value("room_temp_set").toDouble(2)));
+        //温度上传
+        if(cmd == CS_TEMP_DATA_REQUEST)
+        {
+            if(root_js_recv.contains(CS_TEMP_NEW_KEY) && root_js_recv.value(CS_TEMP_NEW_KEY).toDouble(2) > 0 )
+            {
+                //识别到有温度上传，直接写入温度
+                ag_temp_table tempTable;
+                QSqlDatabase q1 = sql.getQSqlDatabaseFromMysql();
+                QJsonObject t1;
+                t1.insert("room_id",root_js_recv.value("room_id"));
+                t1.insert("run_status",root_js_recv.value("run_status").toInt(0));
+                t1.insert("cur_temp",(int)(root_js_recv.value("cur_temp").toDouble(2)));
+                t1.insert("set_temp",(int)(root_js_recv.value("set_temp").toDouble(2)));
 
-        //         //修正时间
-        //         QString min = QDateTime::currentDateTime().toString("mm");
-        //         uint16_t min_int = (min.toUInt() / 5) *5;
-        //         QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
-        //                             QString("%1").arg(min_int,2,10,QLatin1Char('0')) + ":00";
+                //修正时间
+                QString min = QDateTime::currentDateTime().toString("mm");
+                uint16_t min_int = (min.toUInt() / 5) *5;
+                QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:") +
+                                    QString("%1").arg(min_int,2,10,QLatin1Char('0')) + ":00";
 
-        //         t1.insert("cur_time",curr_time);
-        //         //t1.insert("cur_time",root_js_recv.value("curr_time"));
+                t1.insert("cur_time",curr_time);
+                //t1.insert("cur_time",root_js_recv.value("curr_time"));
 
-        //         tempTable.write_temp(q1,t1,true);
+                //tempTable.write_temp(q1,t1,true);
+                tempTable.write_temp_new(q1,t1);
 
-        //         double temp1 = root_js_recv.value(CS_TEMP_KEY).toDouble(2);
-        //         qDebug() << temp1;
-        //     }
-        //     else
-        //     {
+                double temp1 = root_js_recv.value(CS_TEMP_KEY).toDouble(2);
+                qDebug() << temp1;
+            }
+            else
+            {
 
-        //         qDebug() << 0;
-        //     }
-        //     QByteArray msg("HEAD55AA2007210000000000000");
-        //     this->write(msg);
-        // }
+                qDebug() << 0;
+            }
+            QByteArray msg("HEAD55AA2007210000000000000");
+            this->write(msg);
+        }
     }
     else
     {
@@ -203,6 +198,7 @@ bool aging_socket::get_root_jsonobj(QByteArray &data, QJsonObject &root_obj, uin
     //    json_data_length = data.size()-start_index;
     // }
 
+    // 尝试从数据中（从 start_index 开始，长度为 json_data_length）解析 JSON 对象
     QJsonDocument root_doc = QJsonDocument::fromJson(data.mid(start_index,json_data_length),&err_pt);
     if(err_pt.error != QJsonParseError::NoError)
     {

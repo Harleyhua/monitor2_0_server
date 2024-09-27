@@ -75,7 +75,7 @@ void ag_temp_table::write_temp(QSqlDatabase &m_database,QString room,bool runsta
 
 }
 
-void ag_temp_table::write_temp(QSqlDatabase &m_database,const QJsonObject &w_data)
+void ag_temp_table:: write_temp(QSqlDatabase &m_database,const QJsonObject &w_data)
 {
     QSqlQuery query(m_database);
     quint16 data_count = 0;
@@ -126,6 +126,54 @@ void ag_temp_table::write_temp(QSqlDatabase &m_database,const QJsonObject &w_dat
         }
     }
 }
+
+void ag_temp_table::write_temp_new(QSqlDatabase &m_database,const QJsonObject &w_data)
+{
+    QSqlQuery query(m_database);
+    QJsonObject tmp_temp_data = w_data;
+
+    QString tmp_cmd = QString("INSERT INTO %1 (%2,%3,%4,%5,%6) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE %7='%8',%9='%10',%11='%12' ")
+                          .arg(m_name,c_field_room_id,c_field_run_status,c_field_cur_temp,c_field_set_temp,c_field_cur_time,
+                               c_field_run_status,QString::number(tmp_temp_data.value(c_field_run_status).toInt(0)),
+                               c_field_cur_temp,QString::number(tmp_temp_data.value(c_field_cur_temp).toInt(0)),
+                               c_field_set_temp,QString::number(tmp_temp_data.value(c_field_set_temp).toInt(0)));
+
+
+    QLOG_INFO() << tmp_cmd;
+
+    query.prepare(tmp_cmd);
+
+    query.addBindValue(tmp_temp_data.value(c_field_room_id).toString(""));
+    query.addBindValue(tmp_temp_data.value(c_field_run_status).toInt(0));
+    query.addBindValue(tmp_temp_data.value(c_field_cur_temp).toInt(0));
+    query.addBindValue(tmp_temp_data.value(c_field_set_temp).toInt(0));
+    query.addBindValue(tmp_temp_data.value(c_field_cur_time).toString(""));
+
+    if(query.exec())
+    {
+        //新建温度记录项成功
+        QLOG_INFO() << "插入新的温度时间段成功 ";
+    }
+    else
+    {
+        const QSqlError& error = query.lastError();
+        QString err1 = error.text();
+        qDebug() << "Error:" << err1;
+        QLOG_WARN() << "SQL Error:" << err1;
+
+
+        QLOG_WARN() << QString("插入新的温度时间段失败 %1,%2,%3,%4,%5").arg(
+            tmp_temp_data.value(c_field_room_id).toString(""),
+            QString::number(tmp_temp_data.value(c_field_run_status).toInt(0)),
+            QString::number(tmp_temp_data.value(c_field_cur_temp).toInt(0)),
+            QString::number(tmp_temp_data.value(c_field_set_temp).toInt(0)),
+            tmp_temp_data.value(c_field_cur_time).toString("")
+            );
+    }
+
+}
+
+
 void ag_temp_table::write_temp(QSqlDatabase &m_database,const QJsonObject &w_data,bool writeOnes){
     if(!writeOnes){return;}
     QSqlQuery query(m_database);

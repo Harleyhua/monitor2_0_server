@@ -74,6 +74,7 @@ public:
     void write_temp(QSqlDatabase &m_database,QString room,bool runstatus,
                     int curtemp,int settemp,QString curtime);
     void write_temp(QSqlDatabase &m_database,const QJsonObject &w_data);
+    void write_temp_new(QSqlDatabase &m_database,const QJsonObject &w_data);
     void write_temp(QSqlDatabase &m_database,const QJsonObject &w_data,bool writeOnes);
     bool read_temp(QSqlDatabase &m_database,const QJsonObject &r_data,QJsonObject &data);
     void read_temp(QSqlDatabase &m_database,QString room_name,QString start_time,QString stop_time,QHash<QString, uint16_t> &temp);

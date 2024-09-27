@@ -19,7 +19,7 @@ static QHash<QString,int> gPathMapping = {
     //批次查询
     {"/batch_list",1},
     {"/r_ag_room_temp",1},
-    {"/write_room_temp",1},
+    //{"/write_room_temp",1},
     {"/r_rack_data",1},
     {"/aging/newroomdevdata",1},
 

@@ -299,11 +299,11 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             }
             ret_data.insert("report_datas",mis_report);
         }
-        else if(request.getPath().startsWith("/write_room_temp"))//
-        {
-            //老化房的温度采集
-            sql.w_room_temp(rev_data);
-        }
+        // else if(request.getPath().startsWith("/write_room_temp"))
+        // {
+        //     //老化房的温度采集
+        //     sql.w_room_temp(rev_data);
+        // }
         else if(request.getPath().startsWith("/update_alg"))
         {
             if(sql.update_alg(name,rev_data))

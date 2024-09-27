@@ -50,7 +50,7 @@ private:
         {"/history_report",&agingController::getMiHistoryReport},
         {"/batch_list",&agingController::getMiAgingBatch},
         {"/r_ag_room_temp",&agingController::getRoomTemp},
-        {"/write_room_temp",&agingController::setRoomTemp},
+        //{"/write_room_temp",&agingController::setRoomTemp},
         {"/r_rack_data",&agingController::getRackData},
         {"/aging/newroomdevdata",&agingController::setRoomAndDevData}
     };

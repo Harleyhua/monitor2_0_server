@@ -15,7 +15,8 @@
 #include "QsLog.h"
 //#include "common.h"
 
-#define VERSION "软件版本2.56（emu_aging）"
+//#define VERSION "软件版本2.59（Client）"
+#define VERSION "软件版本2.59（Emu_Temp）"
 
 QString g_ota_beta_dir_path = "";     //ota测试文件目录
 QString g_ota_official_dir_path = ""; //ota正式文件目录

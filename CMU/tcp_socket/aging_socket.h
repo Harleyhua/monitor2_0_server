@@ -15,6 +15,7 @@
 #define CS_ERR_RESPONSE         "9000"
 #define CS_HEAD_ERROR         "2101"   //固定头错误
 #define CS_TEMP_KEY         "room_temp_cur"   //温度字段名
+#define CS_TEMP_NEW_KEY         "cur_temp"
 
 class aging_socket: public QTcpSocket
 {
