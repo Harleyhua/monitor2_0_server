@@ -145,7 +145,7 @@
 
 enum aging_err_cause{
     errcode_data,     //错误代码
-    lowpower_data,    //功率低
+    lowpower_data,    //功率低 //最低功率异常
     uptemp_data,      //温度过高
     //ignore_max_data,  //频繁异常 忽略点数过多 故障过多
     power_fluction,   //功率异常波动

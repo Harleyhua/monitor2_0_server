@@ -961,6 +961,7 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
         ag_gateway_data_table tmp_emu_data_tb;
         QStringList emu_cid,emu_desc;
         QJsonArray emu_array;
+
         tmp_st_emu_tb.r_emu(m_db,st_array[i].toString(),emu_cid,emu_desc);
         for(int j=0;j<emu_cid.size();j++)
         {
@@ -971,11 +972,13 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
             QJsonObject tmp_emu_obj;
 
             tmp_emu_mi_tb.r_mi(m_db,emu_cid[j],mi_cid,mi_desc);
+
             for(int k=0;k<mi_cid.size();k++)
             {
                 ag_mi_property_table tmp_mi_pty_tb;
                 QJsonObject tmp_mi_pty_obj;
                 QJsonObject tmp_mi_obj;
+
                 tmp_mi_pty_tb.read_property(m_db,mi_cid[k],tmp_mi_pty_obj);
                 tmp_mi_obj.insert(ag_mi_property_table::c_field_nominal_power,
                                   tmp_mi_pty_obj.value("datas").toObject().value(ag_mi_property_table::c_field_nominal_power).toInt());
@@ -1004,7 +1007,8 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
                 tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
                 //QLOG_INFO() << "no cache read " + emu_cid[j] + "time:" + last_time;
             }
-            else {
+            else
+            {
 
             }
             tmp_emu_obj.insert("last_act_time",last_time);

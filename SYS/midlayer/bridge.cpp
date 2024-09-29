@@ -9,8 +9,8 @@ void bridge::start()
     //网关 Port:40031
     m_emu_server_thd->start();
 
-    // //客户端、温度采集 Port:38700
-    // m_client_server_thd->start();
+    //客户端、温度采集 Port:38700
+    m_client_server_thd->start();
 
     //老化房 Port:40032
     m_aging_server_thd->start();

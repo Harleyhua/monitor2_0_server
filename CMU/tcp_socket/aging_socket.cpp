@@ -27,7 +27,8 @@ void aging_socket::onm_del_data()
     mTimerCount = 0;
     m_buff.append(readAll());
     qDebug() << m_buff.size();
-    while (m_buff.size() > 0) {
+    while (m_buff.size() > 0)
+    {
         //数据异常则会清空  若未接收完全则跳出继续接收
         //可能会同时收到多条指令 处理完后继续处理下一条
         if(!del_buff_data())
@@ -193,8 +194,8 @@ bool aging_socket::get_root_jsonobj(QByteArray &data, QJsonObject &root_obj, uin
     bool ok = false;
     int json_data_length = data.mid(16,11).toUInt(&ok);
 
-    // if(json_data_length + start_index < data.size()){
-
+    // if(json_data_length + start_index < data.size())
+    //{
     //    json_data_length = data.size()-start_index;
     // }
 

@@ -434,44 +434,47 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             //     continue;
             // }
 
-            // //当前大于滤波点
-            // if(j <= pv_datas.size() - start_point_offset)
-            // {
-            //     //跌幅超过% 认为波动异常  不统计功率  比较时cur_power都已经放大100倍
-            //     if( (cur_power * 100) < ((old_power_value * (100 - drop_thr)) * 100) )
-            //     {
-            //         drop_times ++;
-            //         cal_temp_flag = false;
-            //         ignore_points = ERR_IGNORE_POINTS;
-            //         rm_idx_set.insert(j);
-            //         old_power_value = cur_power;
-            //         //总计忽略次数
-            //         ignore_times ++;
-            //         continue;
-            //     }
-            // }
-
             //当前大于滤波点
             if(j <= pv_datas.size() - start_point_offset)
             {
-                //当前功率值 < 标称功率值 -（100 * 设定的阈值）
-                if( (cur_power *100) < (pv_nominal_power * (100 - drop_thr)) * 100 )
+                //跌幅超过% 认为波动异常  不统计功率  比较时cur_power都已经放大100倍
+                // 当前功率值 < (（上一次老化功率值 * 100 - 跌落百分比）* 100)
+                int a = cur_power * 100;
+                int b = old_power_value * (100 - drop_thr);
+                if( (cur_power * 100) < (old_power_value * (100 - drop_thr)) )
                 {
-                    // 跌落次数
                     drop_times ++;
-                    // 不计算某环境温度下的标志
                     cal_temp_flag = false;
-                    //发生异常时后续忽略的点数
                     ignore_points = ERR_IGNORE_POINTS;
-
                     rm_idx_set.insert(j);
-                    //功率仍然更新
                     old_power_value = cur_power;
                     //总计忽略次数
                     ignore_times ++;
                     continue;
                 }
             }
+
+            // //当前大于滤波点
+            // if(j <= pv_datas.size() - start_point_offset)
+            // {
+            //     //当前功率值 < 标称功率值 -（100 * 设定的阈值）
+            //     if( (cur_power *100) < (pv_nominal_power * (100 - drop_thr)) * 100 )
+            //     {
+            //         // 跌落次数
+            //         drop_times ++;
+            //         // 不计算某环境温度下的标志
+            //         cal_temp_flag = false;
+            //         //发生异常时后续忽略的点数
+            //         ignore_points = ERR_IGNORE_POINTS;
+
+            //         rm_idx_set.insert(j);
+            //         //功率仍然更新
+            //         old_power_value = cur_power;
+            //         //总计忽略次数
+            //         ignore_times ++;
+            //         continue;
+            //     }
+            // }
 
             //向上浮动
             // （ 上一次功率 * （100 + fluct_minrange）<（当前功率 * 100）&& （当前功率 * 100）< (上一次功率 * （100 + fluct_maxrange）)
@@ -1305,7 +1308,8 @@ QString aging_alg::get_aging_err_cause_str(aging_err_cause err_cause)
         str.append("温度过高");
         break;
     case lowpower_data:
-        str.append("老化功率低");
+        //str.append("老化功率低");
+        str.append("最低功率异常");
         break;
     // case ignore_max_data:
     //     str.append("异常忽略点数过多");

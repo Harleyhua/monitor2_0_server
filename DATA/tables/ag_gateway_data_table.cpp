@@ -207,7 +207,6 @@ void ag_gateway_data_table::read_last_hand_data_time(QSqlDatabase &m_database, Q
         query.next();
         time = query.value(c_field_sys_time).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
     }
-
 }
 
 
