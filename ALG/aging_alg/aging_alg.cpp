@@ -439,8 +439,6 @@ void aging_alg::aging_report(QJsonObject s_data, QJsonObject judge_param, QHash<
             {
                 //跌幅超过% 认为波动异常  不统计功率  比较时cur_power都已经放大100倍
                 // 当前功率值 < (（上一次老化功率值 * 100 - 跌落百分比）* 100)
-                int a = cur_power * 100;
-                int b = old_power_value * (100 - drop_thr);
                 if( (cur_power * 100) < (old_power_value * (100 - drop_thr)) )
                 {
                     drop_times ++;

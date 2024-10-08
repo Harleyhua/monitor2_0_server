@@ -36,7 +36,8 @@ void emu_socket::onm_deal_socket_data()
 
     m_offline_date = QDateTime::currentDateTime(); //更新最新时间
 
-    while(m_data_cache.size() > 0) {
+    while(m_data_cache.size() > 0)
+    {
         //数据异常则会清空  若未接收完全则跳出继续接收
         //可能会同时收到多条指令 处理完后继续处理下一条
         if(tmp_pol.emu_type_analysis(m_data_cache,name,type))

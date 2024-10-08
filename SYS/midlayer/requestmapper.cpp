@@ -23,6 +23,7 @@ static QHash<QString,int> gPathMapping = {
     {"/r_rack_data",1},
     {"/aging/newroomdevdata",1},
 
+    //网关服务
     {"/w_emu_func",2},
     {"/w_temporary_power",2},
     {"/r_temporary_power",2},

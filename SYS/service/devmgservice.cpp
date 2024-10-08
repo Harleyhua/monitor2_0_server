@@ -78,6 +78,7 @@ void devmgservice::getOneControlResuletBack(QString field, const QJsonObject &s,
     QJsonArray misRetArray;
     QJsonObject r_mxopret_obj;
 
+    // 根据传入的field参数，设置相应的查询参数和函数指针
     if(field == "r_maxop")
     {
         rctltime = "r_maxop_ctl_time";
@@ -147,14 +148,15 @@ void devmgservice::getOneControlResuletBack(QString field, const QJsonObject &s,
         return;
     }
 
+    // 从传入的JSON对象中获取mis数组
     dataJsObj = s.value(field).toObject();
-
     misArray = dataJsObj.value("mis").toArray();
 
+    // 如果控制时间字段不为空，并且数据尚未发送
     if(dataJsObj.value(rctltime).toString() != "" &&
        devCtlTable.is_data_send(mDataBase,s.value("emu_cid").toString(),dataJsObj.value(rctltime).toString()))
     {
-
+        // 遍历mis数组
         for(int i=0;i<misArray.size();i++)
         {
             dataParam = "";

@@ -1409,6 +1409,7 @@ bool mysql::r_emu_func_code(QString name, QString &data)
 //    return false;
 //}
 
+//读取未发送到设备的数据
 void mysql::r_device_ctl_first_cmd_nosend(QString emu_cid, dev_ctl_strc &ctl_data)
 {
     ag_device_control_table dev_ctl_tb ;
@@ -1448,8 +1449,8 @@ bool mysql::set_current_database(QString database_name)
         return false;
     }
     return false;
-
 }
+
 bool mysql::create_database(QString database_name)
 {
     QSqlQuery query = QSqlQuery(m_db);
@@ -1471,7 +1472,8 @@ bool mysql::delete_database(QString database_name)
     {
         QLOG_INFO() << QString("删除数据库:%1 成功").arg(database_name);
     }
-    else {
+    else
+    {
         QLOG_WARN() << QString("删除数据库: %1 失败").arg(database_name);
         return false;
     }

@@ -1,11 +1,10 @@
 #include "bry1000.h"
-
 #include "emu_protocolb.h"
-
 #include "emu_socket.h"
 #include "QsLog.h"
 #include "common.h"
 #include "abstract_bym.h"
+
 void bry1000::onm_deal_msg(QByteArray data)
 {
     emu_protocolb tmp_pcol;
@@ -127,16 +126,14 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
     {
         QByteArray send_data;
         QString data;
-
         dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"FFFFFFFF",0,""};
-
         sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
 
         if(abstract_bym::is_cid_valid(tmp_dev_ctl.send_data))
         {
-            //读取数据
             sql.r_mi_temporary_power(tmp_dev_ctl.send_data,data);
-            // 命令+长度(size 1) + app_data(micid data)
+
+            // 构建发送的数据字符串，格式为：命令 + 数据长度 + 设备数据
             data = "0708" + tmp_dev_ctl.send_data + data;
             send_data = common::str_to_qbytarray_h16(data);
             tmp_pcol.to_set_temporary_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
@@ -187,7 +184,6 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
 
         sql.r_device_ctl_last_data_nosend(m_name,cmd,tmp_dev_ctl);
 
-
         QString mis_data;
         //读取数据
         if(tmp_dev_ctl.send_data.size()%8 == 0)
@@ -214,7 +210,6 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         tmp_dev_ctl.is_data_send = 1;
         tmp_dev_ctl.data_send_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
         sql.update_device_data_send_flag(tmp_dev_ctl);
-
     }
     else if(cmd == emu_protocolb::C_MICID_MORE_TEMPORARY_POWER)
     {
@@ -224,7 +219,6 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
             tmp_pcol.to_micid_more_temporary_power_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
-
         }
     }
     else if(cmd == emu_protocolb::C_GET_MORE_TEMPORARY_POWER)
@@ -242,9 +236,7 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
             sql.w_mi_temporary_power(mi_cid,data);
         }
 
-
         tmp_pcol.to_get_more_temporary_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
-
 
         dev_ctl_strc tmp_dev_ctl = {"",0,"",0,"",0,"",0,""};
         sql.r_device_ctl_last_data_nosend(m_name,emu_protocolb::C_MICID_MORE_TEMPORARY_POWER,tmp_dev_ctl);
@@ -285,7 +277,6 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
             tmp_pcol.to_micid_max_power_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
-
         }
     }
     else if(cmd == emu_protocolb::C_GET_MAX_POWER)
@@ -335,7 +326,6 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
             send_data = common::str_to_qbytarray_h16(data);
             tmp_pcol.to_set_more_max_power_cmd_v2(frame_data,send_data,rt_data,tmp_server_cmd);
         }
-
 
         //更新 数据发送标记
         tmp_dev_ctl.is_data_send = 1;
@@ -416,7 +406,6 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
             tmp_pcol.to_micid_grid_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
-
         }
     }
     else if(cmd == emu_protocolb::C_GET_GRID)
@@ -471,7 +460,6 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         if(tmp_dev_ctl.is_data_send == 0 && tmp_dev_ctl.emu_cmd == cmd)
         {
             tmp_pcol.to_micid_certification_cmd_v2(frame_data,tmp_dev_ctl.send_data,rt_data,tmp_server_cmd);
-
         }
     }
     else if(cmd == emu_protocolb::C_GET_CERTIFICATION)

@@ -124,12 +124,23 @@ bool ag_device_control_table::w_data(QSqlDatabase &m_database, dev_ctl_strc data
 
 bool ag_device_control_table::r_first_cmd_nosend(QSqlDatabase &m_database, QString emu_cid, dev_ctl_strc &rt_data)
 {
-    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9 FROM %10 WHERE %11='%12' AND %13=%14 ORDER BY %15 ASC LIMIT 1")
-            .arg(c_field_emu_cid,c_field_server_cmd,c_field_cmd_time,c_field_emu_cmd,c_field_is_cmd_send,
-                 c_field_cmd_send_time,c_field_send_data,c_field_is_data_send,c_field_data_send_time,m_name,
-                 c_field_emu_cid,emu_cid,c_field_is_cmd_send,"0",c_field_cmd_time);
-    QSqlQuery query(m_database);
+    QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
 
+    // 计算十分钟前的时间
+    QDateTime tenMinAgo = QDateTime::currentDateTime().addSecs(-600);
+    QString tenMinAgoStr = tenMinAgo.toString("yyyy-MM-dd hh:mm:ss");
+
+    // QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9 FROM %10 WHERE %11='%12' AND %13=%14 ORDER BY %15 ASC LIMIT 1")
+    //         .arg(c_field_emu_cid,c_field_server_cmd,c_field_cmd_time,c_field_emu_cmd,c_field_is_cmd_send,
+    //              c_field_cmd_send_time,c_field_send_data,c_field_is_data_send,c_field_data_send_time,m_name,
+    //              c_field_emu_cid,emu_cid,c_field_is_cmd_send,"0",c_field_cmd_time);
+
+    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9 FROM %10 WHERE %11='%12' AND %13=%14 AND %15>'%16' ORDER BY %17 ASC LIMIT 1")
+                          .arg(c_field_emu_cid,c_field_server_cmd,c_field_cmd_time,c_field_emu_cmd,c_field_is_cmd_send,
+                               c_field_cmd_send_time,c_field_send_data,c_field_is_data_send,c_field_data_send_time,m_name,
+                               c_field_emu_cid,emu_cid,c_field_is_cmd_send,"0",c_field_cmd_time,tenMinAgoStr,c_field_cmd_time);
+
+    QSqlQuery query(m_database);
     if(query.exec(tmp_cmd))
     {
         if(query.size() == 1)
@@ -155,10 +166,22 @@ bool ag_device_control_table::r_first_cmd_nosend(QSqlDatabase &m_database, QStri
 
 bool ag_device_control_table::r_last_data_nosend(QSqlDatabase &m_database, QString emu_cid,uint8_t cmd, dev_ctl_strc &rt_data)
 {
-    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9 FROM %10 WHERE %11='%12' AND %13=%14 AND %15=%16 ORDER BY %17 DESC LIMIT 1")
-            .arg(c_field_emu_cid,c_field_server_cmd,c_field_cmd_time,c_field_emu_cmd,c_field_is_cmd_send,
-                 c_field_cmd_send_time,c_field_send_data,c_field_is_data_send,c_field_data_send_time,m_name,
-                 c_field_emu_cid,emu_cid,c_field_is_data_send,"0",c_field_emu_cmd,QString::number(cmd),c_field_cmd_time);
+    QString curr_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+
+    // 计算十分钟前的时间
+    QDateTime tenMinAgo = QDateTime::currentDateTime().addSecs(-600);
+    QString tenMinAgoStr = tenMinAgo.toString("yyyy-MM-dd hh:mm:ss");
+
+    QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9 FROM %10 WHERE %11='%12' AND %13=%14 AND %15=%16 AND %17>'%18' ORDER BY %19 DESC LIMIT 1")
+                        .arg(c_field_emu_cid,c_field_server_cmd,c_field_cmd_time,c_field_emu_cmd,c_field_is_cmd_send,
+                            c_field_cmd_send_time,c_field_send_data,c_field_is_data_send,c_field_data_send_time,m_name,
+                            c_field_emu_cid,emu_cid,c_field_is_data_send,"0",c_field_emu_cmd,QString::number(cmd),c_field_cmd_time,tenMinAgoStr,c_field_cmd_time);
+
+    // QString tmp_cmd = QString("SELECT %1,%2,%3,%4,%5,%6,%7,%8,%9 FROM %10 WHERE %11='%12' AND %13=%14 AND %15=%16 ORDER BY %17 DESC LIMIT 1")
+    //         .arg(c_field_emu_cid,c_field_server_cmd,c_field_cmd_time,c_field_emu_cmd,c_field_is_cmd_send,
+    //              c_field_cmd_send_time,c_field_send_data,c_field_is_data_send,c_field_data_send_time,m_name,
+    //              c_field_emu_cid,emu_cid,c_field_is_data_send,"0",c_field_emu_cmd,QString::number(cmd),c_field_cmd_time);
+
     QSqlQuery query(m_database);
 
     if(query.exec(tmp_cmd))

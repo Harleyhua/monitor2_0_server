@@ -2,12 +2,12 @@
   @file
   @author Stefan Frings
 */
-
-
 #include "devctlcontroller.h"
 #include "userservice.h"
 #include "devmgservice.h"
 #include "devdataservice.h"
+
+
 void devCtlController::service(HttpRequest& request, HttpResponse& response)
 {
     QByteArray path=request.getPath();

@@ -591,6 +591,7 @@ void cs_client::service(HttpRequest &request, HttpResponse &response)
             QJsonObject obj;
 
             obj = rev_data.value("r_maxop").toObject();
+            // 检查控制时间是否不为空，并且数据是否已经发送
             if(obj.value("r_maxop_ctl_time").toString() != "" &&
                sql.r_data_send_flag(rev_data.value("emu_cid").toString(),obj.value("r_maxop_ctl_time").toString()))
             {
