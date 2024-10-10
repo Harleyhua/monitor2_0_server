@@ -86,6 +86,7 @@ void bry1000::deal_frame(emu_protocolb &tmp_pcol, QByteArray &frame_data, quint8
         tmp_pcol.to_handshake_json(frame_data,js_obj);
         //sql.w_handshake(js_obj);
         sql.w_emu_action(js_obj);
+        sql.w_emu_handshake(js_obj);
         tmp_pcol.to_handshake_cmd(frame_data,rt_data,tmp_server_cmd);
     }
     else if(cmd == emu_protocolb::C_POWER_CMD)

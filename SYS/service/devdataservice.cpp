@@ -58,13 +58,15 @@ void devdataservice::readMiProperty(QString Mi, QJsonObject &retData)
 QString devdataservice::readEmuLastActionTime(QString emu)
 {
     ag_gateway_data_table emuDataTable;
+    ag_emu_handshake_table emu_hs_Table;
     QString lastTime;
     //读取最后异常action的通讯时间
     lastTime = mysql::m_emucid_hand_lastTime.value(emu,"");
     //内存不存在时  读库
     if(lastTime == "")
     {
-        emuDataTable.read_last_hand_data_time(mDataBase,emu,lastTime);
+        //emuDataTable.read_last_hand_data_time(mDataBase,emu,lastTime);
+        emu_hs_Table.read_last_hand_data_time(mDataBase,emu,lastTime);
         if(emu_act_cache_lock.tryLock(500))
         {
             mysql::m_emucid_hand_lastTime.insert(emu,lastTime);

@@ -45,7 +45,7 @@ void devDataController::getUserDeviceMapperAndLastData()
     QJsonObject retData;
     //user_table => 电站总数
     totalStation = userSv.readUserTotalStation(mName);
-    //user_station => 电站名
+    //user_station => 获取电站列表
     devMgSv.DevMapping(totalStation,Mis,retData);
     //
     devDataSv.readMiCurrentPowerData(Mis,retData);

@@ -41,6 +41,7 @@
 #include "ag_mi_extra_property_table.h"
 #include "ag_emu_extra_property_table.h"
 #include "ag_ota_file_table.h"
+#include "ag_emu_handshake_table.h"
 
 /*
     目前大部分功能已经被  控制器-服务的模式重构了
@@ -83,6 +84,7 @@ public:
     bool table_init();
     //底层设备 访问的数据库接口
     void w_emu_action(QJsonObject &s_data);
+    void w_emu_handshake(QJsonObject &s_data);
     void w_login(QJsonObject &s_data);
     void w_emu_property(QJsonObject &s_data);
     void w_handshake(QJsonObject &s_data);
@@ -101,6 +103,7 @@ public:
     void r_user_property(QString name, QJsonObject &rt_data);
     void r_user_property(QJsonObject &s_data,QJsonObject &rt_data);
     void r_emu_action(QJsonObject &s_data,QJsonObject &rt_data);
+    void r_emu_handshake(QJsonObject &s_data,QJsonObject &rt_data);
     void r_emu_status(QJsonObject &s_data,QJsonObject &rt_data);
     void r_mi_rack_data(QJsonObject &s_data,QJsonObject &rt_data);
     void r_mapping(QString account,QJsonObject &rt_data,QStringList &mis_list);

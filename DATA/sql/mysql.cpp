@@ -85,6 +85,7 @@ bool mysql::table_init()
 {
     bool ret = true;
     ag_gateway_data_table tmp_gt_dt_tb;
+    ag_emu_handshake_table tmp_emu_hs_tb;
     ag_mi_property_table tmp_mi_pro_tb;
 
     ag_power_index_table tmp_pw_idx_tb;
@@ -115,6 +116,7 @@ bool mysql::table_init()
 
     ret &= create_database(m_db.databaseName()); //创建数据库 if not exist
     ret &= tmp_gt_dt_tb.create_table(m_db);
+    ret &= tmp_emu_hs_tb.create_table(m_db);
     ret &= tmp_mi_pro_tb.create_table(m_db);
     ret &= tmp_pw_idx_tb.create_table(m_db);
     ret &= tmp_rk_idx_tb.create_table(m_db);
@@ -204,8 +206,22 @@ void mysql::w_emu_action(QJsonObject &s_data)
                                       d_obj.value(ag_gateway_data_table::c_field_sys_time).toString());
             emu_act_cache_lock.unlock();
         }
-
     }
+}
+
+void mysql::w_emu_handshake(QJsonObject &s_data)
+{
+    ag_emu_handshake_table tmp_emu_hs_tb;
+    QJsonObject d_obj = s_data.value("datas").toObject();
+
+    tmp_emu_hs_tb.write_data(m_db,s_data);
+}
+
+void mysql::r_emu_handshake(QJsonObject &s_data, QJsonObject &rt_data)
+{
+    ag_emu_handshake_table tmp_emu_hs_tb;
+
+    tmp_emu_hs_tb.read_data(m_db,s_data,rt_data);
 }
 
 void mysql::w_login(QJsonObject &s_data)
@@ -959,6 +975,7 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
         ag_emu_property_table tmp_emu_pty_tb;
         ag_emu_status_table tmp_emu_sta_tb;
         ag_gateway_data_table tmp_emu_data_tb;
+        ag_emu_handshake_table tmp_emu_hs_tb;
         QStringList emu_cid,emu_desc;
         QJsonArray emu_array;
 
@@ -1004,7 +1021,8 @@ void mysql::r_mapping(QString account, QJsonObject &rt_data,QStringList &mis_lis
             //内存不存在时  读库
             if(last_time == "")
             {
-                tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
+                //tmp_emu_data_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
+                tmp_emu_hs_tb.read_last_hand_data_time(m_db,emu_cid[j],last_time);
                 //QLOG_INFO() << "no cache read " + emu_cid[j] + "time:" + last_time;
             }
             else

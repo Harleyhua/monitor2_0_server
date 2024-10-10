@@ -186,6 +186,7 @@ void devmgservice::DevMapping(QString totalStation, QStringList &retMis, QJsonOb
     ag_user_station_table userStationTable;
     ag_emu_mi_table emuMiTable;
     ag_gateway_data_table emuDataTable;
+    ag_emu_handshake_table emu_hs_Table;
     ag_station_emu_table stationEmuTable;
 
     QJsonArray mapDataArray;
@@ -224,7 +225,8 @@ void devmgservice::DevMapping(QString totalStation, QStringList &retMis, QJsonOb
             //内存不存在时  读库
             if(emuLastTime == "")
             {
-                emuDataTable.read_last_hand_data_time(mDataBase,emus[j],emuLastTime);
+                //emuDataTable.read_last_hand_data_time(mDataBase,emus[j],emuLastTime);
+                emu_hs_Table.read_last_hand_data_time(mDataBase,emus[j],emuLastTime);
                 if(emu_act_cache_lock.tryLock(1000))
                 {
                     mysql::m_emucid_hand_lastTime.insert(emus[j],emuLastTime);

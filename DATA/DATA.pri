@@ -12,6 +12,7 @@ HEADERS += \
     $$PWD/sql/sqlconnectpool.h \
     $$PWD/tables/ag_device_control_table.h \
     $$PWD/tables/ag_emu_extra_property_table.h \
+    $$PWD/tables/ag_emu_handshake_table.h \
     $$PWD/tables/ag_emu_mi_table.h \
     $$PWD/tables/ag_emu_property_table.h \
     $$PWD/tables/ag_emu_status_table.h \
@@ -42,6 +43,7 @@ SOURCES += \
     $$PWD/sql/sqlconnectpool.cpp \
     $$PWD/tables/ag_device_control_table.cpp \
     $$PWD/tables/ag_emu_extra_property_table.cpp \
+    $$PWD/tables/ag_emu_handshake_table.cpp \
     $$PWD/tables/ag_emu_mi_table.cpp \
     $$PWD/tables/ag_emu_property_table.cpp \
     $$PWD/tables/ag_emu_status_table.cpp \

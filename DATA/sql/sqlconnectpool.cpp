@@ -7,12 +7,13 @@ sqlconnectpool* sqlconnectpool::instance = NULL;
 
 
 extern QMutex sql_lock;
-mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试 本机
-//mysql_login_stc login_param = {"127.0.0.1",3306,"root","123456","bydas"};
+//mysql_login_stc login_param = {"127.0.0.1",3306,"jack_lin","zbeny001","bydas"};  //老化房 测试 本机
+mysql_login_stc login_param = {"127.0.0.1",3306,"root","123456","bydas"};
 //mysql_login_stc login_param = {"1.117.152.46",3306,"root","zjbeny001","bydas"};  //老化房 测试 本机
 //mysql_login_stc login_param = {"47.97.180.36",3306,"jack_lin","zbeny001","bydas"};
 
-sqlconnectpool::sqlconnectpool() {
+sqlconnectpool::sqlconnectpool()
+{
     testOnBorrow = true;
     testOnBorrowSql = "SELECT 1";
 
@@ -21,7 +22,8 @@ sqlconnectpool::sqlconnectpool() {
     maxConnectionCount  = 300;
 }
 
-sqlconnectpool::~sqlconnectpool() {
+sqlconnectpool::~sqlconnectpool()
+{
     // 销毁连接池的时候删除所有的连接
     foreach(QString connectionName, usedConnectionNames) {
         QSqlDatabase::removeDatabase(connectionName);
@@ -32,7 +34,8 @@ sqlconnectpool::~sqlconnectpool() {
     }
 }
 
-sqlconnectpool& sqlconnectpool::getInstance() {
+sqlconnectpool& sqlconnectpool::getInstance()
+{
     if (NULL == instance) {
         QMutexLocker locker(&mutex);
 

@@ -102,7 +102,8 @@ void ag_gateway_data_table::write_data(QSqlDatabase &m_database, QJsonObject &w_
     {
         QLOG_INFO() << QString("网关:%1 写入数据表成功: ").arg(d_obj.value("emu_cid").toString()) + m_name;
     }
-    else {
+    else
+    {
         QLOG_WARN() << QString("网关:%1 写入数据表失败: ").arg(d_obj.value("emu_cid").toString()) + m_name;
     }
 }
